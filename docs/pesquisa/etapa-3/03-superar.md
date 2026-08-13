@@ -102,16 +102,18 @@ O rigor estatístico vem antes de qualquer conclusão por prato, e ele é aritm�
 | Mesas atendidas por mês | 20 por dia, 26 dias de operação, cerca de **520** |
 | Respostas por mês | 50 a 200 hoje, meta de 150 (29% de conversão) |
 | Detratores | cerca de 15% das respostas |
-| Eventos de reclamação por prato por mês | 1 evento por resposta de detrator |
+| Eventos de reclamação por prato por mês | **1 evento por detrator que escolhe `A comida` na `T2C`**. A fração de detratores com causa comida é **DESCONHECIDA** e não tem benchmark. As tabelas abaixo usam 100% como **teto otimista**; com 50% os números caem pela metade e o item mediano do cardápio não alcança 2 eventos no trimestre |
 
-| Respostas/mês | Eventos/mês | Eventos/trimestre | Média por item, cardápio de 18 itens |
-|---|---|---|---|
-| 50 | 7,5 | 22 | **1,2** |
-| 120 | 18 | 54 | **3,0** |
-| 150 | 22,5 | 67 | **3,7** |
-| 200 | 30 | 90 | **5,0** |
+A premissa merece a letra miúda, porque ela sustenta toda a seção: o caminho de prato não abre para todo detrator. Ele só abre quando o detrator escolhe `A comida` na `T2C`, que é opção única entre várias (F10 e F13 de `02-replicar.md`). Detrator que aponta serviço, ambiente ou preço não gera nenhum evento por prato. Por isso a coluna de teto otimista e a coluna de 50% aparecem lado a lado abaixo, e nenhuma das duas é medição: as duas são aritmética sobre uma fração que ninguém no QT conhece ainda.
 
-A leitura honesta desta tabela é a regra de publicação: **na janela trimestral, o item mediano do cardápio mal alcança 3 eventos.** Isso significa que a matriz serve para achar o item fora da curva, e nunca para ranquear o cardápio inteiro.
+| Respostas/mês | Eventos/mês | Eventos/trimestre | Média por item, cardápio de 18 itens, com **100% de causa comida** (teto otimista) | Média por item com **50% de causa comida** |
+|---|---|---|---|---|
+| 50 | 7,5 | 22 | **1,2** | **0,6** |
+| 120 | 18 | 54 | **3,0** | **1,5** |
+| 150 | 22,5 | 67 | **3,7** | **1,8** |
+| 200 | 30 | 90 | **5,0** | **2,5** |
+
+A leitura honesta desta tabela é a regra de publicação: **na janela trimestral, e já no cenário mais otimista, o item mediano do cardápio mal alcança 3 eventos.** Isso significa que a matriz serve para achar o item fora da curva, e nunca para ranquear o cardápio inteiro. E se a fração de detratores com causa comida for de 50%, **nenhuma linha da tabela alcança o mínimo de 3 eventos**, nem no cenário de 200 respostas por mês: aí a janela da matriz de cardápio passa de trimestral a semestral. A decisão entre uma e outra não se toma agora, se mede no primeiro trimestre.
 
 O intervalo de Poisson (cálculo próprio, aritmética verificável, confiança alta) diz o resto:
 
@@ -134,6 +136,7 @@ O intervalo de Poisson (cálculo próprio, aritmética verificável, confiança 
 | Linhas em `prato_ingredientes` | **0** (fato lido em 13/08/2026) | Todo item do cardápio com ficha carregada, em uma carga única |
 | Itens do cardápio com custo unitário calculável pela view | **1** (`pratos` tem 1 linha) | 100% dos itens vendidos no R3 do trimestre |
 | Itens que atingem 3 eventos no trimestre | DESCONHECIDO, medir no primeiro trimestre | 3 a 5 itens sinalizados por trimestre, que é o número que a operação consegue tratar |
+| **Fração de detratores com causa comida** (os que escolhem `A comida` na `T2C`) | **DESCONHECIDA**, sem benchmark | Medida no primeiro trimestre. **É o número que decide se a matriz de cardápio é trimestral ou semestral** |
 | Decisões de ficha técnica ou de preço tomadas a partir da matriz | 0 | **1 por trimestre**, registrada com data e resultado |
 
 **Risco de fazer errado, e a trava.** O risco é matar um prato bom com 3 reclamações e um gráfico bonito, ou, pior, mexer na receita de um Plow Horse de alta venda porque a matriz pediu. A trava é dupla: as cinco regras de publicação acima ficam **no código**, não na cabeça de ninguém (a view não devolve linha que não atenda ao mínimo), e a matriz é rotulada na tela como ferramenta de priorização de investigação. Risco secundário, e mais grave: `NFe e Financeiro` é o sistema fiscal. Nenhuma migração sem `pg_dump` antes, toda criação por migration versionada, e o papel do schema `experiencia` sem nenhuma permissão de escrita fora dele.
@@ -277,7 +280,7 @@ No corpo do e-mail, gráfico nenhum em imagem: barra desenhada em HTML e CSS (c�
 | Dias entre a falha do sistema e alguém perceber | DESCONHECIDO (ninguém monitora) | **2 dias**, que é a regra única de operação do README |
 | Pausas do banco por inatividade | não aplicável | **0** |
 | E-mails com "nada a relatar" | não aplicável | Existirem. Digest que sempre tem novidade vira ruído ignorado no terceiro mês |
-| Consumo de cota | não aplicável | Resend 5%, Groq 0,06%, Supabase 7,2% em dez anos |
+| Consumo de cota | não aplicável | Resend 5%, Groq **menos de 0,1%** (1 chamada de redação por dia mais cerca de 2 de classificação, seção 2.6), Supabase 7,2% em dez anos |
 
 **Risco de fazer errado, e a trava.** O risco máximo do projeto inteiro é o digest **errar em silêncio**: sair bonito, com número plausível e errado, porque o import do R3 falhou ou a classificação não voltou. Isso é pior que não sair, porque ninguém vai auditar o e-mail diário depois do terceiro mês. Três travas: **um dia sem dado sai como um dia sem dado**, escrito com essas palavras; se a classificação de IA falhar, o digest sai com os comentários sem categoria e um aviso, **nunca sem os comentários**; e a linha de log no banco permite reconstruir o que aconteceu depois que o log do fornecedor expirou. Risco secundário: sem SPF e DKIM configurados no subdomínio do QT, o relatório cai em spam e a conclusão de quem recebe será que o sistema não funciona. É trabalho de DNS de uma vez só, e é a diferença entre adoção e abandono na segunda semana.
 
@@ -298,7 +301,7 @@ No corpo do e-mail, gráfico nenhum em imagem: barra desenhada em HTML e CSS (c�
 | `experiencia.resposta.comentario_bruto` | O texto como o cliente escreveu, sem tratamento | **Nunca é apagada** (exceto por pedido de exclusão do titular) |
 | `experiencia.comentario_trecho` | Um trecho por linha, com dimensão, polaridade, `critica_pessoal` booleano, modelo usado, versão do prompt e data | **Sempre.** É derivada, e pode ser reprocessada do zero |
 
-Uma chamada por comentário ao Groq `llama-3.1-8b-instant` (cerca de 8 por dia contra 14.400/dia gratuitas), com saída estruturada em JSON: lista de trechos, cada um com dimensão e polaridade. **Nenhum identificador direto vai para o LLM**: só o texto e as notas, com nome e WhatsApp trocados por id interno. O Groq foi escolhido por contrato e não por limite, porque a cláusula dele proíbe usar as entradas e saídas para treino, enquanto os termos do tier gratuito do Gemini pedem literalmente para não enviar informação pessoal.
+Uma chamada por comentário ao Groq `llama-3.1-8b-instant`. O volume esperado é 150 respostas por mês, das quais cerca de 40% deixam comentário, ou seja **cerca de 2 chamadas por dia, com teto de 10 em noite cheia**, contra 14.400/dia gratuitas: **menos de 0,1% da cota diária gratuita**. É o mesmo número de F34 de `02-replicar.md`, e não existe outro. Saída estruturada em JSON: lista de trechos, cada um com dimensão e polaridade. **Nenhum identificador direto vai para o LLM**: só o texto e as notas, com nome e WhatsApp trocados por id interno. O Groq foi escolhido por contrato e não por limite, porque a cláusula dele proíbe usar as entradas e saídas para treino, enquanto os termos do tier gratuito do Gemini pedem literalmente para não enviar informação pessoal.
 
 Na tela e no e-mail, isso alimenta duas decisões já tomadas no briefing: comentários filtrados por área para cozinha e salão, e crítica pessoal grave só para o proprietário. É um campo booleano na saída do classificador, não uma triagem humana diária.
 
@@ -336,10 +339,12 @@ Sobre a migração do histórico do incumbente, a decisão honesta: o critério 
 |---|---|---|
 | Tempo para produzir um CSV do histórico completo | cerca de 92 requisições por ano de histórico, mais paginação, mais credencial pedida por e-mail | **menos de 60 segundos**, sem pedir nada a ninguém |
 | Backups fora do fornecedor de banco | **0** (o plano gratuito não tem nenhum) | **1 por semana**, desde o primeiro mês de dado real |
-| Restaurações testadas | 0 | **1 por trimestre.** Backup que nunca foi restaurado não é backup |
+| Restaurações testadas | 0 | **1 antes de declarar o MVP no ar, e 1 por trimestre depois disso.** Backup que nunca foi restaurado não é backup, e backup restaurado uma única vez em 2026 não prova nada sobre 2027 |
 | Registros do sistema com chave primária vinda de terceiro | não aplicável | **0** |
 
 **Risco de fazer errado, e a trava.** O risco é o backup existir e nunca ter sido restaurado, ou o workflow agendado do GitHub ser desativado em repositório inativo (relato amplo da comunidade, **não confirmado** na documentação lida) e parar em silêncio. As travas: o teste de restauração trimestral entra como linha do digest, e o cron principal do sistema é o Cloudflare, nunca o GitHub Actions. Risco secundário, e novo desde a inspeção: a restrição da Fair Use Policy do Supabase é aplicada a **todos os projetos da organização**, com 402 em toda a API. Como a organização é uma só e o schema `experiencia` vai conviver com o fiscal, o consumo da pesquisa precisa ficar visível no digest (linhas gravadas na semana, tamanho do schema), e não descoberto num 402.
+
+**Divergência a fechar, declarada aqui em vez de escondida.** F53 de `02-replicar.md` pede a restauração **uma única vez**, antes de declarar o MVP no ar. Esta seção pede **uma por trimestre**. As duas leituras se compõem em vez de se excluir, e a composição é a defensável: a restauração única é critério de aceite do go-live, a trimestral é o que impede que o backup apodreça em silêncio depois. O custo da versão trimestral é uma tarefa humana recorrente a mais, de cerca de meia hora, e por isso ela **entra na tabela consolidada de deveres humanos com dono nomeado** (omissão 1 e pergunta 4 da seção 5 de `05-critica.md`). Sem dono nomeado, a linha correta a escrever não é "trimestral": é "restauração única, e o backup fica sem verificação a partir do segundo trimestre". Quem escolhe entre as duas é o proprietário, porque quem paga a tarefa é ele.
 
 ---
 
@@ -353,7 +358,7 @@ Sobre a migração do histórico do incumbente, a decisão honesta: o critério 
 
 | Trava | Desenho | Custo |
 |---|---|---|
-| Uma resposta por comanda ou mesa por janela | Restrição única no banco sobre (mesa, `dia_operacional`, janela), com UUID gerado no cliente para idempotência | Baixo |
+| Uma resposta por mesa por janela: **marcação, não bloqueio** | Segunda resposta da mesma mesa no mesmo dia operacional dentro de 20 minutos grava `suspeita = true` e sai dos indicadores, sem ser rejeitada, porque mesas juntadas com comandas individuais produzem respostas legítimas em sequência (F04 de `02-replicar.md`). O UUID gerado no cliente continua garantindo idempotência do **mesmo** envio, que é outra coisa: reenvio da mesma resposta não cria segunda linha | Baixo |
 | Janela de tempo válida | Resposta só é aceita dentro do horário de operação do `dia_operacional` corrente | Baixo |
 | PIN do garçom | Digitado antes de entregar o tablet, e tratado como **dado da resposta, não como autenticação**. Com fila offline não há como validar na hora, e guardar hash de credencial num tablet que circula pelo salão é pior que não validar | Baixo |
 | Identificação do aparelho **da casa** | O tablet é equipamento do restaurante, então identificá-lo não é rastrear cliente. Repetição anômala no mesmo aparelho gera contagem no digest | Baixo |
@@ -368,12 +373,12 @@ Sobre a migração do histórico do incumbente, a decisão honesta: o critério 
 
 | Métrica | Valor de partida | Meta |
 |---|---|---|
-| Respostas duplicadas por comanda | Tratado por punição administrativa (2% dos resultados) | **0**, impedido pelo banco |
+| Respostas marcadas como suspeitas | Tratado por punição administrativa (2% dos resultados) | **menos de 3% e estável**. Marcadas e contadas à parte, nunca rejeitadas nem apagadas |
 | Conversão sobre mesas atendidas, por garçom | As 74 linhas de `cliques_avaliacao` já dão a primeira leitura de distribuição por atendente | Faixa saudável e **parecida entre garçons**. Outlier alto é tão suspeito quanto outlier baixo |
 | Respostas com duração menor que 8 segundos | DESCONHECIDO | menos de 2% |
 | Metas de nota amarradas a bônus | existem no desenho do incumbente | **0** |
 
-**Risco de fazer errado, e a trava.** O risco é o antifraude derrubar resposta legítima e a equipe concluir que "o sistema não funciona", que é como uma trava boa morre. As travas: nada é **apagado**, tudo suspeito é **marcado** e contado à parte, para que o efeito de qualquer regra seja mensurável e reversível; e a mensagem na tela nunca acusa ninguém, apenas diz que aquela mesa já respondeu hoje. Risco pendente, que precisa de resposta do proprietário antes de qualquer coisa: **para onde os QR Codes por garçom apontam hoje?** Se apontam para o Google condicionados à nota, isso é review gating operando no perfil do QT, e a penalidade recai sobre o restaurante e não sobre o fornecedor.
+**Risco de fazer errado, e a trava.** O risco é o antifraude derrubar resposta legítima e a equipe concluir que "o sistema não funciona", que é como uma trava boa morre. As travas: nada é **apagado**, tudo suspeito é **marcado** e contado à parte, para que o efeito de qualquer regra seja mensurável e reversível; e a tela nunca acusa ninguém nem recusa resposta, porque a segunda resposta da mesma mesa é aceita e agradecida como qualquer outra, e a marcação de `suspeita` acontece só do lado do banco. Risco pendente, que precisa de resposta do proprietário antes de qualquer coisa: **para onde os QR Codes por garçom apontam hoje?** Se apontam para o Google condicionados à nota, isso é review gating operando no perfil do QT, e a penalidade recai sobre o restaurante e não sobre o fornecedor.
 
 ---
 
@@ -446,7 +451,26 @@ O critério não é valor, é **dependência mais custo de esquecer**. Duas deci
 
 A régua honesta não é a mensalidade atual de R$ 501 a R$ 1.000. É a alternativa mais barata que existe de verdade: **R$ 575,00 por ano à vista, equivalentes a R$ 47,92/mês** (Avalio Starter, com API REST inclusa). Contra essa régua, sete das oito mecânicas são argumentos de qualidade, e qualidade nem sempre paga R$ 575 por ano.
 
-**A que paga sozinha é a 2.1, satisfação cruzada com CMV.** Ela é a única das oito que **nenhum fornecedor vende a nenhum preço**, porque nenhum tem acesso ao custo de insumo do cliente. E o retorno dela não precisa ser argumentado, ele pode ser **conferido no próprio banco**: para empatar com a alternativa mais barata, a matriz precisa gerar cerca de **R$ 1,58 por dia** de ganho (R$ 575 divididos por 365). Com o denominador censitário do R3 do Altec e o custo unitário da ficha técnica, uma única correção de gramagem, de fornecedor de insumo ou de preço num item de alta rotação é aferível em reais, com data e com unidades vendidas, no trimestre seguinte. É a única afirmação de retorno deste documento que se prova com dado em vez de com prosa.
+**A que paga sozinha é a 2.1, satisfação cruzada com CMV.** Ela é a única das oito que **nenhum fornecedor vende a nenhum preço**, porque nenhum tem acesso ao custo de insumo do cliente.
+
+Antes de qualquer conta de retorno, a correção que este documento devia ter feito na primeira versão e não fez: **comparar infraestrutura zero contra R$ 575 por ano é comparação errada, e ela favorece o lado de casa.** O caminho próprio tem desembolso único e tem trabalho, e nenhum dos dois aparecia aqui. O que existe, com a fonte de cada linha:
+
+| Item do caminho próprio | Quantidade | Valor | Situação do número |
+|---|---|---|---|
+| Infraestrutura recorrente | o ano inteiro | **R$ 0** | Consumo declarado entre 0,04% e 7,2% de cotas gratuitas lidas em página oficial |
+| Tablet Android de entrada | 2 (um em uso, um de reserva) | **NÃO VERIFICADO em BRL.** Única referência independente: cerca de 180 EUR por unidade (GSMArena, Galaxy Tab A11) | A faixa de R$ 900 a R$ 1.200 foi **refutada** pelo verificador. Cotação no ato da compra é obrigatória |
+| Licença Fully Kiosk PLUS | 2 | **8,90 EUR por aparelho, pagamento único**, ou 17,80 EUR no total | Oficial, e é o único número de hardware auditável do projeto. A conversão para reais depende do câmbio do dia e **não está verificada aqui** |
+| Suporte de mesa com chave e cabo | 2 | **NÃO PESQUISADO** | Tablet solto em salão pede fixação física |
+| Horas de construção | **40 a 80** | Sem valor em reais | O briefing não declara preço para a hora de quem constrói, e ele não vai ser inventado aqui |
+
+Com isso, a conta de empate se refaz em duas réguas, e não em uma:
+
+1. **Primeiro ano.** O ganho diário necessário para empatar é `(575 + D) / 365`, onde `D` é o desembolso único em reais. Hoje `D` é **NÃO VERIFICADO**: o preço dos tablets em BRL é NÃO VERIFICADO, o suporte de mesa é NÃO PESQUISADO, e mesmo a licença, que é o único valor oficial, está em euro e depende do câmbio do dia. Enquanto `D` não for cotado, **não existe número de retorno para o primeiro ano**, e escrever um seria retórica com cara de prova.
+2. **Do segundo ano em diante.** Aí sim a régua é **cerca de R$ 1,58 por dia** (R$ 575 divididos por 365), porque o desembolso único não se repete e a infraestrutura segue em R$ 0. Era essa a conta que a primeira versão deste documento apresentou como se valesse desde o dia 1.
+
+Duas ressalvas que puxam para lados opostos, e as duas ficam escritas. A favor do caminho próprio: o tablet locado volta ao fornecedor no cancelamento de qualquer forma, então **se a alternativa a R$ 575/ano também for operada com tablet em mesa, o hardware aparece nos dois lados da conta** e o que sobra de exclusivo do caminho próprio são as licenças e as horas. Se o plano Starter da Avalio inclui algum hardware: **NÃO VERIFICADO**. Contra o caminho próprio: as 40 a 80 horas **nunca voltam em dinheiro por esta conta**. Elas são preço de entrada, e o único jeito de elas se pagarem é o sistema durar anos, o que depende inteiramente de a restrição "ninguém vai manter" ser verdade ou ficção (pergunta 4 da seção 5 de `05-critica.md`).
+
+O que resta de prova, depois de tirar tudo o que era retórica: com o denominador censitário do R3 do Altec e o custo unitário da ficha técnica, uma única correção de gramagem, de fornecedor de insumo ou de preço num item de alta rotação é **aferível em reais, com data e com unidades vendidas, no trimestre seguinte**. Esse ganho se mede no próprio banco e é a única afirmação de retorno deste documento que se prova com dado. Ele paga a mensalidade evitada. Ele não paga, e não se pretende que pague, o desembolso único que ainda não foi cotado nem as horas de construção.
 
 Há uma ironia que vale registrar em vez de esconder: **a mecânica que paga o projeto é a última a entrar.** Isso não é contradição de prioridade, é sequência de dependência, e ela tem uma consequência prática imediata. Preencher `pratos` e `prato_ingredientes` **não depende de nenhuma linha de código do sistema de pesquisa**. É carga de dado numa estrutura que já existe, em tabelas que hoje têm 1 e 0 linhas, num banco que já está de pé. Pode começar hoje, em paralelo com tudo, e é a tarefa de maior retorno por hora do projeto inteiro.
 

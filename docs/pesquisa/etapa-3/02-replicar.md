@@ -47,7 +47,17 @@ Nomes de campo aparecem em `crase`. **São nomes provisórios de trabalho, não 
 
 Telas do quiosque conforme `06-questionario.md`, seção 14: `T0` garçom, `T1` nota, `T2A/T2B/T2C` ramificação, `T3C1/T3C2/T3C3` prato a prato, `T3C` fator, `T3/T4` rotacionadas, `T5` aberta, `T6` contato, `T7` agradecimento.
 
-Rotinas agendadas do MVP, e são só cinco: `watcher_drive` (a cada 30 min), `cron_classificador` (07h), `cron_digest_16h` (16h), `cron_retencao` (mensal, dia 1), `backup_semanal` (domingo, GitHub Actions).
+Rotinas agendadas do MVP, e são só cinco. **Onde cada uma roda, porque isso estava faltando:**
+
+| Rotina | Quando | Plataforma |
+|---|---|---|
+| `watcher_drive` | a cada 30 min | **Cloudflare Workers**, com Cron Triggers |
+| `cron_classificador` | 07h | **Cloudflare Workers**, com Cron Triggers |
+| `cron_digest_16h` | 16h | **Cloudflare Workers**, com Cron Triggers |
+| `cron_retencao` | mensal, dia 1 | **Cloudflare Workers**, com Cron Triggers |
+| `backup_semanal` | domingo | **GitHub Actions** |
+
+São duas plataformas, e não mais que duas, porque cada plataforma a mais é uma conta a mais que pode expirar em silêncio num sistema sem mantenedor. O `backup_semanal` fica no GitHub Actions e não no Cloudflare porque precisa de `pg_dump` e de armazenamento de artefato, que é onde o runner do GitHub já está.
 
 ---
 
@@ -123,6 +133,7 @@ Rotinas agendadas do MVP, e são só cinco: `watcher_drive` (a cada 30 min), `cr
   - [ ] Se `mesas_atendidas_dia` não foi informado, o painel escreve **"denominador ausente"** e não mostra percentual nenhum.
   - [ ] O corte por garçom mostra o `n` ao lado, sempre.
 - **Como falha.** Ninguém preenche mesas atendidas. Então o sistema degrada para contagem absoluta de respostas e escreve que a taxa não pode ser calculada, em vez de inventar denominador. Melhoria de custo zero prevista para a Fase 2: puxar o número de mesas do R3 se ele trouxer, o que é DESCONHECIDO hoje.
+- **Dono nomeado da tarefa.** O gerente de turno, no fechamento do caixa, em um campo único no painel. Se o campo ficar **3 dias** sem preenchimento, o e-mail das 16h cobra em linha própria. A confirmação de quem executa é a pergunta 4 da seção 5 de [`05-critica.md`](05-critica.md).
 
 #### F06. Coleta anônima com contato só na última tela (L7)
 
@@ -278,7 +289,7 @@ Rotinas agendadas do MVP, e são só cinco: `watcher_drive` (a cada 30 min), `cr
 - **Onde vive.** `/painel/tendencia`, e o relatório mensal (Fase 2) herda a mesma regra.
 - **Dado que precisa.** `n`, contagem de promotores, neutros e detratores por janela.
 - **Critério de aceite.**
-  - [ ] Todo NPS aparece com o `n` e a faixa de 95%, calculada por `raiz((p_promotores + p_detratores - NPS²) / n)`.
+  - [ ] Todo NPS aparece com o `n` e a faixa de 95%, calculada como **1,96 vezes o erro padrão**, com o erro padrão em `raiz((p_promotores + p_detratores - NPS²) / n)`. Conferência: n=50 dá erro padrão de 10,5 e faixa de ±20,5 pontos.
   - [ ] A tabela de referência está impressa na tela: **n=50 dá ±20,5 pontos; n=100 dá ±14,5; n=200 dá ±10,3**. E a diferença mínima entre dois períodos para não ser ruído: **±29, ±20,5 e ±14,5 pontos** respectivamente.
   - [ ] Corte com `n` abaixo do mínimo aparece literalmente como **`amostra insuficiente, n=7`**, e não como número.
   - [ ] Está escrito no painel que **não existe benchmark de NPS de pizzaria verificável no Brasil nem no mundo**, e que a Retently removeu restaurantes do benchmark de 2026 por falta de base recorrente.
@@ -324,13 +335,14 @@ Rotinas agendadas do MVP, e são só cinco: `watcher_drive` (a cada 30 min), `cr
 
 #### F21. Corte por dia da semana (L28)
 
-- **Por que existe.** Sábado contra sábado é o corte que informa numa casa que abre só à noite. Segmentação por período do dia é bucket vazio aqui, e o fornecedor atual gasta três buckets nisso.
+- **Por que existe.** Sábado contra sábado é o corte que informa numa casa que abre só à noite. Segmentação por período do dia é bucket vazio aqui, e o fornecedor atual gasta três buckets nisso. O briefing pede desempenho por garçom **e turno**. O que se recusa aqui é o turno no sentido do fornecedor atual (Manhã, Tarde, Noite), que numa casa só de jantar produz dois buckets vazios. O turno que a casa tem de verdade é **primeira e segunda leva de mesas**, e ele entra como corte opcional a partir de `dia_operacional` mais faixa horária (até 20h30, depois de 20h30), sem tela nova, quando houver `n` de 20 por faixa no trimestre. Enquanto não houver, a tela escreve `amostra insuficiente, n=x`. Essa é a única definição de turno do sistema, e ela é a mesma em F39 e F41.
 - **Onde vive.** `/painel/tendencia`.
 - **Dado que precisa.** `dia_operacional` e o dia da semana derivado dele.
 - **Critério de aceite.**
   - [ ] Comparação padrão: **este sábado contra a média dos últimos 4 sábados**, com os dois `n`.
   - [ ] Segunda-feira não aparece na grade, porque a casa fecha.
   - [ ] **Nenhum** corte por Manhã, Tarde ou Noite existe no sistema.
+  - [ ] O corte por turno, quando existir, é **faixa horária sobre `dia_operacional`** (até 20h30, depois de 20h30), é opcional, não tem tela nova e só mostra proporção com `n` de **20 por faixa no trimestre**. Abaixo disso escreve `amostra insuficiente, n=x`. Esta definição é a mesma em F39 e F41, e nenhuma outra definição de turno existe no repositório.
   - [ ] O dia da semana vem do dia operacional (F15), não da data civil.
 - **Como falha.** Quatro sábados com 8 respostas cada não sustentam comparação de proporção. Então a tela compara **contagem** e escreve o `n`, e a leitura em proporção só aparece na janela trimestral.
 
@@ -370,7 +382,9 @@ Rotinas agendadas do MVP, e são só cinco: `watcher_drive` (a cada 30 min), `cr
   - [ ] O gatilho é a **nota**, não o motivo: dispara mesmo se a pessoa pular todas as telas seguintes.
   - [ ] O aviso traz **mesa, hora, nota e fator** quando houver fator, e nada mais.
   - [ ] Canal do MVP: **e-mail** (Resend), porque WhatsApp é Fase 3. Consumo de 100 e-mails por dia é o limite gratuito, e o volume esperado de detratores é de poucos por noite.
+  - [ ] **Como o gerente vê esse e-mail no meio do salão, que é o ponto que faltava escrever.** E-mail que chega numa caixa que ninguém abre durante o serviço não é alerta em tempo real, e sem isso a vantagem de "alerta com o cliente ainda na mesa" (D5 do grid) é teórica. O canal escolhido para o MVP é **e-mail com notificação por push e som no aparelho que o gerente de turno já usa em serviço**, em um endereço dedicado (por exemplo `alerta@`), com o aplicativo de e-mail configurado para notificar **só** esse endereço. Escolhido por três razões: custo zero, nenhuma peça móvel nova (é o mesmo Resend do e-mail das 16h) e nenhuma dependência de API de terceiro que expira. Aceite: com o aparelho bloqueado e na tela inicial, a nota 2 dada no tablet produz notificação visível e audível em menos de **30 segundos**, testado uma vez antes do go-live e registrado na definição de pronto.
   - [ ] Resposta que chegou pela fila offline com atraso maior que **20 minutos** dispara o alerta marcado como **atrasado**, com a hora real do toque, para o gerente não abordar uma mesa que já foi.
+- **A alternativa, se a casa não aceitar aparelho com push ligado durante o serviço.** Aí o MVP não tem canal de tempo real: o alerta continua sendo gravado e continua saindo no bloco 2 do e-mail das 16h do dia seguinte, e a vantagem de abordar a mesa antes de o cliente ir embora **só se realiza na Fase 3, com WhatsApp**. As duas opções custam R$ 0 em software, e a diferença é operacional, então a escolha é do proprietário. A escolha padrão deste documento é a primeira, o e-mail com push, e o motivo é que ela entrega a janela de minutos sem construir nada e sem nenhuma peça móvel nova.
 - **Como falha.** Alerta chega e ninguém age. Isso é humano, e o MVP não constrói ticket de recuperação (Fase 2, e desenhado para morrer sozinho em 48h). O que o MVP faz: o bloco 2 do e-mail das 16h lista **um incidente por linha, com "houve contato" e quanto tempo levou**, e incidente sem contato aparece em destaque.
 
 #### F25. Regras de ronda que preservam o anonimato percebido (L35)
@@ -380,8 +394,8 @@ Rotinas agendadas do MVP, e são só cinco: `watcher_drive` (a cada 30 min), `cr
 - **Dado que precisa.** Nenhum campo novo.
 - **Critério de aceite.**
   - [ ] O texto das regras está escrito no repositório e termina no corpo do alerta, em uma linha: **o gerente nunca menciona a pesquisa nem a nota**.
-  - [ ] A ronda é hábito visível em mesas aleatórias, não só nas de nota baixa. Critério objetivo: se a única mesa visitada na noite foi a que deu nota baixa, a regra foi quebrada.
   - [ ] O aviso de privacidade (F44) registra que em mesa com comanda individual a resposta pode ser associável, em vez de prometer anonimato que o desenho não entrega.
+- **Regra escrita no README, fora da lista de aceite.** A ronda é hábito visível em mesas aleatórias, não só nas de nota baixa: se a única mesa visitada na noite foi a que deu nota baixa, a regra foi quebrada. Isso **não é critério de software**, é regra de operação, e a verificação é a leitura da regra na reunião de turno. Ficou fora do aceite porque exigiria um observador humano no salão, o que a regra de ouro deste documento não admite.
 - **Como falha.** Gerente de turno novo não sabe da regra. Mitigação de custo zero: a regra viaja no corpo de todo alerta, então quem recebe o alerta lê a regra junto.
 
 #### F26. Nenhum alerta no tablet (L36)
@@ -417,7 +431,7 @@ Rotinas agendadas do MVP, e são só cinco: `watcher_drive` (a cada 30 min), `cr
 - **Onde vive.** `cron_digest_16h`, todo dia às **16h**, cobrindo o dia operacional anterior.
 - **Dado que precisa.** Tudo do dia anterior, mais `classificacao_texto`, mais `venda_produto_dia`, mais `execucao_rotina`.
 - **Critério de aceite.**
-  - [ ] Sai às **16h**, antes da abertura da noite, todo dia, inclusive segunda (dia fechado, e aí o conteúdo é "nada a relatar").
+  - [ ] Sai às **16h**, antes da abertura da noite, todo dia, inclusive segunda. Em dia que o calendário de operação marca como fechado, o conteúdo é **`casa fechada`**, nunca "nada a relatar" e nunca "nenhuma resposta coletada", pela regra de F32.
   - [ ] Oito blocos, na ordem da seção 10.2 do questionário: quatro números de ontem; incidentes de ontem; fator da semana; cozinha; salão; pergunta em foco; cruzamento com faturamento; nada a relatar.
   - [ ] **Toda linha termina numa frase que um gerente pode executar no próximo turno.** Linha que não termina assim sai do template.
   - [ ] Bloco 1 traz respostas, conversão sobre mesas atendidas, contagem de detratores e contagem de promotores. **Sem média e sem percentual isolado.**
@@ -470,7 +484,8 @@ Rotinas agendadas do MVP, e são só cinco: `watcher_drive` (a cada 30 min), `cr
   - [ ] Dia sem detrator, sem alerta de heartbeat, sem falha de importação e sem fator acima do comparável sai como **`Nada a relatar`** mais os quatro números do bloco 1, e nada mais.
   - [ ] O e-mail de "nada a relatar" tem no máximo **10 linhas**.
   - [ ] Um dia com zero respostas **não** é "nada a relatar": é "nenhuma resposta coletada", e isso é um problema de coleta que precisa aparecer.
-- **Como falha.** Limiar mal calibrado, e o e-mail dizendo "nada a relatar" numa noite ruim. Verificação prevista no aceite: rodar o gerador sobre 30 dias de dado real e conferir manualmente se os dias marcados como normais eram normais.
+  - [ ] O **calendário de operação é dado do sistema**. Dia operacional em que a casa não abriu sai como **`casa fechada`** e não entra na contagem de dias sem resposta nem dispara alerta. Só dia de operação com zero respostas vira `nenhuma resposta coletada`. É o que resolve a contradição com F28, porque a casa fecha toda segunda.
+- **Como falha.** Limiar mal calibrado, e o e-mail dizendo "nada a relatar" numa noite ruim. Verificação prevista no aceite: rodar o gerador sobre os dados da ponte e conferir que **todo dia com pelo menos 1 detrator, 1 falha de importação ou 1 alerta de heartbeat saiu fora de "nada a relatar"**. É contagem, não julgamento.
 
 #### F33. Log de execução no próprio banco (L45)
 
@@ -496,7 +511,7 @@ Rotinas agendadas do MVP, e são só cinco: `watcher_drive` (a cada 30 min), `cr
   - [ ] A taxonomia de saída é **exatamente** a mesma da estrutura (F19). O modelo **não pode** criar dimensão nem fator novos: valor fora da lista é rejeitado.
   - [ ] Uma frase pode gerar dois registros com polaridades opostas em dimensões diferentes.
   - [ ] **Nenhuma nota de sentimento de 0 a 100.** É indicador de vaidade disfarçado de precisão.
-  - [ ] Volume e custo: cerca de **9 chamadas por dia**, aproximadamente **0,06% da cota diária gratuita** do Groq. Sem cartão de crédito envolvido.
+  - [ ] Volume e custo: **150 respostas por mês, das quais cerca de 40% deixam comentário, ou seja cerca de 2 chamadas por dia**, com teto de **10** em noite cheia. Menos de **0,1%** da cota diária gratuita do Groq. Sem cartão de crédito envolvido. Este é o único número de volume de LLM do projeto, e ele vale igual em [`03-superar.md`](03-superar.md).
   - [ ] `versao_prompt` gravada em toda linha, para a contagem de um mês ser comparável com a de outro.
 - **Como falha.** Cota estourada, política do fornecedor mudada, ou API fora do ar. Tratamento em F36: o texto cru já está salvo, o digest sai com os comentários sem categoria e com aviso, e a classificação é retentada no dia seguinte sobre a fila do que ficou pendente.
 
@@ -526,7 +541,7 @@ Rotinas agendadas do MVP, e são só cinco: `watcher_drive` (a cada 30 min), `cr
 
 #### F37. Módulo único de LLM, com prompt, chamada e parser num só lugar (L76)
 
-- **Por que existe.** Com cerca de 9 chamadas por dia, trocar de fornecedor tem que custar uma linha de configuração, e só custa isso se o acoplamento estiver num módulo só.
+- **Por que existe.** Com cerca de 2 chamadas por dia e teto de 10 (F34), trocar de fornecedor tem que custar uma linha de configuração, e só custa isso se o acoplamento estiver num módulo só.
 - **Onde vive.** Um arquivo, uma função de entrada, uma de saída.
 - **Dado que precisa.** `modelo`, `versao_prompt`, `provedor`, em configuração, nunca espalhados.
 - **Critério de aceite.**
@@ -552,7 +567,7 @@ Rotinas agendadas do MVP, e são só cinco: `watcher_drive` (a cada 30 min), `cr
 
 #### F39. Import do R3 por pasta sincronizada, com watcher na nuvem (L80)
 
-- **Por que existe.** É um dos quatro obrigatórios da primeira versão, é o único caminho que não depende de nada da Altec nem do PC do caixa (que desliga no fim do dia), e o proprietário **já exporta o R3 hoje** para as análises de CMV, ou seja o hábito existe.
+- **Por que existe.** É um dos quatro obrigatórios da primeira versão e é o único caminho que não depende de nada da Altec nem do PC do caixa (que desliga no fim do dia). O caminho depende de alguém exportar o R3 com regularidade. Se esse hábito já existe hoje nas análises de CMV é **NÃO VERIFICADO**, e é a pergunta 5 da seção 5 de [`05-critica.md`](05-critica.md). Se não existir, o hábito precisa ser criado antes da posição 32 do backlog, e o botão de importar planilha (F40) passa de rede de segurança a caminho principal.
 - **Onde vive.** `watcher_drive`, a cada 30 minutos, sobre uma pasta do Google Drive.
 - **Dado que precisa.** `venda_produto_dia` (`dia_operacional`, `produto_id_pdv`, `produto_nome_norm`, `grupo`, `unidades`, `valor_liquido`, `arquivo_origem`, `importado_em`) e `import_execucao` (`arquivo`, `hash`, `linhas`, `status`, `erro`).
 - **Critério de aceite.**
@@ -561,8 +576,10 @@ Rotinas agendadas do MVP, e são só cinco: `watcher_drive` (a cada 30 min), `cr
   - [ ] **Idempotência por data:** importar o mesmo arquivo duas vezes não duplica linha nenhuma, e o faturamento do dia não muda. Testado com 5 reimportações.
   - [ ] O arquivo bruto é salvo **antes** de ser interpretado, e fica guardado.
   - [ ] Falha de leitura grava `status = erro` com a mensagem e **não** apaga o dado do dia anterior.
-  - [ ] Nenhuma promessa de comanda, mesa ou horário em tela nenhuma: a chave de junção é a **data**, possivelmente data mais turno.
+  - [ ] Nenhuma promessa de comanda, mesa ou horário em tela nenhuma: a chave de junção é o **dia operacional**, e nada além dele. Se um dia a junção descer para turno, o turno é o de F21 (faixa horária, até 20h30 e depois de 20h30) e nenhum outro, e isso depende de o R3 trazer horário, o que é DESCONHECIDO.
 - **Como falha.** Ninguém exporta, ou o layout da planilha muda sem aviso. Primeiro caso: o e-mail das 16h traz a linha "sem faturamento importado para ontem" e o bloco 7 não aparece. Segundo caso: `import_execucao` grava erro de parser e a mesma linha aparece no e-mail. Em nenhum dos dois o painel mostra número velho como se fosse novo.
+- **Dono nomeado.** O proprietário, na mesma rotina em que já exporta o R3 para a análise de CMV. Ausência de arquivo novo por **2 dias operacionais** vira linha de cobrança no e-mail das 16h, e não silêncio. A confirmação de quem executa é a pergunta 4 da seção 5 de [`05-critica.md`](05-critica.md).
+- **Como o watcher autentica no Drive.** A credencial do Drive é o único segredo externo de longa duração do MVP. Ela é uma **conta de serviço** com acesso somente leitura a **uma** pasta, nunca OAuth de usuário com refresh token, justamente para não repetir a fragilidade que fez o corte 3 de [`04-cortar-e-backlog.md`](04-cortar-e-backlog.md) recusar a API do Google Business Profile. Dono da credencial: o proprietário, com a chave guardada fora do repositório. Falha de autenticação grava `status = erro` em `import_execucao` e vira linha no e-mail das 16h no mesmo dia.
 
 #### F40. Botão de importar planilha no painel (L81)
 
@@ -582,7 +599,7 @@ Rotinas agendadas do MVP, e são só cinco: `watcher_drive` (a cada 30 min), `cr
 - **Onde vive.** Bloco 7 do e-mail das 16h e `/painel/tendencia`.
 - **Dado que precisa.** `resposta` agregada por `dia_operacional` e `venda_produto_dia` agregada por `dia_operacional`.
 - **Critério de aceite.**
-  - [ ] A junção é por **dia operacional**, e a tela escreve isso.
+  - [ ] A junção é por **dia operacional**, e a tela escreve isso. Não existe junção por turno no MVP, e a única definição de turno aceita no sistema é a de F21 (faixa horária sobre `dia_operacional`, até 20h30 e depois de 20h30), nunca Manhã, Tarde e Noite.
   - [ ] Bloco 7 traz faturamento de ontem, ticket médio e os **dois pratos mais vendidos**, com a contagem de reclamações do trimestre ao lado.
   - [ ] **Nenhum gráfico insinua causalidade** entre nota e faturamento: com até 20 mesas por dia, essa correlação é ruído, e uma linha de texto na tela diz isso.
   - [ ] Dia sem importação aparece como lacuna explícita, nunca como zero.
@@ -741,11 +758,15 @@ Rotinas agendadas do MVP, e são só cinco: `watcher_drive` (a cada 30 min), `cr
 - **Onde vive.** `backup_semanal`, GitHub Actions, domingo.
 - **Dado que precisa.** Todo o schema `experiencia`.
 - **Critério de aceite.**
-  - [ ] Roda **1 vez por semana** e guarda as últimas **8 semanas**.
+  - [ ] Roda **1 vez por semana** em regime permanente e guarda as últimas **8 semanas**.
   - [ ] O dump é **restaurado num banco vazio** ao menos uma vez, antes de declarar o MVP no ar. Backup não testado não é backup.
   - [ ] Falha de execução avisa por e-mail, e a ausência de dump por **2 semanas** aparece em `/painel/saude`.
   - [ ] Consumo de cerca de **1,5%** da cota gratuita do GitHub Actions.
   - [ ] O dump **não** contém chave de serviço nem segredo.
+  - [ ] O dump é **cifrado com chave simétrica** antes de sair do runner, e a chave não vive no repositório.
+  - [ ] O destino é **um bucket privado nomeado no README**, com retenção de **8 semanas** e acesso restrito aos dois administradores (F57). Qual bucket, e sob qual conta, é decisão do proprietário e é a segunda metade da pergunta 5 da seção 5 de [`05-critica.md`](05-critica.md): sem ela, o `backup_semanal` não pode entrar no ar, porque leva a base de clientes inteira (nome, e-mail, WhatsApp, nascimento) para fora do Supabase.
+  - [ ] O dump conta como **compartilhamento de dado pessoal**: o destino entra nas categorias de compartilhamento do aviso de privacidade (F44) e no registro de operações (F59).
+  - [ ] Enquanto o digest das 16h não existir, este workflow carrega o **keep-alive provisório** do banco (F54), com uma escrita própria em `execucao_rotina`, e roda **duas vezes por semana** (domingo e quarta) só nessa janela, porque a pausa do plano gratuito acontece com uma semana de inatividade e uma execução semanal não deixa margem. O dump guardado continua sendo o de domingo. Nenhuma rotina nova permanente é criada para isso.
 - **Como falha.** Repositório privado com cota estourada, ou credencial expirada. Detecção pelo terceiro critério, e a mitigação é que o dump anterior continua válido: perder um domingo não perde dado, perder oito seguidos sim.
 
 #### F54. Cron diário que toca o banco, keep-alive (L109)
@@ -757,8 +778,8 @@ Rotinas agendadas do MVP, e são só cinco: `watcher_drive` (a cada 30 min), `cr
   - [ ] O digest **consulta o banco e grava a execução** todos os dias, inclusive segunda e inclusive em dia sem resposta.
   - [ ] A consulta ao banco e o envio do e-mail são passos **separados**: falha de e-mail não impede o keep-alive.
   - [ ] `/painel/saude` mostra a data da última escrita bem-sucedida, e ela nunca passa de **2 dias**.
-  - [ ] Nenhuma segunda rotina existe só para isso.
-- **Como falha.** O projeto é pausado de qualquer forma (mudança de política, cota da organização). Sintoma: HTTP 402 em toda a API. Como a inspeção mostrou que a restrição de uso é aplicada a **todos** os projetos da organização, e o schema vai viver junto do fiscal (F55), este é o risco mais sério do arranjo e está registrado como tal.
+  - [ ] Nenhuma segunda rotina permanente existe só para isso. **Entre a criação do schema e a entrada do digest, o keep-alive é uma escrita do workflow de backup** (`backup_semanal`, F53), e não uma rotina nova. Depois que o digest das 16h entra, essa escrita é aposentada. É isso que fecha a divergência com a posição 25 do backlog, que chamava a entrega de `cron_keepalive`: não existe sexta rotina.
+- **Como falha.** No arranjo provisório, o keep-alive semanal encosta no limite: a pausa acontece após uma semana de inatividade e a escrita é semanal, então um domingo perdido já é risco de pausa. Enquanto durar essa janela, o backup roda **duas vezes por semana** (domingo e quarta), o que é a mesma peça e nenhuma rotina nova. O outro modo de falha é o projeto ser pausado de qualquer forma (mudança de política, cota da organização). Sintoma: HTTP 402 em toda a API. Como a inspeção mostrou que a restrição de uso é aplicada a **todos** os projetos da organização, e o schema vai viver junto do fiscal (F55), este é o risco mais sério do arranjo e está registrado como tal.
 
 #### F55. Schema dedicado dentro de projeto existente (L110, reescrita pela inspeção)
 
@@ -937,6 +958,8 @@ Isto não é dado, é hábito operacional, e é a parte mais difícil de constru
 | **Descartar** | Qualquer convite a plataforma pública no destino do QR, por decisão do briefing e por política do Google |
 | **Aceite** | Um QR por garçom ativo, impresso, testado em celular real, apontando para a `T1`, antes do desligamento do fornecedor atual |
 
+**Ressalva que precisa estar ao lado da promessa de "trocar o destino, não o hábito".** O gesto é o mesmo para o garçom, mas não necessariamente para o cliente. Se o que a equipe diz hoje ao apresentar o QR é "avalie a gente no Google", então o cliente que aceita está aceitando **publicar uma avaliação pública**, e o novo destino o leva a uma **pesquisa interna anônima**, que é outra coisa. Muda o que ele entende que está fazendo, muda o que ele espera de retorno e pode muito bem mudar quem aceita. **A conversão do gesto reaproveitado é DESCONHECIDA**, não tem benchmark e não pode ser presumida igual à de hoje. As 74 linhas de `cliques_avaliacao` medem cliques em um convite, não respostas de pesquisa, então elas servem de linha de base de **volume de convite aceito**, e nunca de previsão de conversão da pesquisa nova. Duas consequências práticas: o script do garçom precisa ser reescrito junto com o QR (é uma frase, custo zero, e sem isso o cliente é levado a um lugar que não é o prometido), e a conversão real é medida por F05 desde o primeiro dia, contra as mesas atendidas, e não contra as 74 linhas. Para onde os QR apontam hoje é a pergunta 2 da seção 5 de [`05-critica.md`](05-critica.md), e ela precede esta ressalva.
+
 ### 4.3 O custo que já está em Postgres
 
 `insumos_master` (131 linhas), `historico_precos` (344), `notas` (422) e `itens_nota` (1.179) são sistema real e com volume. `pratos` tem 1 linha e `prato_ingredientes` tem 0.
@@ -947,6 +970,35 @@ Isto não é dado, é hábito operacional, e é a parte mais difícil de constru
 | **Reaproveitar como chave** | `item_cardapio.prato_id` (F42) é o ponto de encontro, e ele nasce aceitando nulo |
 | **Não construir** | Nenhuma tabela nova de custo, nenhum cálculo de CMV, nenhuma cópia de preço de insumo. O diferencial nº 1 depende de **preencher** `pratos` e `prato_ingredientes`, o que é trabalho de ficha técnica nas skills, não de software de pesquisa |
 | **Manter separado** | As skills seguem sendo a ferramenta de formular e revisar receita, conforme instrução do briefing. O sistema de experiência apenas consome custo por prato, e só na Fase 2 |
+
+### 4.4 As respostas da ponte, e o mapeamento campo a campo para o schema definitivo
+
+O terceiro ativo é o que a **ponte da M0** coletar antes do schema existir: nota, comentário aberto e a atribuição por QR. Elas são respostas reais de clientes reais e não podem ser descartadas, mas nascem sem quatro coisas que o schema definitivo exige: `dia_operacional` calculado pela função de F15, PIN validado, `versao_texto` de consentimento e idioma. A migração é a posição 15 do backlog, e ela é escrita aqui campo a campo para não virar improviso na hora.
+
+| Campo na ponte | Campo no schema definitivo | Regra de migração |
+|---|---|---|
+| `id` sequencial | `resposta.origem_id`, mais `resposta_uuid` novo (v4 gerado na migração) | O id antigo é preservado para a contagem ser reconferível. Aceite: `n` na origem igual a `n` no destino, com o `criado_em` mínimo e máximo iguais |
+| `nota` | `resposta.nota` | Direto, sem transformação. É o único campo que não precisa de tratamento |
+| **ausente** | `resposta.faixa` | Derivada da nota na migração (0 a 6 detrator, 7 e 8 neutro, 9 e 10 promotor), nunca digitada |
+| `criado_em` | `resposta.criado_em` | Preservado com fuso `America/Sao_Paulo`. Nada de recarimbar com a hora da migração |
+| **ausente** | `resposta.dia_operacional` | **Recalculado** pela função de F15 sobre `criado_em`, corte às 6h. É derivação pura, então a ponte não precisa ter calculado nada. Consequência a declarar, não a esconder: resposta da madrugada muda de dia em relação ao que o e-mail da ponte mostrou, e a migração grava quantas linhas mudaram de dia |
+| comentário aberto | `resposta_texto.texto_cru` | Íntegro, sem truncar e sem limpar. `resposta_texto.idioma` recebe `pt` como **valor imputado**, marcado como imputado, porque a ponte não tem seletor de idioma |
+| `?g=<pin>` da URL | `resposta.garcom_pin_digitado`, `resposta.garcom_id`, `resposta.garcom_reconhecido` | O PIN nunca foi validado na ponte, então **nenhuma** resposta migrada entra como PIN validado. O `garcom_id` é resolvido na migração contra a tabela `garcom` (F49) e, quando não casa, `garcom_reconhecido = false`: a resposta entra nos indicadores gerais e fica fora do corte por garçom (F50) |
+| `?m=<mesa>` da URL | `resposta.mesa` | Quando existir. Quando não existir, fica nulo e a linha não é chutada |
+| **ausente** | `resposta.canal` | `qr` fixo, porque na M0 não existe tablet |
+| **ausente** | `resposta.suspeita` | A regra dos 20 minutos de F04 é aplicada **retroativamente** na migração onde houver `mesa` e `criado_em`. Sem `mesa`, a linha fica com `suspeita = false` e `suspeita_nao_avaliavel = true`, para ninguém ler o zero como ausência de duplicata |
+| **ausente** | `resposta.dispositivo_id`, `versao_app`, `versao_questionario` | `dispositivo_id` fica nulo (é o celular do cliente, e F03 não vale para ele). `versao_questionario` recebe o literal `ponte` |
+| **ausente** | `tela_evento`, `resposta.duracao_ms` | Ficam sem linha. As respostas da ponte **saem** do cálculo de mediana e p90 de F07, e a série de tempo começa no go-live. A contagem de respostas excluídas aparece no painel de coleta |
+| **ausente** | `resposta_opcao`, `resposta_item` | Não existem: a ponte não tem ramificação nem prato a prato. Os cortes por fator (F19) e por item (F22) começam do zero no go-live, e a tela escreve **início de série**, nunca queda |
+| **ausente** | `consentimento.versao_texto` | É o único campo sem saída automática. Ver a divergência abaixo |
+| (nova) | `resposta.origem` | `ponte` gravado em toda linha migrada, para qualquer contagem poder ser refeita com e sem elas |
+
+**A divergência que a migração não resolve sozinha: o consentimento.** F44 exige que nenhuma resposta seja aceita sem uma versão vigente de texto, e a ponte, como está descrita na posição 6 do backlog, não grava `versao_texto`. Duas opções, e a escolha é do proprietário:
+
+- **Opção A, corrigir a ponte antes de coletar:** a ponte carrega duas linhas de aviso (finalidade, controlador e canal de direitos) e grava `versao_texto` desde a primeira resposta. Custo: algumas horas na M0, antes da coleta começar. Resultado: a migração é direta e o schema definitivo nasce limpo.
+- **Opção B, migrar o que já foi coletado sem versão:** as linhas entram com `versao_texto` nulo e `consentimento_ausente = true`, contam nos agregados e **nunca** são usadas para contato. Custo: o schema definitivo nasce com um lote de linhas que não satisfaz o critério de F44, e isso precisa aparecer no registro de operações (F59) em vez de ficar implícito.
+
+Descartar o comentário aberto do período da ponte é a terceira saída, e ela custa perder justamente o texto dos primeiros clientes. Nenhuma das três é decisão de implementador. Esta escolha é vizinha da pergunta 5 da seção 5 de [`05-critica.md`](05-critica.md), que trata de dado pessoal, e precisa ser respondida junto com ela.
 
 ---
 
@@ -977,6 +1029,7 @@ Lista fechada. Cumprida inteira, autoriza declarar o MVP no ar e pedir o cancela
 - [ ] E-mail das **16h** saindo todo dia, com os oito blocos, os cortes por papel e "nada a relatar" funcionando.
 - [ ] Quatro endereços cadastrados, um por papel, e cada um recebendo só o seu corte, conferido no envio real.
 - [ ] Nota de 0 a 6 disparando alerta ao gerente em menos de **30 s**, com mesa, hora, nota e fator, e nunca no tablet.
+- [ ] Alerta testado **no aparelho do gerente de turno**, bloqueado e na tela inicial, com push e som, dentro dos 30 s. Se a casa recusar aparelho com push em serviço, isso fica registrado e o alerta com o cliente ainda na mesa passa a ser Fase 3 (F24).
 - [ ] Regras de ronda escritas no README e no corpo do alerta.
 - [ ] Digest saindo completo com a chave da IA apagada.
 
@@ -1006,6 +1059,8 @@ Lista fechada. Cumprida inteira, autoriza declarar o MVP no ar e pedir o cancela
 - [ ] Keep-alive gravando todos os dias, inclusive segunda, com a consulta separada do envio de e-mail.
 - [ ] Duas contas de administrador com 2FA, e o registro de uma página das operações de tratamento em `docs/`.
 - [ ] README com a única regra de operação do sistema: **se o e-mail das 16h não chegar dois dias seguidos, algo quebrou.**
+- [ ] Os **sete deveres humanos recorrentes** da tabela abaixo escritos no README, cada um com dono nomeado pelo proprietário (pergunta 4 da seção 5 de [`05-critica.md`](05-critica.md)). Dever sem dono nomeado no go-live é dever cortado, e o corte fica escrito ao lado do indicador que ele deixa de sustentar.
+- [ ] Destino do dump semanal nomeado no README, com cifra, retenção de 8 semanas e acesso restrito aos dois administradores (F53).
 
 ### Migração e transição
 
@@ -1016,6 +1071,25 @@ Lista fechada. Cumprida inteira, autoriza declarar o MVP no ar e pedir o cancela
 - [ ] Decisão registrada sobre histórico: migrar os últimos meses ou nenhum.
 - [ ] **Ensaio de aceite de três noites de serviço real** com o sistema novo, coletando de verdade, com o e-mail das 16h saindo nos três dias seguintes. Não é operação em paralelo de dois fornecedores, que o briefing descarta: é teste de aceite, e ele acontece **antes** do e-mail de cancelamento.
 - [ ] Dois tablets em operação, não um, porque o hardware passa a ser custo direto da casa e aparelho de entrada é consumível.
+- [ ] Respostas da ponte migradas pelo mapeamento campo a campo da seção 4.4, com a contagem conferida na origem e no destino e com o número de linhas que mudaram de dia operacional escrito no log da migração.
+
+### Os sete deveres humanos recorrentes que este MVP cria
+
+A restrição mais dura do briefing é **"ninguém vai manter o sistema depois de pronto"**. O MVP como está especificado não cumpre isso literalmente: ele cria sete tarefas humanas recorrentes, espalhadas por quatro documentos. Consolidá-las numa tabela é o que permite auditar a restrição em vez de acreditar nela.
+
+**A coluna de dono é proposta, não decidida.** Quem executa cada uma, com nome, é a pergunta 4 da seção 5 de [`05-critica.md`](05-critica.md), e ela precede a primeira linha de código. Tarefa sem dono nomeado é tarefa cortada, e cortá-la muda o que o painel consegue mostrar, o que está escrito na última coluna.
+
+| Tarefa | Frequência | Dono proposto | O que acontece se ninguém fizer |
+|---|---|---|---|
+| Exportar o R3 para a pasta do Drive (F39) | Diária | Proprietário, na mesma rotina de análise de CMV. O hábito já existir é **NÃO VERIFICADO** | O bloco 7 do e-mail não aparece e o cruzamento satisfação x faturamento some, que é o terceiro obrigatório do MVP. Ausência de arquivo novo por 2 dias operacionais vira linha de cobrança no e-mail das 16h |
+| Informar `mesas_atendidas_dia` (F05) | Diária | Gerente de turno, no fechamento do caixa | O painel escreve `denominador ausente` e não mostra percentual. Sem denominador não existe taxa de conversão, e "coletar mais que hoje" deixa de ser mensurável, que é o critério de sucesso nº 2. Campo vazio por 3 dias vira linha de cobrança no e-mail das 16h |
+| Trocar as 2 a 4 perguntas em foco (F11) | Mensal | Proprietário, na tela de administração, sem deploy | O banco rotacionado congela nas mesmas perguntas, as impressões deixam de se concentrar onde interessa e a pesquisa para de se renovar. Não quebra nada, e é a mais fácil de deixar cair |
+| Abrir o Portal do Parceiro do iFood e ler as avaliações (F51) | Semanal | Proprietário ou gerência, cerca de 20 minutos | O sistema não lê avaliação pública por decisão do briefing, então nenhum software cobre essa lacuna: a casa fica cega para o iFood. Não existe alerta possível, porque o sistema não sabe que a tarefa não foi feita |
+| Anotar a nota de 4 pizzarias comparáveis no Google (F51) | Trimestral | Proprietário ou gerência | O substituto do benchmark, que é irreplicável em software, desaparece. Como não existe benchmark de NPS de pizzaria verificável, essa anotação manual é a única referência externa do projeto |
+| Testar a restauração do dump em banco vazio (F53) | **Divergência**: F53 exige ao menos **uma** vez antes do go-live; [`03-superar.md`](03-superar.md) 2.7 pede **trimestral** | Proprietário ou o segundo administrador (F57) | Backup não testado não é backup, e o plano gratuito do Supabase não tem backup nenhum. A divergência entre os dois documentos precisa ser fechada: o piso deste documento é a restauração única antes do go-live, e a trimestral é o que se recomenda por cima dela |
+| Manter a ficha técnica atualizada para o CMV não derivar (posição 36 de [`04-cortar-e-backlog.md`](04-cortar-e-backlog.md)) | Contínua, a cada mudança de receita ou de preço | Proprietário, nas skills, que é onde a ficha técnica vive por instrução do briefing | O diferencial nº 1 (satisfação cruzada com CMV) passa a cruzar com custo velho, o que é pior que não cruzar, porque tem aparência de número certo. Isso é Fase 2, mas a derivação começa no dia em que a ficha for preenchida |
+
+Duas leituras honestas desta tabela. A primeira: **cinco das sete tarefas não têm nenhum alarme possível** e só as duas diárias entram no e-mail das 16h como cobrança, porque só elas têm um sinal que o sistema consegue observar (arquivo que não chegou, campo que não foi preenchido). A segunda: **o sistema roda sozinho, o painel completo não.** O que sobrevive sem nenhuma das sete é a coleta, o alerta ao gerente, a distribuição de notas, o corte por garçom e o e-mail das 16h. O que morre é a conversão, o cruzamento com faturamento, o iFood e a referência externa.
 
 ### O que a definição de pronto deliberadamente não exige, e é bom que não exija
 

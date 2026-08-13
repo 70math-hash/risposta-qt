@@ -1,0 +1,1104 @@
+<title>Sair do Risposta</title>
+<style>
+  /* ============ TOKENS ============
+     Paleta do manual de marca da QT: Preto Profundo #1A1E1E, Cinza Medio #A0A5A5,
+     Branco #EFECEC. O manual proibe cor vibrante, entao o dado e codificado por
+     tom e forma. Unico acento: tijolo envelhecido da paleta estendida, so em
+     marcador critico. */
+  :root {
+    --paper:      #EFECEC;
+    --paper-2:    #E5E2E2;
+    --paper-3:    #DAD7D7;
+    --ink:        #1A1E1E;
+    --ink-2:      #5F6565;
+    --ink-3:      #868C8C;
+    --rule:       #C8C5C5;
+    --rule-2:     #A0A5A5;
+    --brick:      #8A625A;
+    --fill:       #1A1E1E;
+    --fill-2:     #8E9494;
+
+    --f: "Helvetica Neue", Helvetica, Arial, "Liberation Sans", sans-serif;
+    --u: 8px;
+    --max: 1160px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:   #1A1E1E;
+      --paper-2: #232828;
+      --paper-3: #2C3232;
+      --ink:     #EFECEC;
+      --ink-2:   #A0A5A5;
+      --ink-3:   #7C8282;
+      --rule:    #3A4040;
+      --rule-2:  #4E5555;
+      --brick:   #C08D83;
+      --fill:    #EFECEC;
+      --fill-2:  #626868;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper:   #1A1E1E;
+    --paper-2: #232828;
+    --paper-3: #2C3232;
+    --ink:     #EFECEC;
+    --ink-2:   #A0A5A5;
+    --ink-3:   #7C8282;
+    --rule:    #3A4040;
+    --rule-2:  #4E5555;
+    --brick:   #C08D83;
+    --fill:    #EFECEC;
+    --fill-2:  #626868;
+  }
+
+  /* ============ BASE ============ */
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--f);
+    font-size: 16px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, h4 { margin: 0; font-weight: 700; text-wrap: balance; letter-spacing: -0.018em; }
+  p { margin: 0; }
+  a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--rule-2); }
+  a:hover { border-bottom-color: var(--ink); }
+  :focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+  strong { font-weight: 700; }
+
+  .wrap { max-width: var(--max); margin: 0 auto; padding: 0 24px; }
+  .band { border-top: 1px solid var(--rule); }
+  .band--alt { background: var(--paper-2); }
+  .stack { display: flex; flex-direction: column; }
+
+  /* label utilitario: caixa alta, tracking largo */
+  .lbl {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.11em; color: var(--ink-2); line-height: 1.3;
+  }
+  .num { font-variant-numeric: tabular-nums; }
+  .muted { color: var(--ink-2); }
+  .fine { font-size: 13px; line-height: 1.55; color: var(--ink-2); }
+
+  /* ============ CABECALHO ============ */
+  header.top { padding: 24px 0 20px; }
+  .top-in { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .mark { display: flex; align-items: center; gap: 14px; }
+  .mark svg { display: block; width: 58px; height: auto; color: var(--ink); }
+  .mark-txt { display: flex; flex-direction: column; gap: 3px; }
+  .wordmark { font-size: 13px; font-weight: 700; letter-spacing: 0.24em; text-transform: uppercase; }
+
+  .tbtn {
+    font: inherit; font-size: 11px; font-weight: 700; letter-spacing: 0.11em;
+    text-transform: uppercase; color: var(--ink-2);
+    background: none; border: 1px solid var(--rule-2); padding: 8px 14px; cursor: pointer;
+  }
+  .tbtn:hover { color: var(--ink); border-color: var(--ink); }
+
+  /* ============ HERO ============ */
+  .hero { padding: 48px 0 56px; border-top: 2px solid var(--ink); }
+  .hero h1 { font-size: clamp(34px, 6.2vw, 68px); line-height: 1.02; letter-spacing: -0.035em; max-width: 20ch; }
+  .hero .sub { margin-top: 24px; font-size: clamp(17px, 2.1vw, 21px); line-height: 1.45; max-width: 58ch; color: var(--ink-2); }
+  .hero .sub b { color: var(--ink); font-weight: 700; }
+
+  .figs { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1px; margin-top: 48px; background: var(--rule); border: 1px solid var(--rule); }
+  .fig { background: var(--paper); padding: 22px 20px 20px; display: flex; flex-direction: column; gap: 8px; }
+  .fig .v { font-size: clamp(26px, 3.4vw, 38px); font-weight: 700; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; }
+  .fig .c { font-size: 12.5px; line-height: 1.45; color: var(--ink-2); }
+
+  /* ============ SECOES com rail numerado ============ */
+  section { padding: 56px 0 60px; }
+  .sec-head { display: grid; grid-template-columns: 56px 1fr; gap: 20px; align-items: start; margin-bottom: 32px; }
+  .sec-n { font-size: 12px; font-weight: 700; letter-spacing: 0.06em; color: var(--ink-3); padding-top: 7px; font-variant-numeric: tabular-nums; border-top: 2px solid var(--ink); }
+  .sec-t h2 { font-size: clamp(23px, 3vw, 32px); line-height: 1.12; max-width: 30ch; }
+  .sec-t .dek { margin-top: 12px; font-size: 15.5px; line-height: 1.55; color: var(--ink-2); max-width: 68ch; }
+  .sec-body { display: grid; grid-template-columns: 56px 1fr; gap: 20px; }
+  .sec-body > .col { min-width: 0; display: flex; flex-direction: column; gap: 28px; }
+  @media (max-width: 700px) {
+    .sec-head, .sec-body { grid-template-columns: 1fr; gap: 14px; }
+    .sec-n { border-top: none; padding-top: 0; }
+  }
+
+  /* ============ TABELAS ============ */
+  .tw { overflow-x: auto; border: 1px solid var(--rule); background: var(--paper); }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th, td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  thead th {
+    font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--ink-2); background: var(--paper-2); border-bottom: 1px solid var(--rule-2); white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: var(--paper-2); }
+  td.n, th.n { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  caption { caption-side: bottom; text-align: left; padding: 10px 14px; font-size: 12.5px; color: var(--ink-2); border-top: 1px solid var(--rule); }
+
+  /* ============ CODIFICACAO POR FORMA (sem cor) ============ */
+  .chip { display: inline-flex; align-items: center; gap: 7px; font-size: 11.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; }
+  .sq { width: 10px; height: 10px; flex: 0 0 10px; border: 1.5px solid var(--ink); }
+  .sq--full { background: var(--ink); }
+  .sq--half { background: linear-gradient(135deg, var(--ink) 0 50%, transparent 50% 100%); }
+  .sq--none { background: none; border-color: var(--rule-2); }
+  .sq--crit { background: var(--brick); border-color: var(--brick); }
+
+  /* ============ CARTOES DE ROTA ============ */
+  .routes { display: grid; grid-template-columns: repeat(auto-fit, minmax(255px, 1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
+  .route { background: var(--paper); padding: 22px 20px; display: flex; flex-direction: column; gap: 12px; }
+  .route--rec { background: var(--ink); color: var(--paper); }
+  .route--rec .lbl, .route--rec .fine, .route--rec .muted { color: var(--paper-3); }
+  .route--rec .sq { border-color: var(--paper); }
+  .route--rec .sq--full { background: var(--paper); }
+  .route h3 { font-size: 18px; line-height: 1.2; }
+  .route .cost { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .route ul { margin: 0; padding-left: 17px; font-size: 13.5px; line-height: 1.5; }
+  .route li + li { margin-top: 5px; }
+
+  /* ============ CALCULADORA ============ */
+  .calc { border: 1px solid var(--rule); background: var(--paper); }
+  .calc-ctl { display: flex; flex-wrap: wrap; gap: 24px; padding: 20px; border-bottom: 1px solid var(--rule); background: var(--paper-2); }
+  .grp { display: flex; flex-direction: column; gap: 9px; }
+  .segs { display: flex; }
+  .seg {
+    font: inherit; font-size: 13px; font-weight: 700; color: var(--ink-2);
+    background: none; border: 1px solid var(--rule-2); padding: 9px 15px; cursor: pointer;
+    font-variant-numeric: tabular-nums; margin-left: -1px;
+  }
+  .seg:first-child { margin-left: 0; }
+  .seg:hover { color: var(--ink); }
+  .seg[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); position: relative; z-index: 1; }
+  .calc-out { display: grid; grid-template-columns: repeat(auto-fit, minmax(165px, 1fr)); gap: 1px; background: var(--rule); }
+  .out { background: var(--paper); padding: 20px; display: flex; flex-direction: column; gap: 6px; }
+  .out .v { font-size: clamp(24px, 3.2vw, 34px); font-weight: 700; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; }
+
+  /* ============ BARRAS (serie unica, rotulo direto) ============ */
+  .bars { display: flex; flex-direction: column; gap: 2px; }
+  .bar { display: grid; grid-template-columns: minmax(120px, 1.25fr) minmax(90px, 3fr) 62px; gap: 14px; align-items: center; padding: 7px 0; }
+  .bar-l { font-size: 13.5px; line-height: 1.35; }
+  .bar-l small { display: block; font-size: 11.5px; color: var(--ink-3); }
+  .bar-t { height: 14px; background: var(--paper-3); position: relative; }
+  .bar-f { height: 100%; background: var(--fill); border-radius: 0 4px 4px 0; }
+  .bar-f--est { background: var(--fill-2); }
+  .bar-v { font-size: 14px; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
+  @media (max-width: 620px) { .bar { grid-template-columns: 1fr 52px; } .bar-t { grid-column: 1 / -1; } }
+
+  /* ============ MEDIDORES ============ */
+  .meters { display: grid; grid-template-columns: repeat(auto-fit, minmax(215px, 1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
+  .meter { background: var(--paper); padding: 18px; display: flex; flex-direction: column; gap: 10px; }
+  .meter .v { font-size: 27px; font-weight: 700; letter-spacing: -0.025em; line-height: 1; font-variant-numeric: tabular-nums; }
+  .meter-t { height: 8px; background: var(--paper-3); }
+  .meter-f { height: 100%; background: var(--fill); min-width: 2px; }
+
+  /* ============ FILTRO DA MATRIZ ============ */
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 16px; }
+  .fchip {
+    font: inherit; font-size: 12px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+    color: var(--ink-2); background: none; border: 1px solid var(--rule-2); padding: 8px 13px; cursor: pointer;
+  }
+  .fchip:hover { color: var(--ink); border-color: var(--ink); }
+  .fchip[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .fcount { font-size: 12.5px; color: var(--ink-2); font-variant-numeric: tabular-nums; margin-left: auto; }
+
+  /* ============ FLUXO DO QUESTIONARIO ============ */
+  .flow { display: grid; gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
+  .fl { background: var(--paper); padding: 18px 20px; display: grid; grid-template-columns: 74px 1fr auto; gap: 18px; align-items: start; }
+  .fl-id { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; color: var(--ink-3); }
+  .fl-q { font-size: 15.5px; line-height: 1.4; font-weight: 700; }
+  .fl-m { font-size: 12.5px; color: var(--ink-2); margin-top: 5px; line-height: 1.45; }
+  .fl-t { font-size: 13px; font-weight: 700; color: var(--ink-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  @media (max-width: 620px) { .fl { grid-template-columns: 1fr auto; } .fl-id { grid-column: 1 / -1; } }
+
+  /* ============ LISTA DE ACHADOS ============ */
+  .finds { display: grid; gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
+  .find { background: var(--paper); padding: 20px; display: grid; grid-template-columns: 34px 1fr; gap: 16px; }
+  .find-n { font-size: 20px; font-weight: 700; color: var(--ink-3); line-height: 1; font-variant-numeric: tabular-nums; }
+  .find h3 { font-size: 16px; line-height: 1.35; margin-bottom: 7px; }
+  .find p { font-size: 13.5px; line-height: 1.55; color: var(--ink-2); }
+
+  /* ============ PASSOS ============ */
+  .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 32px; }
+  .steps ol { margin: 10px 0 0; padding-left: 20px; font-size: 14px; line-height: 1.55; }
+  .steps li + li { margin-top: 8px; }
+
+  /* ============ RODAPE ============ */
+  footer { background: var(--ink); color: var(--paper); padding: 44px 0 40px; margin-top: 8px; }
+  footer .lbl { color: var(--rule-2); }
+  footer a { color: var(--paper); border-bottom-color: var(--rule-2); }
+  footer a:hover { border-bottom-color: var(--paper); }
+  footer :focus-visible { outline-color: var(--paper); }
+  .foot-in { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 28px; }
+  .foot-in p { font-size: 13.5px; line-height: 1.55; color: var(--paper-3); }
+  .tag { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--rule-2); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--rule-2); }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .bar-f, .meter-f { transition: width 260ms ease; }
+    .seg, .fchip, .tbtn, a { transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease; }
+  }
+  @media print { .tbtn, .filters { display: none; } }
+</style>
+
+<header class="top wrap">
+  <div class="top-in">
+    <div class="mark">
+      <!-- Simbolo QT: Q = pizza com fatia cortada (circulo + dois raios), T = metade de taca -->
+      <svg viewBox="0 0 74 40" role="img" aria-label="QT Pizza Bar">
+        <circle cx="20" cy="20" r="14" fill="none" stroke="currentColor" stroke-width="2.4"
+                stroke-dasharray="76.9 11"></circle>
+        <path d="M20 20 H34 M20 20 L29.9 10.1" fill="none" stroke="currentColor" stroke-width="2.4"></path>
+        <path d="M46 8 H68 M57 8 V32" fill="none" stroke="currentColor" stroke-width="2.4"></path>
+      </svg>
+      <span class="mark-txt">
+        <span class="wordmark">QT Pizza Bar</span>
+        <span class="lbl">Dossiê de decisão · Etapa 2</span>
+      </span>
+    </div>
+    <button class="tbtn" id="theme" type="button" aria-live="polite">Alternar tema</button>
+  </div>
+</header>
+
+<main>
+  <div class="wrap hero">
+    <h1>Vale construir o nosso, ou só parar de pagar caro?</h1>
+    <p class="sub">Sete frentes de pesquisa e quatro verificadores adversariais sobre o Risposta e
+      <b>82 fornecedores</b> no Brasil e fora. A resposta curta: <b>construir, e cancelar antes de
+      construir</b> — nesta ordem, porque a economia começa na semana 1 e a construção não tem prazo.</p>
+
+    <div class="figs">
+      <div class="fig">
+        <span class="lbl">Fatura de hoje</span>
+        <span class="v">R$ 6.012<span class="muted">–12.000</span></span>
+        <span class="c">por ano, por 50 a 200 respostas/mês. Entre R$&nbsp;2,51 e R$&nbsp;20,00 por resposta coletada.</span>
+      </div>
+      <div class="fig">
+        <span class="lbl">Substituto, cenário realista</span>
+        <span class="v">R$ 0,00</span>
+        <span class="c">de infraestrutura/mês, verificada camada por camada em página oficial de cada fornecedor.</span>
+      </div>
+      <div class="fig">
+        <span class="lbl">Consumo dos planos gratuitos</span>
+        <span class="v">0,04–7,2%</span>
+        <span class="c">Dez anos de histórico ocupam 36&nbsp;MB contra 500&nbsp;MB de banco gratuito.</span>
+      </div>
+      <div class="fig">
+        <span class="lbl">Fidelidade e multa</span>
+        <span class="v">Nenhuma</span>
+        <span class="c">Os Termos do fornecedor não preveem prazo obrigatório. A mensalidade pode cair nesta semana.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 03 · A CONTA ============ -->
+  <div class="band">
+  <section class="wrap">
+    <div class="sec-head">
+      <div class="sec-n">03</div>
+      <div class="sec-t">
+        <h2>A conta, com as suas duas pontas de fatura</h2>
+        <p class="dek">O valor exato pago hoje está numa faixa, então a economia também. Escolha a ponta e o
+          cenário para ver o que muda. O pior cenário verificável é Supabase Pro mais Resend Pro, US$&nbsp;45/mês.</p>
+      </div>
+    </div>
+    <div class="sec-body">
+      <div class="col">
+        <div class="calc">
+          <div class="calc-ctl">
+            <div class="grp">
+              <span class="lbl" id="l-fee">Fatura atual por mês</span>
+              <div class="segs" role="group" aria-labelledby="l-fee">
+                <button class="seg" type="button" data-fee="501" aria-pressed="true">R$ 501</button>
+                <button class="seg" type="button" data-fee="1000" aria-pressed="false">R$ 1.000</button>
+              </div>
+            </div>
+            <div class="grp">
+              <span class="lbl" id="l-sc">Cenário do sistema próprio</span>
+              <div class="segs" role="group" aria-labelledby="l-sc">
+                <button class="seg" type="button" data-year="0" aria-pressed="true">Realista · R$ 0</button>
+                <button class="seg" type="button" data-year="2700" aria-pressed="false">Pessimista · câmbio 5,00</button>
+                <button class="seg" type="button" data-year="3240" aria-pressed="false">Pessimista · câmbio 6,00</button>
+              </div>
+            </div>
+            <div class="grp">
+              <span class="lbl" id="l-hw">Hipótese de hardware</span>
+              <div class="segs" role="group" aria-labelledby="l-hw">
+                <button class="seg" type="button" data-hw="1000" aria-pressed="true">R$ 1.000</button>
+                <button class="seg" type="button" data-hw="1500" aria-pressed="false">R$ 1.500</button>
+                <button class="seg" type="button" data-hw="2500" aria-pressed="false">R$ 2.500</button>
+              </div>
+            </div>
+          </div>
+          <div class="calc-out">
+            <div class="out">
+              <span class="lbl">Custo anual hoje</span>
+              <span class="v" id="o-now">R$ 6.012</span>
+            </div>
+            <div class="out">
+              <span class="lbl">Custo anual do próprio</span>
+              <span class="v" id="o-new">R$ 0</span>
+            </div>
+            <div class="out">
+              <span class="lbl">Economia no ano 1</span>
+              <span class="v" id="o-save">R$ 6.012</span>
+              <span class="fine" id="o-pct">100% da fatura</span>
+            </div>
+            <div class="out">
+              <span class="lbl">Hardware se paga em</span>
+              <span class="v" id="o-pay">2,0 meses</span>
+              <span class="fine">de mensalidade não paga</span>
+            </div>
+          </div>
+        </div>
+        <p class="fine">Câmbio <strong>não verificado</strong>: as duas pontas de 5,00 e 6,00 são declaradas como
+          hipótese. Preço de tablet em reais <strong>não verificado</strong> — a faixa original de R$&nbsp;900 a
+          R$&nbsp;1.200 foi refutada na checagem, e a única referência independente é de cerca de 180&nbsp;EUR por
+          aparelho. Cotar no ato da compra. Não existe cenário verificado em que a economia caia abaixo de 46%.</p>
+      </div>
+    </div>
+  </section>
+  </div>
+
+  <!-- ============ ROTAS ============ -->
+  <div class="band band--alt">
+  <section class="wrap">
+    <div class="sec-head">
+      <div class="sec-n">00</div>
+      <div class="sec-t">
+        <h2>Três rotas, e o que cada uma cobra de você</h2>
+        <p class="dek">Existe plataforma pronta de 6 a 20 vezes mais barata que a fatura atual. Por isso
+          <strong>economia não pode ser a tese do projeto</strong>. O que sustenta construir é outra coisa,
+          e está na rota C.</p>
+      </div>
+    </div>
+    <div class="sec-body">
+      <div class="col">
+        <div class="routes">
+          <div class="route">
+            <span class="chip"><span class="sq sq--none"></span>Rota A</span>
+            <h3>Trocar por plataforma pronta</h3>
+            <span class="cost">R$ 575<span class="muted" style="font-size:14px">/ano</span></span>
+            <ul>
+              <li>Economia imediata, zero hora de trabalho, zero manutenção</li>
+              <li>Abre mão de PDV, CMV, ficha técnica e reservas</li>
+              <li>Cumpre 1 dos 4 critérios de sucesso</li>
+            </ul>
+          </div>
+          <div class="route">
+            <span class="chip"><span class="sq sq--half"></span>Rota B</span>
+            <h3>Construir do zero</h3>
+            <span class="cost">40–80 h</span>
+            <ul>
+              <li>Entrega tudo o que a rota A não dá</li>
+              <li>Convive com a mensalidade atual até ficar pronto</li>
+              <li>Semanas ou meses pagando os dois</li>
+            </ul>
+          </div>
+          <div class="route route--rec">
+            <span class="chip"><span class="sq sq--full"></span>Rota C · recomendada</span>
+            <h3>Ponte agora, construção sem pressa</h3>
+            <span class="cost">12–20 h</span>
+            <ul>
+              <li>Cancela a mensalidade na <strong>semana 1</strong>, com formulário gravando no seu próprio banco</li>
+              <li>Nenhum dia sem coletar dado</li>
+              <li>Único custo: a marca da ferramenta de ponte na tela do cliente, por algumas semanas. Reversível</li>
+            </ul>
+          </div>
+        </div>
+
+        <div>
+          <span class="lbl" style="display:block;margin-bottom:12px">O aviso que você pediu para receber</span>
+          <div class="tw">
+            <table>
+              <caption>Preço lido em página oficial do fornecedor. A coluna da direita existe porque não é
+                comparação de igual para igual.</caption>
+              <thead>
+                <tr><th>Alternativa pronta</th><th class="n">Preço público</th><th>O que entrega</th><th>O que não entrega no seu caso</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Avalio Starter</strong></td>
+                  <td class="n">R$ 575/ano à vista<br><span class="fine">R$ 47,92/mês equivalente</span></td>
+                  <td>16.000 respostas/ano, modo totem, API REST, IA</td>
+                  <td>Não lê o Altec, não conhece ficha técnica, 1 usuário</td>
+                </tr>
+                <tr>
+                  <td>Avalio Standard</td>
+                  <td class="n">R$ 810/ano</td>
+                  <td>20.000 respostas/ano, 5.000 convites</td>
+                  <td>Mesmas ausências</td>
+                </tr>
+                <tr>
+                  <td>ReviewBR Essencial</td>
+                  <td class="n">R$ 79,90/mês</td>
+                  <td>Fluxo por WhatsApp pedindo avaliação no Google</td>
+                  <td>É captura de reputação pública, não pesquisa com série histórica por prato, garçom e turno</td>
+                </tr>
+                <tr>
+                  <td>Fidelimax</td>
+                  <td class="n">Plano gratuito</td>
+                  <td>Fidelidade, cashback e NPS contínuo de uma pergunta</td>
+                  <td>Limites do plano gratuito <strong>não publicados</strong>. NPS de uma pergunta é mais raso</td>
+                </tr>
+                <tr>
+                  <td>Risposta, piso publicado</td>
+                  <td class="n">R$ 150 só QR<br>R$ 200 com tablet</td>
+                  <td>O que você já conhece</td>
+                  <td>Segue sem PDV, sem WhatsApp, e com o corte de 23:59</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div>
+          <span class="lbl" style="display:block;margin-bottom:12px">A tese que sobrevive à pesquisa</span>
+          <div class="tw">
+            <table>
+              <thead>
+                <tr><th>O que você quer</th><th>Existe pronto?</th><th>Situação</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Dados unificados numa base só</td><td><span class="chip"><span class="sq sq--none"></span>Não</span></td><td>Em nenhum dos 82 fornecedores, para uma unidade. Cada um é uma ilha por desenho comercial</td></tr>
+                <tr><td><strong>Satisfação cruzada com CMV e ficha técnica</strong></td><td><span class="chip"><span class="sq sq--none"></span>Não</span></td><td>Tattle, Yumpingo e Bikky param na receita. <strong>O diferencial mais defensável dos três</strong></td></tr>
+                <tr><td>Decisão em vez de relatório</td><td><span class="chip"><span class="sq sq--half"></span>Parcial</span></td><td>O degrau anterior existe. O digest diário por área é o item de maior retorno absoluto do dossiê</td></tr>
+                <tr><td>Posse do dado</td><td><span class="chip"><span class="sq sq--none"></span>Não</span></td><td>Treze fornecedores levantados não têm API pública nenhuma. <strong>O ativo mais sólido, e não estava na sua lista</strong></td></tr>
+                <tr><td>Previsão de recompra</td><td><span class="chip"><span class="sq sq--full"></span>Sim</span></td><td>Olo prediz churn por machine learning. Aqui você corre atrás, não na frente</td></tr>
+                <tr><td>Conversa com os próprios dados</td><td><span class="chip"><span class="sq sq--half"></span>Fosso raso</span></td><td>Capacidade genérica hoje, e a que mais briga com a manutenção zero: tradução de pergunta para SQL erra em silêncio</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  </div>
+
+  <!-- ============ 01 · ACHADOS ============ -->
+  <div class="band">
+  <section class="wrap">
+    <div class="sec-head">
+      <div class="sec-n">01</div>
+      <div class="sec-t">
+        <h2>Seis achados que mudam a decisão</h2>
+        <p class="dek">Os dez completos estão no sumário executivo. Estes seis são os que têm consequência
+          imediata sobre dinheiro, sobre o dado que você já coletou, ou sobre risco que já está correndo.</p>
+      </div>
+    </div>
+    <div class="sec-body">
+      <div class="col">
+        <div class="finds">
+          <div class="find">
+            <span class="find-n">1</span>
+            <div>
+              <h3>O defeito mais grave do fornecedor atinge a sua casa todas as noites</h3>
+              <p>O relatório corta às 23:59 e o contador do tablet só zera às 7:00. Tudo respondido depois da
+                meia-noite aparece no tablet como do dia anterior e no relatório como do dia seguinte. O exemplo
+                é da própria página de suporte deles. Numa casa que fecha depois de 0h, <strong>a série diária
+                está errada todos os dias</strong>. A correção custa uma linha: o corte do dia operacional vai
+                para o fechamento real.</p>
+            </div>
+          </div>
+          <div class="find">
+            <span class="find-n">2</span>
+            <div>
+              <h3>Você paga de 2,5 a 5 vezes o único preço que o fornecedor publica</h3>
+              <p>O piso publicado é R$ 200/mês com tablet e R$ 150/mês só QR Code. Preço por volume, por módulo e
+                por unidade: <strong>não público</strong>. Sem tabela, é impossível saber se você paga o preço de
+                mercado dele ou um preço negociado e nunca revisto. Peça a proposta comercial por escrito, item
+                por item — não há multa, essa conversa é de graça.</p>
+            </div>
+          </div>
+          <div class="find">
+            <span class="find-n">3</span>
+            <div>
+              <h3><span class="chip" style="margin-right:8px"><span class="sq sq--crit"></span>Atenção</span>Existe um risco no seu perfil do Google que pode estar ativo hoje</h3>
+              <p>O módulo Tap vende roteamento condicional: nota alta vai para o Google, nota baixa fica retida.
+                A política do Google proíbe textualmente <em>discourage or prohibit negative reviews, or
+                selectively solicit positive reviews</em>. A punição recai sobre o perfil do restaurante, que é o
+                seu principal ativo de aquisição. <strong>Checar se isso está ligado na sua conta antes de
+                cancelar.</strong></p>
+            </div>
+          </div>
+          <div class="find">
+            <span class="find-n">4</span>
+            <div>
+              <h3>O Altec não expõe API, e o R3 provavelmente não tem mesa nem comanda</h3>
+              <p>O repositório de documentação da própria Altec está literalmente vazio, e não existe portal de
+                desenvolvedor nem trilha técnica de parceria. Consequência de produto: <strong>o seu plano B
+                passa a ser o plano A</strong> — o garçom digita mesa e PIN. O cruzamento com faturamento fica em
+                nível de dia e de prato, não de mesa. Para engenharia de cardápio, é o que importa.</p>
+            </div>
+          </div>
+          <div class="find">
+            <span class="find-n">5</span>
+            <div>
+              <h3>No seu volume, boa parte da variação de nota é ruído — e é por isso que o relatório parece raso</h3>
+              <p>Com 50 respostas no mês, dois meses só diferem de verdade se a diferença passar de
+                <strong>±29 pontos</strong> de NPS. Com 200 respostas, de <strong>±14,5 pontos</strong>. Painel
+                que mostra a seta subindo sem essa faixa produz decisão sobre ruído. A saída é contagem absoluta,
+                o <em>n</em> visível ao lado de cada número e leitura trimestral.</p>
+            </div>
+          </div>
+          <div class="find">
+            <span class="find-n">6</span>
+            <div>
+              <h3>O anonimato é o motor do volume, não o hardware</h3>
+              <p>O próprio fornecedor publica que o tablet responde por cerca de 90% das opiniões
+                <em>porque permite resposta anônima</em>, que o QR adiciona até 15%, e que o grande risco de usar
+                só QR Code é a manipulação da amostra pela equipe. Portanto: tablet como canal principal, QR como
+                caminho paralelo, e <strong>antifraude no software é obrigatório, não opcional</strong>.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  </div>
+
+  <!-- ============ 06 · TAXA DE RESPOSTA ============ -->
+  <div class="band band--alt">
+  <section class="wrap">
+    <div class="sec-head">
+      <div class="sec-n">06</div>
+      <div class="sec-t">
+        <h2>Onde a resposta acontece</h2>
+        <p class="dek">Coletar mais que hoje é um dos seus quatro critérios de sucesso, e o formato decide isso
+          antes do canal. Barra em tom cheio é número de fonte independente; em tom médio, número declarado
+          pelo próprio fornecedor, que é parte interessada.</p>
+      </div>
+    </div>
+    <div class="sec-body">
+      <div class="col">
+        <figure style="margin:0">
+          <div class="bars">
+            <div class="bar">
+              <span class="bar-l">Pagamento à mesa, 1ª pergunta<small>TableSafe · declarado pelo fornecedor</small></span>
+              <div class="bar-t" title="80% de resposta na primeira pergunta"><div class="bar-f bar-f--est" style="width:100%"></div></div>
+              <span class="bar-v">80%</span>
+            </div>
+            <div class="bar">
+              <span class="bar-l">SMS com 2 perguntas<small>Ovation · declarado pelo fornecedor</small></span>
+              <div class="bar-t" title="42% de resposta"><div class="bar-f bar-f--est" style="width:52.5%"></div></div>
+              <span class="bar-v">42%</span>
+            </div>
+            <div class="bar">
+              <span class="bar-l">Pesquisa de 2 a 3 perguntas<small>Mediana de 21.863 pesquisas · independente</small></span>
+              <div class="bar-t" title="15,97% de resposta, mediana"><div class="bar-f" style="width:20%"></div></div>
+              <span class="bar-v">15,9%</span>
+            </div>
+            <div class="bar">
+              <span class="bar-l">Pesquisa de 7 perguntas ou mais<small>Mesma base · independente</small></span>
+              <div class="bar-t" title="6,87% de resposta, mediana"><div class="bar-f" style="width:8.6%"></div></div>
+              <span class="bar-v">6,9%</span>
+            </div>
+            <div class="bar">
+              <span class="bar-l">Convite impresso no recibo<small>Enterrado pela própria dona do modelo, a SMG</small></span>
+              <div class="bar-t" title="menos de 0,5% de conclusão"><div class="bar-f" style="width:0.7%"></div></div>
+              <span class="bar-v">&lt;0,5%</span>
+            </div>
+          </div>
+          <figcaption class="fine" style="margin-top:14px">Ir de 7 perguntas para 3 <strong>mais que dobra</strong>
+            a taxa de resposta. Três perguntas é o teto empírico, e o banco rotacionado resolve a contradição com
+            os seus 45 segundos: 1 fixa mais 2 sorteadas de um banco de 20 cobre vinte dimensões pelo preço de
+            conclusão de uma pesquisa de três.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+  </div>
+
+  <!-- ============ QUESTIONARIO ============ -->
+  <div class="band">
+  <section class="wrap">
+    <div class="sec-head">
+      <div class="sec-n">06</div>
+      <div class="sec-t">
+        <h2>O questionário recomendado</h2>
+        <p class="dek">Uma tela obrigatória, ramificação por nota, e tela final que só agradece — sem Google,
+          sem cupom, sem Instagram, como você decidiu. O texto abaixo é o exato, nos dois idiomas.</p>
+      </div>
+    </div>
+    <div class="sec-body">
+      <div class="col">
+        <div class="filters">
+          <span class="lbl">Idioma da tela do cliente</span>
+          <button class="fchip" type="button" id="pt" aria-pressed="true">Português</button>
+          <button class="fchip" type="button" id="en" aria-pressed="false">English</button>
+        </div>
+        <div class="flow">
+          <div class="fl">
+            <span class="fl-id">T0</span>
+            <div>
+              <p class="fl-q" data-pt="Mesa e PIN do garçom" data-en="Table and server PIN">Mesa e PIN do garçom</p>
+              <p class="fl-m" data-pt="O cliente não vê esta tela. É o PIN que amarra a nota ao garçom, e ele continua existindo mesmo se a comanda vier do PDV." data-en="The guest never sees this screen. The PIN is what ties the score to the server, and it stays even if the check comes from the POS.">O cliente não vê esta tela. É o PIN que amarra a nota ao garçom, e ele continua existindo mesmo se a comanda vier do PDV.</p>
+            </div>
+            <span class="fl-t">fora do relógio</span>
+          </div>
+          <div class="fl">
+            <span class="fl-id">T1 · obrigatória</span>
+            <div>
+              <p class="fl-q" data-pt="De 0 a 10, o quanto você recomendaria o QT para um amigo ou familiar?" data-en="From 0 to 10, how likely are you to recommend QT to a friend or family member?">De 0 a 10, o quanto você recomendaria o QT para um amigo ou familiar?</p>
+              <p class="fl-m" data-pt="Onze alvos em duas fileiras, sem rolagem. O toque avança sozinho. Rodapé: “Sua resposta é anônima. O garçom não vê o que você responde.”" data-en="Eleven targets in two rows, no scrolling. Tapping advances on its own. Footer: “Your answer is anonymous. Your server does not see what you answer.”">Onze alvos em duas fileiras, sem rolagem. O toque avança sozinho. Rodapé: “Sua resposta é anônima. O garçom não vê o que você responde.”</p>
+            </div>
+            <span class="fl-t">~8 s</span>
+          </div>
+          <div class="fl">
+            <span class="fl-id">T2A · nota 9–10</span>
+            <div>
+              <p class="fl-q" data-pt="Que bom. O que mais te agradou hoje?" data-en="Great to hear. What did you enjoy most tonight?">Que bom. O que mais te agradou hoje?</p>
+              <p class="fl-m" data-pt="Até 2 entre oito opções: a pizza, o atendimento, o tempo de espera, as bebidas, o ambiente, a entrada, a sobremesa, valeu o preço. Ou pular." data-en="Up to 2 of eight: the pizza, the service, the wait time, the drinks, the atmosphere, the starter, the dessert, worth the price. Or skip.">Até 2 entre oito opções: a pizza, o atendimento, o tempo de espera, as bebidas, o ambiente, a entrada, a sobremesa, valeu o preço. Ou pular.</p>
+            </div>
+            <span class="fl-t">~7 s</span>
+          </div>
+          <div class="fl">
+            <span class="fl-id">T2B · nota 7–8</span>
+            <div>
+              <p class="fl-q" data-pt="O que faltou para ser 10?" data-en="What kept it from being a 10?">O que faltou para ser 10?</p>
+              <p class="fl-m" data-pt="Mesmas oito opções. É a tela de maior valor diagnóstico do questionário inteiro: o neutro sabe exatamente o que faltou e não tem raiva para distorcer a resposta." data-en="Same eight options. This is the single most diagnostic screen in the survey: a passive knows exactly what was missing and holds no anger to distort the answer.">Mesmas oito opções. É a tela de maior valor diagnóstico do questionário inteiro: o neutro sabe exatamente o que faltou e não tem raiva para distorcer a resposta.</p>
+            </div>
+            <span class="fl-t">~7 s</span>
+          </div>
+          <div class="fl">
+            <span class="fl-id">T2C · nota 0–6</span>
+            <div>
+              <p class="fl-q" data-pt="Onde erramos?" data-en="Where did we get it wrong?">Onde erramos?</p>
+              <p class="fl-m" data-pt="Se a resposta for comida, abre grupo do item, qual item e o que houve. É o único caminho com cinco telas, e o mais apertado no teto de 45 s." data-en="If the answer is food, it opens item group, which item, and what happened. It is the only five-screen path, and the tightest against the 45 s ceiling.">Se a resposta for comida, abre grupo do item, qual item e o que houve. É o único caminho com cinco telas, e o mais apertado no teto de 45 s.</p>
+            </div>
+            <span class="fl-t">~7 s + 18 s</span>
+          </div>
+          <div class="fl">
+            <span class="fl-id">T5 · T6 · opcionais</span>
+            <div>
+              <p class="fl-q" data-pt="Aberta ancorada na nota, e contato" data-en="Open text anchored to the score, then contact">Aberta ancorada na nota, e contato</p>
+              <p class="fl-m" data-pt="Nome e WhatsApp opcionais, com duas caixas separadas e não pré-marcadas, guardando data, hora e versão do texto aceito." data-en="Name and WhatsApp optional, with two separate unchecked boxes, storing date, time and the version of the accepted notice.">Nome e WhatsApp opcionais, com duas caixas separadas e não pré-marcadas, guardando data, hora e versão do texto aceito.</p>
+            </div>
+            <span class="fl-t">~3 s p/ pular</span>
+          </div>
+          <div class="fl">
+            <span class="fl-id">T7</span>
+            <div>
+              <p class="fl-q" data-pt="Agradecimento, com auto-reset em 8 segundos" data-en="Thank you, auto-resetting in 8 seconds">Agradecimento, com auto-reset em 8 segundos</p>
+              <p class="fl-m" data-pt="Fim. Sem Google, sem cupom, sem Instagram." data-en="The end. No Google, no coupon, no Instagram.">Fim. Sem Google, sem cupom, sem Instagram.</p>
+            </div>
+            <span class="fl-t">8 s</span>
+          </div>
+        </div>
+        <p class="fine">Orçamento de tempo por caminho: promotor <strong>35 s</strong>, neutro <strong>28 s</strong>,
+          detrator sem comida <strong>28 s</strong>, detrator com comida <strong>39 s</strong> — o único com folga
+          curta. Regra estrutural que amarra tudo: ninguém recebe a ramificação de nota baixa <em>e</em> o bloco
+          rotacionado. Os segundos são estimativa, de <strong>confiança baixa</strong>, e é por isso que a
+          cronometragem por tela é obrigatória desde o primeiro dia.</p>
+      </div>
+    </div>
+  </section>
+  </div>
+
+  <!-- ============ 04 · CUSTO ZERO ============ -->
+  <div class="band band--alt">
+  <section class="wrap">
+    <div class="sec-head">
+      <div class="sec-n">04</div>
+      <div class="sec-t">
+        <h2>O custo zero é real, e tem duas armadilhas</h2>
+        <p class="dek">Cada limite abaixo foi lido em página oficial do fornecedor e reconferido por um
+          verificador, porque limite de plano gratuito muda com frequência. Os medidores mostram o consumo
+          previsto contra a cota.</p>
+      </div>
+    </div>
+    <div class="sec-body">
+      <div class="col">
+        <div class="meters">
+          <div class="meter">
+            <span class="lbl">Requisições · Cloudflare</span>
+            <span class="v">0,04%</span>
+            <div class="meter-t"><div class="meter-f" style="width:0.5%"></div></div>
+            <span class="fine">Pages e Workers no plano gratuito</span>
+          </div>
+          <div class="meter">
+            <span class="lbl">Banco · Supabase, em 10 anos</span>
+            <span class="v">7,2%</span>
+            <div class="meter-t"><div class="meter-f" style="width:7.2%"></div></div>
+            <span class="fine">36 MB contra 500 MB</span>
+          </div>
+          <div class="meter">
+            <span class="lbl">E-mail · Resend</span>
+            <span class="v">5%</span>
+            <div class="meter-t"><div class="meter-f" style="width:5%"></div></div>
+            <span class="fine">3.000/mês, limitado a 100/dia</span>
+          </div>
+          <div class="meter">
+            <span class="lbl">IA · Groq</span>
+            <span class="v">0,06%</span>
+            <div class="meter-t"><div class="meter-f" style="width:0.6%"></div></div>
+            <span class="fine">14.400 requisições/dia</span>
+          </div>
+        </div>
+
+        <div class="tw">
+          <table>
+            <caption>A stack recomendada. Cada escolha tem um motivo que não é preço, porque no seu volume
+              tudo é gratuito.</caption>
+            <thead><tr><th>Camada</th><th>Escolha</th><th>Por que esta</th></tr></thead>
+            <tbody>
+              <tr><td>Front, o PWA do tablet</td><td><strong>Cloudflare Pages</strong></td><td>Assets estáticos gratuitos e ilimitados, sem cobrança de egress</td></tr>
+              <tr><td>API e agendamento</td><td><strong>Workers + Cron Triggers</strong></td><td>Crava as 16h com precisão de minuto. O cron do concorrente gratuito tem precisão de ±59 min, o que transforma “leia antes de abrir” em “leia enquanto abre”</td></tr>
+              <tr><td>Banco e autenticação</td><td><strong>Supabase Free</strong></td><td>Postgres seu, com RLS. O dado sobrevive a troca de PDV e de fornecedor</td></tr>
+              <tr><td>E-mail do relatório</td><td><strong>Resend Free</strong></td><td>30 vezes de folga para 1 a 5 e-mails por dia, com domínio próprio autenticado</td></tr>
+              <tr><td>IA de comentário e diagnóstico</td><td><strong>Groq</strong></td><td>Cláusula contratual de <strong>não treinar</strong> com o que você envia. O gratuito do Gemini usa o conteúdo para treinar, com revisão humana, e comentário de cliente é dado pessoal</td></tr>
+              <tr><td>Quiosque no tablet</td><td><strong>Fixação de tela nativa do Android</strong></td><td>Grátis, e exige a senha do gerente para desafixar. A licença paga de 8,90 EUR, pagamento único, só se a operação provar que precisa de reabertura após reboot</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="tw">
+          <table>
+            <caption>Marcador de tijolo indica a armadilha que quebra o projeto seis meses depois, quando
+              ninguém está olhando.</caption>
+            <thead><tr><th>Armadilha</th><th>O que acontece</th><th>Mitigação</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><span class="chip"><span class="sq sq--crit"></span>Vercel</span></td>
+                <td>O plano Hobby <strong>proíbe uso comercial</strong> por texto oficial. Um sistema rodando dentro da pizzaria é uso comercial</td>
+                <td>Cloudflare. E uma linha no README dizendo que o Hobby é proibido neste projeto, e por quê</td>
+              </tr>
+              <tr>
+                <td><span class="chip"><span class="sq sq--crit"></span>Supabase</span></td>
+                <td>Projeto gratuito é <strong>pausado após 1 semana de inatividade</strong>, e não tem backup nenhum. A casa fecha na segunda, e um feriado longo basta</td>
+                <td>O cron diário toca o banco, e <code>pg_dump</code> semanal guarda o dump fora do Supabase desde o primeiro mês de dado real</td>
+              </tr>
+              <tr>
+                <td><span class="chip"><span class="sq sq--half"></span>Organização</span></td>
+                <td>Quando a política de uso justo dispara, a resposta é <strong>HTTP 402 em toda a API de todos os projetos da organização</strong>. Um estouro na pesquisa derrubaria o app de reservas junto</td>
+                <td>Organização Supabase separada, decidida <em>antes</em> de criar a primeira tabela</td>
+              </tr>
+              <tr>
+                <td><span class="chip"><span class="sq sq--half"></span>IA gratuita</span></td>
+                <td>Política de fornecedor muda. Já mudou: o Google retirou os números de cota da documentação pública</td>
+                <td>Um único módulo com prompt, chamada e parser, e degradação até <strong>classificação por regra, sem IA</strong>. O produto continua entregando valor sem IA</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+  </div>
+
+  <!-- ============ 05 · ALTEC ============ -->
+  <div class="band">
+  <section class="wrap">
+    <div class="sec-head">
+      <div class="sec-n">05</div>
+      <div class="sec-t">
+        <h2>Como tirar o dado de venda do Altec</h2>
+        <p class="dek">Nove caminhos avaliados. O recomendado é o que não depende de nada da Altec e não precisa
+          de hardware nenhum — o que também significa que <strong>o Raspberry Pi sai da lista de compras</strong>.</p>
+      </div>
+    </div>
+    <div class="sec-body">
+      <div class="col">
+        <div class="tw">
+          <table>
+            <thead><tr><th>Caminho</th><th>Veredito</th><th>Depende de</th><th>Prioridade</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><strong>Pasta sincronizada com o R3 exportado, mais watcher gratuito na nuvem</strong></td>
+                <td>Viável</td>
+                <td>Nada da Altec. Você já exporta o R3 hoje para as análises de CMV, então o hábito existe</td>
+                <td><span class="chip"><span class="sq sq--full"></span>Construir 1º</span></td>
+              </tr>
+              <tr>
+                <td><strong>Botão de importar planilha no painel</strong></td>
+                <td>Viável</td>
+                <td>Nada. Mesmo parser do caminho acima</td>
+                <td><span class="chip"><span class="sq sq--full"></span>Rede de segurança</span></td>
+              </tr>
+              <tr>
+                <td>E-mail agendado do R3, consumido por robô</td>
+                <td>Desconhecido</td>
+                <td>O suporte confirmar que existe agendamento. Zero evidência pública, nos dois sentidos</td>
+                <td><span class="chip"><span class="sq sq--half"></span>Se confirmar</span></td>
+              </tr>
+              <tr>
+                <td>API oficial da Altec</td>
+                <td>Provavelmente inexistente</td>
+                <td>O repositório <code>hub-api-docs</code> da própria Altec está vazio. A API REST de 90+ endpoints que existe é do sistema <em>sucessor</em>, interna</td>
+                <td><span class="chip"><span class="sq sq--half"></span>Perguntar 1º</span></td>
+              </tr>
+              <tr>
+                <td>Ler o banco local com um Raspberry Pi</td>
+                <td>Viável, alto risco</td>
+                <td>Quatro confirmações do suporte, incluindo liberação por escrito. É o <strong>único caminho com granularidade de comanda</strong></td>
+                <td><span class="chip"><span class="sq sq--none"></span>Só se insistir</span></td>
+              </tr>
+              <tr>
+                <td>Automação de navegador no portal</td>
+                <td>Frágil</td>
+                <td>Quebra em silêncio a cada mudança de layout</td>
+                <td><span class="chip"><span class="sq sq--none"></span>Último recurso</span></td>
+              </tr>
+              <tr>
+                <td>Agente no PC do caixa</td>
+                <td>Inviável</td>
+                <td>O PC desliga no fim do dia</td>
+                <td><span class="chip"><span class="sq sq--none"></span>Descartado</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="fine">A arquitetura do Altec é <strong>híbrida e confirmada oficialmente</strong>: o PDV opera
+          offline com base local, e existe um portal em nuvem no ar 24h. A nuvem é a superfície certa para um
+          agente diário, justamente porque é imune ao PC que desliga. O endereço de login não é público — está
+          com você.</p>
+
+        <div>
+          <span class="lbl" style="display:block;margin-bottom:12px">As três perguntas de maior alavancagem para o suporte</span>
+          <div class="tw">
+            <table>
+              <caption>As oito perguntas completas, prontas para copiar, estão em <code>05-integracoes.md</code>.</caption>
+              <thead><tr><th class="n">#</th><th>Pergunta</th><th>O que ela destrava</th></tr></thead>
+              <tbody>
+                <tr><td class="n">1</td><td>Qual produto e versão exata está instalado na minha loja: Classic, Next ou Riser?</td><td>“Riser”, o nome usado na sua documentação interna, <strong>não existe em nenhuma fonte pública</strong> da Altec</td></tr>
+                <tr><td class="n">3</td><td>Consigo agendar o envio automático diário do R3 por e-mail, em Excel ou CSV?</td><td>A que mais destrava. Se existir, elimina a única ação humana da importação</td></tr>
+                <tr><td class="n">4</td><td>O R3 traz número de mesa, comanda e horário, ou só o total por produto no período?</td><td>Decide se o cruzamento por comanda é possível, ou se o garçom digita a mesa para sempre</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  </div>
+
+  <!-- ============ 07 · MATRIZ ============ -->
+  <div class="band band--alt">
+  <section class="wrap">
+    <div class="sec-head">
+      <div class="sec-n">07</div>
+      <div class="sec-t">
+        <h2>O que construir, e o que cortar</h2>
+        <p class="dek">Amostra de 24 linhas da matriz completa de 113 features. Você disse querer tudo e mais,
+          então cada corte proposto vem com argumento. O gargalo não é custo: é <strong>quantas peças podem
+          quebrar em silêncio</strong> num sistema que ninguém vai manter.</p>
+      </div>
+    </div>
+    <div class="sec-body">
+      <div class="col">
+        <div class="filters" role="group" aria-label="Filtrar por prioridade">
+          <button class="fchip" type="button" data-f="all" aria-pressed="true">Tudo</button>
+          <button class="fchip" type="button" data-f="mvp" aria-pressed="false">MVP</button>
+          <button class="fchip" type="button" data-f="f2" aria-pressed="false">Fase 2</button>
+          <button class="fchip" type="button" data-f="f3" aria-pressed="false">Fase 3</button>
+          <button class="fchip" type="button" data-f="cut" aria-pressed="false">Cortar</button>
+          <span class="fcount" id="fcount" aria-live="polite">24 de 24 linhas</span>
+        </div>
+        <div class="tw">
+          <table id="mx">
+            <thead><tr><th>Feature</th><th>Categoria</th><th>Risposta tem</th><th>Esforço</th><th>Prioridade</th><th>Por quê</th></tr></thead>
+            <tbody>
+              <tr data-p="mvp"><td>Coleta em tablet, PWA em modo quiosque</td><td>Coleta</td><td>Sim, app fora da Play Store</td><td>Baixo</td><td><span class="chip"><span class="sq sq--full"></span>MVP</span></td><td>É o canal de volume. O PWA elimina sideload, Play Protect desativado e sincronização manual de uma vez</td></tr>
+              <tr data-p="mvp"><td>QR Code na conta como canal paralelo permanente</td><td>Coleta</td><td>Sim</td><td>Baixo</td><td><span class="chip"><span class="sq sq--full"></span>MVP</span></td><td>Tem que estar impresso e funcionando na sexta em que o tablet morre</td></tr>
+              <tr data-p="mvp"><td>Antifraude: uma resposta por comanda, janela de tempo, PIN</td><td>Coleta</td><td>Parcial, e parte é processo administrativo</td><td>Baixo</td><td><span class="chip"><span class="sq sq--full"></span>MVP</span></td><td>O próprio fornecedor publica que o risco do QR sozinho é manipulação pela equipe. Sem trava, o painel é decoração</td></tr>
+              <tr data-p="mvp"><td>Corte do dia operacional no fechamento real</td><td>Dados</td><td>Não, corta às 23:59</td><td>Baixo</td><td><span class="chip"><span class="sq sq--full"></span>MVP</span></td><td>Corrige o defeito que corrompe a série diária de uma casa que fecha depois de 0h</td></tr>
+              <tr data-p="mvp"><td>Métrica de conversão sobre mesas atendidas</td><td>Coleta</td><td>Sim, registra tentativas</td><td>Baixo</td><td><span class="chip"><span class="sq sq--full"></span>MVP</span></td><td>Coletar mais é critério de sucesso, e sem denominador não existe taxa</td></tr>
+              <tr data-p="mvp"><td>Heartbeat do tablet, avisando 24h sem sincronizar</td><td>Operação</td><td>Não, existe tela para olhar à mão</td><td>Baixo</td><td><span class="chip"><span class="sq sq--full"></span>MVP</span></td><td>É o único alarme que funciona quando ninguém monitora</td></tr>
+              <tr data-p="mvp"><td>Banco de perguntas rotacionadas com peso</td><td>Questionário</td><td>Não</td><td>Médio</td><td><span class="chip"><span class="sq sq--full"></span>MVP</span></td><td>Vinte dimensões pelo preço de conclusão de três perguntas. Custa uma tabela e uma função de sorteio</td></tr>
+              <tr data-p="mvp"><td>Instrumentação de tempo por tela, mediana e p90</td><td>Questionário</td><td>Não documentado</td><td>Baixo</td><td><span class="chip"><span class="sq sq--full"></span>MVP</span></td><td>Transforma o teto de 45 s em número medido, não em promessa</td></tr>
+              <tr data-p="mvp"><td>Digest diário das 16h, segmentado por área</td><td>Relatório</td><td>Sim, e é o núcleo de valor deles</td><td>Médio</td><td><span class="chip"><span class="sq sq--full"></span>MVP</span></td><td>Maior retorno absoluto do dossiê. E é o batimento cardíaco do sistema: entregável, keep-alive e alarme ao mesmo tempo</td></tr>
+              <tr data-p="mvp"><td>Faixa de significância ao lado de cada indicador</td><td>Relatório</td><td>Não</td><td>Baixo</td><td><span class="chip"><span class="sq sq--full"></span>MVP</span></td><td>Sem ela, o painel produz decisão sobre ruído. É provavelmente por isso que o relatório atual parece raso</td></tr>
+              <tr data-p="mvp"><td>Alerta de detrator no celular do gerente</td><td>Alertas</td><td>Sim</td><td>Baixo</td><td><span class="chip"><span class="sq sq--full"></span>MVP</span></td><td>Sem nada visível no tablet, para não matar o anonimato percebido</td></tr>
+              <tr data-p="mvp"><td>Importação do R3 por pasta sincronizada e por upload</td><td>Integração</td><td>Não, nenhuma integração de PDV</td><td>Médio</td><td><span class="chip"><span class="sq sq--full"></span>MVP</span></td><td>É o que habilita o cruzamento com faturamento, que nenhum fornecedor entrega</td></tr>
+              <tr data-p="mvp"><td>Consentimento com versão e horário registrados</td><td>LGPD</td><td>Não verificado</td><td>Baixo</td><td><span class="chip"><span class="sq sq--full"></span>MVP</span></td><td>Duas caixas separadas e não pré-marcadas. É o que se prova numa fiscalização</td></tr>
+              <tr data-p="mvp"><td>Exportar tudo em CSV, mais <code>pg_dump</code> semanal</td><td>Backup</td><td>API com janela de 4 dias e 50 registros por página</td><td>Baixo</td><td><span class="chip"><span class="sq sq--full"></span>MVP</span></td><td>O plano gratuito não tem backup. E é o que garante que você nunca fica refém de ferramenta nenhuma, inclusive desta</td></tr>
+              <tr data-p="mvp"><td>Sentimento frase por frase, com o texto cru sempre guardado</td><td>IA</td><td>Sim, via OpenAI</td><td>Médio</td><td><span class="chip"><span class="sq sq--full"></span>MVP</span></td><td>“Pizza excelente mas demorou 40 minutos” tem de gerar um positivo em produto e um negativo em tempo</td></tr>
+              <tr data-p="f2"><td>Matriz de cardápio: satisfação cruzada com margem</td><td>BI</td><td>Não</td><td>Médio</td><td><span class="chip"><span class="sq sq--half"></span>Fase 2</span></td><td><strong>O diferencial mais defensável.</strong> Reclamações por 100 unidades vendidas, janela trimestral, mínimo de 3 eventos</td></tr>
+              <tr data-p="f2"><td>Base de clientes e campanha de retorno</td><td>CRM</td><td>Sim, módulo Marketing</td><td>Médio</td><td><span class="chip"><span class="sq sq--half"></span>Fase 2</span></td><td>Ancorada no CRM de reservas, que é onde a identidade existe. A coleta é anônima por desenho</td></tr>
+              <tr data-p="f2"><td>Detecção de recompra por regra RFM</td><td>CRM</td><td>Não</td><td>Médio</td><td><span class="chip"><span class="sq sq--half"></span>Fase 2</span></td><td>Regra, não modelo. Com 20 mesas por dia não há amostra para treinar nada</td></tr>
+              <tr data-p="f2"><td>Conversa com os dados, por consultas fixas revisadas</td><td>IA</td><td>Não</td><td>Médio</td><td><span class="chip"><span class="sq sq--half"></span>Fase 2</span></td><td>Nunca por tradução livre de pergunta para SQL: erra em silêncio, e silêncio é o pior inimigo da manutenção zero</td></tr>
+              <tr data-p="f3"><td>Coleta para delivery</td><td>Coleta</td><td>Sim</td><td>Baixo</td><td><span class="chip"><span class="sq sq--none"></span>Fase 3</span></td><td>Basta o modelo de dados nascer com o campo de canal. Não construir tela agora</td></tr>
+              <tr data-p="f3"><td>WhatsApp como canal de coleta e de relatório</td><td>Coleta</td><td>Não, listado como “em breve”</td><td>Médio</td><td><span class="chip"><span class="sq sq--none"></span>Fase 3</span></td><td>Pode ser gratuito se o cliente iniciar a conversa: mensagem fora de template é grátis dentro da janela de 24h</td></tr>
+              <tr data-p="cut"><td>Tag NFC</td><td>Coleta</td><td>Sim, produto Tap</td><td>Baixo</td><td><span class="chip"><span class="sq sq--none"></span>Cortar</span></td><td>Exige encostar o celular. Atrito extra sem nenhum ganho sobre o QR impresso</td></tr>
+              <tr data-p="cut"><td>Convite ao Google condicionado à nota alta</td><td>Reputação</td><td>Sim, e é vendido como feature central</td><td>Baixo</td><td><span class="chip"><span class="sq sq--crit"></span>Cortar</span></td><td>Contraria a política de conteúdo do Google, e a punição recai sobre o seu perfil. Você já decidiu não fazer</td></tr>
+              <tr data-p="cut"><td>Trazer avaliação do Google e do iFood para dentro</td><td>Reputação</td><td>Sim, via API oficial dos dois</td><td>Alto</td><td><span class="chip"><span class="sq sq--none"></span>Cortar</span></td><td>Os termos do Maps proíbem armazenar review, e o iFood só libera para integrador homologado com CNAE de tecnologia. Só link, como você decidiu</td></tr>
+              <tr data-p="cut"><td>Meta e bônus de equipe amarrados à nota</td><td>Gestão</td><td>Sim, tem guia oficial de metas</td><td>Baixo</td><td><span class="chip"><span class="sq sq--crit"></span>Cortar</span></td><td><strong>Contamina o dado.</strong> O guia do próprio fornecedor prevê punição de 2% e teto de 25 tentativas por dia, o que prova que a manipulação é problema real e conhecido</td></tr>
+              <tr data-p="cut"><td>Checklist de abertura e fechamento</td><td>Operação</td><td>Não</td><td>Médio</td><td><span class="chip"><span class="sq sq--none"></span>Cortar</span></td><td>Você mesmo cortou. Uma peça móvel a mais que não justifica a própria existência</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="fine">A alternativa às metas por nota é meta em <strong>processo</strong>, que a equipe controla
+          e não consegue falsificar: respostas coletadas por comanda fechada, tempo até o primeiro contato de
+          recuperação, e 100% dos detratores com registro de atendimento. A nota por garçom continua existindo,
+          mas em janela trimestral, com o <em>n</em> ao lado, para conversa de desenvolvimento — nunca em ranking mensal.</p>
+      </div>
+    </div>
+  </section>
+  </div>
+
+  <!-- ============ PROXIMOS PASSOS ============ -->
+  <div class="band">
+  <section class="wrap">
+    <div class="sec-head">
+      <div class="sec-n">→</div>
+      <div class="sec-t">
+        <h2>O que fazer em seguida</h2>
+        <p class="dek">A coluna da esquerda não depende de uma linha de código, e é onde está a economia. A da
+          direita é a ordem de construção.</p>
+      </div>
+    </div>
+    <div class="sec-body">
+      <div class="col">
+        <div class="steps">
+          <div>
+            <span class="lbl">Depende de você, esta semana</span>
+            <ol>
+              <li>Pedir a <strong>proposta comercial atual por escrito</strong>, item por item. É o documento que falta para fechar a tese de sobrepreço, e não há multa nessa conversa</li>
+              <li>Checar se o <strong>convite condicionado ao Google</strong> está ligado na sua conta hoje</li>
+              <li>Pedir, aos canais de privacidade do fornecedor, a <strong>exportação completa e a eliminação comprovada</strong> dos dados pessoais. Antes de desligar o acesso, porque depois a alavanca desaparece</li>
+              <li>Mandar as <strong>8 perguntas ao suporte da Altec</strong>, pedindo a resposta da nº 6 por escrito</li>
+              <li>Enviar os <strong>prints das perguntas do Risposta</strong> e a <strong>capacidade de cada mesa</strong></li>
+              <li>Informar o repositório do app de reservas e o endereço do portal do Altec</li>
+              <li>Decidir o prazo de retenção: 12 ou 24 meses contados da <em>última visita</em></li>
+              <li>Comprar <strong>2 tablets</strong> na viagem: 11", 4 GB de RAM, 64 GB, Android 13 ou superior. Conferir a versão na tela da loja. <strong>Sem Raspberry Pi</strong></li>
+            </ol>
+          </div>
+          <div>
+            <span class="lbl">Depende de desenvolvimento, nesta ordem</span>
+            <ol>
+              <li>Inspecionar o Supabase e o app de reservas <em>antes</em> de criar qualquer tabela, e criar a organização separada</li>
+              <li>Subir a <strong>ponte de coleta</strong>, para a mensalidade cair na semana 1 sem um dia sem dado</li>
+              <li>Modelar o schema com os dois grãos, resposta e venda por dia, com idempotência e o corte do dia no fechamento real</li>
+              <li>Construir a tela de coleta própria: uma pergunta por tela, sem rolagem, alvos de 44 px ou mais</li>
+              <li>Cron das 16h com o digest por área, gravando log de execução no seu próprio banco</li>
+              <li><code>pg_dump</code> semanal, mais as duas regras de operação escritas no README</li>
+              <li>Importação do R3 pelos dois caminhos juntos, salvando o arquivo bruto antes de parsear</li>
+              <li>Banco rotacionado, antifraude, alerta de detrator</li>
+              <li>Sentimento frase por frase, com degradação prevista para funcionar sem IA</li>
+              <li>Só então: matriz de cardápio, CRM e conversa com os dados</li>
+            </ol>
+          </div>
+        </div>
+        <p class="fine"><strong>A única regra de operação que precisa existir</strong>, e ela vai no README: o
+          e-mail das 16h é o batimento cardíaco do sistema. <em>Duas ausências seguidas significam que algo
+          quebrou.</em> É o que substitui monitoramento num sistema que ninguém vai manter.</p>
+      </div>
+    </div>
+  </section>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-in">
+      <div>
+        <span class="lbl">Como isto foi feito</span>
+        <p>Sete frentes de pesquisa em paralelo, mais uma investigação dedicada ao PDV, seguidas de quatro
+          verificadores adversariais cuja função era derrubar afirmação errada, não confirmar o trabalho alheio.
+          Duas execuções falharam por erro de servidor e foram refeitas do zero.</p>
+      </div>
+      <div>
+        <span class="lbl">O que a checagem derrubou</span>
+        <p><strong>40 correções e 40 lacunas registradas.</strong> O erro recorrente não foi invenção de
+          conteúdo: foi citação deslocada, uma afirmação verdadeira apontando para uma URL que não a continha.
+          Preço não lido em página oficial aparece como <em>não público</em> ou <em>não verificado</em>, sem exceção.</p>
+      </div>
+      <div>
+        <span class="lbl">Onde a confiança é baixa</span>
+        <p>Preço em reais de qualquer hardware, câmbio, limites do plano gratuito da Fidelimax, conteúdo exato do
+          relatório R3, mecânica de punição do Google, números de artigo da LGPD, e os segundos por tela do
+          questionário. Está dito no ponto exato de cada documento.</p>
+      </div>
+      <div>
+        <span class="lbl">Dossiê completo</span>
+        <p>Oito documentos, 3.652 linhas, mais os dados brutos de cada frente em JSON, no repositório
+          <a href="https://github.com/70math-hash/risposta-qt/tree/claude/risposta-competitor-research-807bpl/docs/pesquisa">risposta-qt</a>.</p>
+      </div>
+    </div>
+    <div class="tag">Mangia QT fa bene</div>
+  </div>
+</footer>
+
+<script>
+  // ---- tema ----
+  (function () {
+    var b = document.getElementById('theme');
+    b.addEventListener('click', function () {
+      var r = document.documentElement;
+      var isDark = r.getAttribute('data-theme') === 'dark' ||
+        (!r.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      r.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    });
+  })();
+
+  // ---- calculadora de economia ----
+  (function () {
+    var fee = 501, yearNew = 0, hw = 1000;
+    var fmt = function (n) {
+      return 'R$ ' + n.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    };
+    function render() {
+      var now = fee * 12;
+      var save = now - yearNew;
+      var pct = Math.round((save / now) * 100);
+      document.getElementById('o-now').textContent = fmt(now);
+      document.getElementById('o-new').textContent = fmt(yearNew);
+      document.getElementById('o-save').textContent = fmt(save);
+      document.getElementById('o-pct').textContent = pct + '% da fatura' + (yearNew ? ' (cenário pessimista)' : '');
+      var months = hw / fee;
+      document.getElementById('o-pay').textContent =
+        months.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) +
+        (months === 1 ? ' mês' : ' meses');
+    }
+    function wire(attr, apply) {
+      document.querySelectorAll('[' + attr + ']').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          btn.parentNode.querySelectorAll('button').forEach(function (s) {
+            s.setAttribute('aria-pressed', 'false');
+          });
+          btn.setAttribute('aria-pressed', 'true');
+          apply(Number(btn.getAttribute(attr)));
+          render();
+        });
+      });
+    }
+    wire('data-fee', function (v) { fee = v; });
+    wire('data-year', function (v) { yearNew = v; });
+    wire('data-hw', function (v) { hw = v; });
+    render();
+  })();
+
+  // ---- filtro da matriz ----
+  (function () {
+    var rows = Array.prototype.slice.call(document.querySelectorAll('#mx tbody tr'));
+    var total = rows.length;
+    var count = document.getElementById('fcount');
+    document.querySelectorAll('[data-f]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        document.querySelectorAll('[data-f]').forEach(function (b) {
+          b.setAttribute('aria-pressed', 'false');
+        });
+        btn.setAttribute('aria-pressed', 'true');
+        var f = btn.getAttribute('data-f');
+        var shown = 0;
+        rows.forEach(function (r) {
+          var ok = f === 'all' || r.getAttribute('data-p') === f;
+          r.hidden = !ok;
+          if (ok) shown++;
+        });
+        count.textContent = shown + ' de ' + total + ' linhas';
+      });
+    });
+  })();
+
+  // ---- idioma do questionario ----
+  (function () {
+    var pt = document.getElementById('pt'), en = document.getElementById('en');
+    function set(lang) {
+      pt.setAttribute('aria-pressed', String(lang === 'pt'));
+      en.setAttribute('aria-pressed', String(lang === 'en'));
+      document.querySelectorAll('[data-pt]').forEach(function (el) {
+        el.textContent = el.getAttribute(lang === 'pt' ? 'data-pt' : 'data-en');
+      });
+    }
+    pt.addEventListener('click', function () { set('pt'); });
+    en.addEventListener('click', function () { set('en'); });
+  })();
+</script>

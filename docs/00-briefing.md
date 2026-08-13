@@ -1,7 +1,7 @@
 # Briefing do projeto — substituto próprio do Risposta
 
 Documento gerado a partir de uma entrevista de 104 perguntas respondidas pelo proprietário
-(QT Pizza Bar, Rio de Janeiro). É a **fonte da verdade** do escopo. Qualquer decisão de
+(QT Pizza Bar, Jardins, São Paulo). É a **fonte da verdade** do escopo. Qualquer decisão de
 produto ou de arquitetura deve ser conferida contra este arquivo.
 
 - **Data da entrevista:** 13/08/2026

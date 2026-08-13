@@ -1,0 +1,1 @@
+# risposta-qt

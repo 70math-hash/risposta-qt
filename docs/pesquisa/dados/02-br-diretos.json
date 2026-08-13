@@ -1,0 +1,1096 @@
+{
+ "resumo": "Mapeei o mercado brasileiro de pesquisa de satisfacao / CX / reputacao para food service e cheguei a tres conclusoes centrais. Primeira: existem apenas DOIS concorrentes verdadeiramente diretos do Risposta (verticalizados em bares e restaurantes, com coleta propria + reputacao): Falae (falae.app, 1.600+ operacoes no site oficial, 2.000+ restaurantes na imprensa, rodada de R$1,5 milhao em abril/2026) e Harmo (harmo.me, ex-Reviewr, 30.000+ lojas, Reclame Aqui como socio) — e NENHUM DOS DOIS publica preco. Segunda: o Risposta e um dos POUCOS do mercado que publica preco no proprio site — \"planos a partir de R$ 200 por mes\" com 30 dias de teste e \"planos a partir de 150 reais mensais\" no modulo somente-QR-Code. Isso significa que o cliente, pagando entre R$501 e R$1.000/mes, esta em uma faixa de 2,5x a 5x o piso publicado do proprio fornecedor, provavelmente por causa do tablet fisico, do modulo cliente oculto e/ou de contrato antigo. Terceira, e mais relevante para a decisao de construir substituto proprio: os concorrentes genericos com preco publico entregam capacidade muito acima das 50-200 respostas/mes da pizzaria por uma fracao do valor — Avalio a 12x R$ 64,00/mes (16.000 respostas/ano, modo totem, IA e API inclusos) e ReviewBR a R$ 79,90/mes. O teto de referencia de plataforma seria a Avalio Starter; qualquer coisa acima de ~R$150/mes ja e sobrepreco para esse volume. Sobre integracoes: NAO encontrei um unico fornecedor que documente integracao com PDV Altec/Next — nem a propria Altec documenta modulo de pesquisa. Centralizacao de Google + iFood no mesmo painel aparece de forma verificavel so no Risposta (Google + Risposta + iFood) e na Harmo (Google, iFood, TripAdvisor, Facebook, Reclame Aqui), e o iFood so libera isso para \"gestores de reputacao\" homologados no portal de developers — barreira real para um build proprio. Cinco nomes da lista de investigacao NAO EXISTEM como fornecedores desse mercado: uselets, Mesa 1, Tellus, Reviewz e Qustodio de reputacao; \"Reviewz\" e quase certamente confusao com Reviewr, nome original da Harmo antes da fusao com a Gorila em 2020. Konclui e checklist operacional (nao pesquisa) e i9Menu e grafica de cardapios e embalagens (nao software) — ambos aparecem nas buscas apenas por marketing de conteudo.",
+ "vendors": [
+  {
+   "nome": "Falae",
+   "pais": "Brasil",
+   "site": "https://www.falae.app/",
+   "descricao": "Concorrente direto numero 1 do Risposta. Plataforma de pesquisa de satisfacao e Customer Insights verticalizada exclusivamente em bares, restaurantes, cafeterias, food trucks e delivery. Coleta feedback proprio, centraliza avaliacoes de canais externos e usa IA para apontar pontos de melhoria. Captou R$1,5 milhao em abril de 2026 para escalar no food service.",
+   "features": [
+    "Pesquisas personalizadas por objetivo (satisfacao geral, prato especifico, experiencia de salao vs delivery)",
+    "Painel de gestao com graficos e relatorios",
+    "Monitoramento de respostas em tempo real",
+    "Indicador NPS",
+    "Alertas configuraveis de feedback negativo entregues no WhatsApp do gestor",
+    "Modulo Avaliacoes inteligentes",
+    "Modulo Marketing CRM",
+    "Modulo Reputacao digital",
+    "Modulo Gestao de franquias (multi-loja)",
+    "Modulo Campanhas de marketing",
+    "Modulo Experiencia do colaborador",
+    "IA para identificar pontos de melhoria e padroes de comportamento (fonte terceira, nao documentado na home oficial)"
+   ],
+   "canais_coleta": [
+    "QR Code na mesa",
+    "Link no WiFi (captive portal)",
+    "SMS",
+    "WhatsApp",
+    "E-mail",
+    "Pesquisa enviada apos o pedido"
+   ],
+   "integracoes": [
+    "Sistemas de PDV (mencao genERICA em artigo de parceiro, sem nome de PDV especifico)",
+    "Aplicativos de delivery (mencao generica)",
+    "WhatsApp",
+    "Natural Bot (Copiloto de Vendas)"
+   ],
+   "preco": "NAO PUBLICO",
+   "modelo_cobranca": "Mensalidade por loja ajustada ao volume de feedbacks; redes maiores em plano personalizado. Sem tabela publica, sem self-service — entrada obrigatoria por demonstracao gratuita. ATENCAO: um resumo de mecanismo de busca atribuiu 'planos a partir de R$180,00' ao Falae, mas eu NAO consegui confirmar esse valor em nenhuma pagina oficial (falae.app/planos e www.falae.app/planos retornaram 404). Trate R$180 como NAO CONFIRMADO.",
+   "publico_alvo": "Bares, restaurantes, cafeterias, food trucks, delivery e redes/franquias de food service",
+   "diferencial": "Unico concorrente 100% food service com escala nacional comparavel ao Risposta, capital fresco (R$1,5 mi) e forte producao de conteudo/SEO (blog dominando buscas de 'reputacao Google restaurante'), inclusive publieditorial no SindRio, sindicato de bares e restaurantes do Rio de Janeiro — ou seja, esta atacando o territorio do cliente.",
+   "fraquezas": [
+    "Preco 100% opaco: nenhuma pagina de planos acessivel, /planos retorna 404, obriga passar por vendas",
+    "NAO documenta coleta por tablet ou totem fisico em mesa — so QR Code, WiFi, SMS, WhatsApp e e-mail. Isso e uma lacuna material: o proprio Risposta afirma que tablets respondem por cerca de 90% das avaliacoes coletadas",
+    "Integracao com PDV e delivery aparece so como mencao generica em artigo de parceiro (Natural Bot), sem nome de sistema, sem docs de API publica, sem changelog",
+    "A home oficial NAO menciona integracao com Google nem com iFood; a centralizacao de avaliacoes externas so aparece descrita por terceiros",
+    "Nao localizei perfil no Reclame Aqui, G2, Capterra ou reviews de clientes verificaveis — zero social proof auditavel",
+    "Forte enviesamento para redes e franquias (modulo de gestao de franquias em destaque), o que costuma vir acompanhado de onboarding e ticket pensados para multi-loja"
+   ],
+   "confianca": "alta",
+   "fontes": [
+    "https://www.falae.app/",
+    "https://naturalbot.com.br/falae-pesquisa-para-restaurantes/",
+    "https://www.sindrio.com.br/2026/07/seu-restaurante-esta-invisivel-no-google-a-culpa-pode-ser-da-sua-reputacao-digital/",
+    "https://www.falae.app/blog/reputacao-google-meu-negocio-restaurante-2026",
+    "https://economiasp.com/2026/04/14/falae-levanta-r1-5-milhao-para-escalar-gestao-de-experiencia-no-food-service/"
+   ]
+  },
+  {
+   "nome": "Harmo (ex-Reviewr)",
+   "pais": "Brasil",
+   "site": "https://harmo.me/",
+   "descricao": "Concorrente direto no eixo REPUTACAO (nao no eixo pesquisa em mesa). Plataforma de gestao de Google Perfil de Empresas e reviews para redes de lojas fisicas, com forte penetracao em franquias de alimentacao. Nasceu em 2017 em Florianopolis como Reviewr, fundiu-se com a Gorila (RS) em 2020 criando a Harmo; o Reclame Aqui comprou 20% do capital com previsao de mais 30%. Atende mais de 30.000 lojas.",
+   "features": [
+    "Gestao centralizada de Google Perfil de Empresas",
+    "IA que responde avaliacoes '5x mais rapido', com respostas humanizadas e otimizadas para SEO",
+    "Ativacao do Botao de Pedidos no Google (pedido direto no site, sem marketplace)",
+    "Cardapio sempre atualizado no Google com fotos e descricoes otimizadas para SEO",
+    "Atualizacao em massa de horarios, atributos, fotos e promocoes em multiplas unidades",
+    "Monitoramento de locais de concorrentes (funcionalidade cobrada a parte)",
+    "Pesquisas proprias e estudos setoriais / benchmarks",
+    "Relatorios setoriais (State of Reputation, Reputation Awards)"
+   ],
+   "canais_coleta": [
+    "Reviews publicos do Google",
+    "Reviews do iFood",
+    "Reviews do TripAdvisor",
+    "Facebook",
+    "Reclame Aqui",
+    "Pesquisas proprietarias (survey)"
+   ],
+   "integracoes": [
+    "Google (Perfil de Empresas — nucleo do produto)",
+    "iFood",
+    "TripAdvisor",
+    "Facebook",
+    "Reclame Aqui (socio acionario)"
+   ],
+   "preco": "NAO PUBLICO",
+   "modelo_cobranca": "Mensalidade por loja definida em Proposta Comercial. Os proprios Termos de Uso da Harmo descrevem a formula: o valor considera (1) a quantidade de locais da contratante, (2) a quantidade de locais de concorrentes monitorados, se contratada a funcionalidade, e (3) o valor unitario por local. Quanto maior a rede, menor o custo unitario — ou seja, o modelo penaliza estruturalmente o operador de UMA unidade.",
+   "publico_alvo": "Redes e franquias de food service e varejo fisico de medio e grande porte (Burger King, Bob's, C&A, Ipiranga, Hering, Cinemark, Panvel, Drogaria Catarinense, GPA, Ambev, Movida, Beto Carrero World)",
+   "diferencial": "Lider declarada em gestao de Google Perfil de Empresas no Brasil, escolha nº1 das maiores franquias de alimentacao, com IA de resposta a review em escala e socio estrategico Reclame Aqui. Resultado divulgado: Burger King +44% em avaliacoes positivas e +27% em taxa de conversao.",
+   "fraquezas": [
+    "Preco por unidade com desconto por volume — economicamente hostil a uma pizzaria de um salao; sem self-service, sem trial, entrada so por 'Agendar reuniao'",
+    "Nao e produto de pesquisa em mesa: o nucleo e reputacao publica pos-visita, nao captura de feedback anonimo no momento do consumo. Nao documenta tablet nem totem",
+    "Nao documenta nenhuma integracao com PDV brasileiro",
+    "Nada de preco publicado em nenhuma das paginas de produto lidas (restaurantes-no-google e inteligencia-2026)",
+    "Nao localizei perfil de reputacao com reclamacoes avaliadas no Reclame Aqui para a propria Harmo (o resultado 'Harmo Musical' e outra empresa, sem reputacao definida)",
+    "Historico de receita modesta para o porte do discurso: em 2021 o plano era chegar a R$2 milhoes de receita e 200 clientes"
+   ],
+   "confianca": "alta",
+   "fontes": [
+    "https://harmo.me/restaurantes-no-google",
+    "https://harmo.me/inteligencia-2026",
+    "https://harmo.me/wp-content/uploads/2024/12/Termos-de-uso-Harmo.pdf",
+    "https://harmo.me/termos-de-uso",
+    "https://scinova.com.br/reclame-aqui-anuncia-sociedade-com-a-harmo-startup-catarinense-de-gestao-de-reviews/",
+    "https://www.acate.com.br/noticias/reclame-aqui-anuncia-sociedade-com-a-harmo-startup-catarinense-de-gestao-de-reviews/",
+    "https://redeinovacao.floripa.br/reviewr-anuncia-fusao-para-criar-a-primeira-plataforma-brasileira-de-gestao-da-experiencia-do-consumidor-com-reputacao-online/",
+    "https://acontecendoaqui.com.br/marketing/reputacao-digital-estudo-revela-que-restaurantes-respondem-a-somente-24-das-avaliacoes-online-de-clientes/"
+   ]
+  },
+  {
+   "nome": "Risposta (fornecedor atual — baseline de comparacao)",
+   "pais": "Brasil",
+   "site": "https://www.risposta.app/",
+   "descricao": "Fornecedor atual do cliente, sediado na Barra da Tijuca, Rio de Janeiro. Plataforma de pesquisa de satisfacao para restaurantes com coleta por tablet, QR Code e NFC, centralizacao de avaliacoes Google + Risposta + iFood, recomendacoes por IA, cliente oculto, automacao de marketing e fidelidade. Incluido aqui como referencia de preco e escopo, ja que e um dos poucos do mercado que publica valor no proprio site.",
+   "features": [
+    "Coleta de pesquisa por tablet levado a mesa durante o atendimento",
+    "Modulo Risposta Tap com QR Code e NFC impressos na mesa",
+    "Avaliacao anonima (aumenta volume e reduz vies de complacencia)",
+    "Redirecionamento automatico para avaliacao no Google ao final do feedback positivo",
+    "Painel unico com avaliacoes do Google, do Risposta e do iFood, com tendencias, alertas e queda de satisfacao",
+    "Relatorios e recomendacoes por IA",
+    "Comparacao de desempenho com restaurantes concorrentes",
+    "Cadastro automatico de clientes",
+    "Alertas de performance em tempo real",
+    "Sistema antifraude integrado",
+    "Cliente oculto",
+    "Campanhas de marketing por SMS, e-mail e WhatsApp",
+    "Fidelidade: premios, surpresa de aniversario, desconto em delivery",
+    "Central de treinamento e pagina de seguranca de dados"
+   ],
+   "canais_coleta": [
+    "Tablet em mesa",
+    "QR Code",
+    "NFC",
+    "Links de pesquisa online",
+    "Delivery"
+   ],
+   "integracoes": [
+    "Google (avaliacoes e redirecionamento)",
+    "iFood (avaliacoes)",
+    "PDV: mencionado apenas como contexto operacional, sem sistema nomeado e sem documentacao de API publica"
+   ],
+   "preco": "A partir de R$ 200,00 por mes com 30 dias de teste gratuito (plano geral). Modulo somente QR Code: 'planos a partir de 150 reais mensais'. Clientes com plano de tablet usam QR Code sem custo adicional.",
+   "modelo_cobranca": "Mensalidade por loja, com piso publicado de R$150/mes (QR Code) e R$200/mes (plano com 30 dias de teste). Nao ha tabela de faixas superiores publicada — o valor de tablet e cliente oculto e negociado.",
+   "publico_alvo": "Restaurantes, pizzarias e bares no Brasil, com foco Rio de Janeiro / Barra da Tijuca",
+   "diferencial": "E o unico do mercado que combina, num so produto e com preco de entrada publicado, tablet fisico em mesa + QR/NFC + painel unificado Google/iFood + cliente oculto + CRM e fidelidade. A alegacao de que o tablet gera ~90% das avaliacoes e o argumento central do produto.",
+   "fraquezas": [
+    "O cliente paga entre R$501 e R$1.000/mes contra um piso publicado de R$150-200/mes: 2,5x a 5x o valor de entrada divulgado pelo proprio fornecedor, o que indica sobrepreco ou contrato legado nao renegociado",
+    "Preco de tablet e cliente oculto nao publicado — assimetria de informacao na renovacao",
+    "Integracao com PDV nao documentada: nenhuma mencao a Altec/Next, nenhum doc de API, nenhum changelog publico",
+    "A pagina do modulo QR Code nao confirma integracao com iFood nem com PDV — a centralizacao iFood aparece so na home",
+    "Volume do cliente (50 a 200 respostas/mes, ate 20 mesas/dia, so jantar, terca a domingo) e uma fracao da capacidade que qualquer plataforma generica entrega por R$64-80/mes",
+    "O padrao de filtrar avaliacoes positivas para o Google e retER as negativas internamente (review gating) e risco de politica do Google — inferencia minha, nao afirmacao do fornecedor"
+   ],
+   "confianca": "alta",
+   "fontes": [
+    "https://www.risposta.app/",
+    "https://www.risposta.app/risposta-tap/",
+    "https://www.risposta.app/risposta-qr-code/",
+    "https://www.risposta.app/segurancadosdados/"
+   ]
+  },
+  {
+   "nome": "Avalio",
+   "pais": "Brasil",
+   "site": "https://avalio.com.br/",
+   "descricao": "Plataforma generica de pesquisa de satisfacao com pagina de precos totalmente publica e modo totem em TODOS os planos. Tem landing page dedicada a restaurantes. E o melhor benchmark de custo do mercado e o teto de referencia contra o qual medir qualquer build proprio.",
+   "features": [
+    "Criacao de pesquisa e analise de respostas com IA (todos os planos)",
+    "Modo totem (todos os planos)",
+    "API de integracao (todos os planos)",
+    "Tokens de IA: 50.000 nos planos Starter e Standard, 150.000 nos planos Premium e Platinum",
+    "Usuarios: 1 (Starter), 1 (Standard), 3 (Premium), 10 (Platinum)",
+    "Convites por e-mail: ilimitados no Starter, 5.000/ano no Standard, 50.000/ano no Premium, 100.000/ano no Platinum",
+    "Embed em site",
+    "Landing page especifica de pesquisa de satisfacao para restaurantes, com banco de perguntas de salao, garcom, comida e ambiente"
+   ],
+   "canais_coleta": [
+    "QR Code",
+    "E-mail",
+    "SMS (disponivel para compra a parte)",
+    "Modo totem / tablet",
+    "Embed em website"
+   ],
+   "integracoes": [
+    "API generica (REST) em todos os planos"
+   ],
+   "preco": "Starter: R$ 575,00 anual, ou 12x R$ 64,00 (total R$ 768,00) — 16.000 respostas/ano. Standard: R$ 810,00 anual, ou 12x R$ 90,00 (total R$ 1.080,00) — 20.000 respostas/ano. Premium (RECOMENDADO): R$ 1.262,25 anual, ou 12x R$ 140,25 (total R$ 1.683,00) — 50.000 respostas/ano. Platinum: R$ 2.800,00 anual, ou 12x R$ 312,00 (total R$ 3.744,00) — 100.000 respostas/ano. Ha ainda mencao de terceiro a 'planos a partir de R$ 29 por mes' que NAO CONSEGUI confirmar na pagina oficial de planos.",
+   "modelo_cobranca": "Assinatura anual com opcao de parcelamento em 12x; limite por respostas/ano, nao por envio. SMS cobrado separadamente.",
+   "publico_alvo": "Qualquer segmento: hoteis, restaurantes, eventos, empresas de servico e produto",
+   "diferencial": "Preco publico, baixissimo e com IA e modo totem inclusos no plano mais barato. Para as 50-200 respostas/mes da pizzaria (600 a 2.400/ano), o Starter de 12x R$64,00 entrega 16.000 respostas/ano — cerca de 7x a 27x a necessidade real. Isso estabelece que o justo de mercado para esse volume e a faixa de R$64 a R$90/mes.",
+   "fraquezas": [
+    "Totalmente generico: nao e food service, nao tem banco de perguntas nativo de operacao de pizzaria, nem benchmark setorial",
+    "NAO centraliza avaliacoes do Google nem do iFood — nao le reviews externos, so coleta pesquisa propria",
+    "Nenhuma integracao com PDV brasileiro documentada (so API generica)",
+    "Limite de respostas e anual, nao mensal — pico de movimento nao tem folga mensal",
+    "1 unico usuario nos dois planos mais baratos",
+    "SMS nao incluso, e cobrado como compra adicional",
+    "Sem alerta nativo em WhatsApp documentado",
+    "IA limitada por cota de tokens (50.000 nos planos baratos), o que restringe analise qualitativa de comentario aberto em volume"
+   ],
+   "confianca": "alta",
+   "fontes": [
+    "https://avalio.com.br/planos",
+    "https://avalio.com.br/pesquisas-para/pesquisa-de-satisfacao-para-restaurantes",
+    "https://avalio.com.br/pesquisas/pesquisa-de-satisfacao",
+    "https://avalio.com.br/pesquisa-de-satisfacao-restaurante-perguntas"
+   ]
+  },
+  {
+   "nome": "binds.co",
+   "pais": "Brasil",
+   "site": "https://binds.co/",
+   "descricao": "Plataforma brasileira de pesquisa de satisfacao e NPS de porte corporativo, com pagina de precos publica e modelos de questionario prontos para restaurantes. Cobra por ENVIO, nao por resposta — modelo estruturalmente incompativel com publico de salao anonimo.",
+   "features": [
+    "Pesquisa NPS, com relatorios basicos, avancados e executivos por faixa de plano",
+    "Usuarios ilimitados em todos os planos",
+    "Indicadores personalizados",
+    "Alertas personalizados (do plano Standard para cima)",
+    "Branding customizado",
+    "Integracao via API em todos os planos; integracoes ilimitadas do Standard para cima",
+    "20 envios iniciais gratuitos em todos os planos",
+    "Modelo de Pesquisa de Satisfacao do Cliente para Restaurantes pronto",
+    "Suporte por chat (Start), prioritario (Standard), dedicado (Growth), 24/7 com SLA (Advanced)"
+   ],
+   "canais_coleta": [
+    "E-mail",
+    "SMS",
+    "Link de pesquisa",
+    "API (envio programatico)"
+   ],
+   "integracoes": [
+    "API em todos os planos",
+    "Integracoes ilimitadas do plano Standard para cima (parceiros nao nomeados na pagina de precos)"
+   ],
+   "preco": "Start: R$ 499,99/mes — ate 500 envios por mes. Standard (Mais Popular): R$ 799,99/mes — ate 1.000 envios por mes. Growth: R$ 2.499,99/mes — ate 5.000 envios por mes. Advanced: Sob Consulta — acima de 5.001 envios/mes. A pagina tambem exibe anotacoes de '12x R$ 899,99', '12x R$ 1.499,99' e '12x R$ 5.999,99' cuja logica nao esta explicada. CONFLITO DE FONTE: um resumo de busca de terceiro citou 'planos de uso a partir de 239 reais mensais com cobranca de 11 a 24 centavos por pesquisa' — isso NAO consta da pagina oficial de precos lida hoje e deve ser tratado como informacao desatualizada ou nao confirmada.",
+   "modelo_cobranca": "Assinatura mensal por faixa de ENVIOS/mes (nao respostas). Teste gratis sem cartao, com 20 envios iniciais.",
+   "publico_alvo": "Grandes empresas e operacoes com base de contatos identificada; nao verticalizado em food service",
+   "diferencial": "Preco publico e transparente com API em todos os planos, incluindo o mais barato — util como referencia de teto de mercado para plataforma corporativa de NPS.",
+   "fraquezas": [
+    "Precificacao por ENVIO exige lista de contatos com e-mail ou telefone. A pizzaria atende publico de salao majoritariamente anonimo — o modelo simplesmente nao encaixa",
+    "Absurdamente caro para o volume do cliente: R$499,99/mes por 500 envios contra uma necessidade de 50-200 RESPOSTAS/mes; o plano mais barato ja custa 2,5x a Avalio Platinum",
+    "Sem coleta por tablet, totem ou QR Code documentada na pagina de precos",
+    "NAO centraliza avaliacoes do Google nem do iFood",
+    "Nenhuma integracao com PDV brasileiro nomeada — 'integracoes ilimitadas' sem lista publica de conectores",
+    "Nao e food service: os modelos de restaurante sao templates de questionario, nao produto vertical",
+    "Sem IA destacada na pagina de precos",
+    "Alertas personalizados nao existem no plano de entrada"
+   ],
+   "confianca": "alta",
+   "fontes": [
+    "https://binds.co/precos/",
+    "https://binds.co/pesquisa-nps/",
+    "https://binds.co/pesquisa/modelo-de-pesquisa-de-satisfacao-do-cliente-para-restaurantes/",
+    "https://binds.co/pesquisa/modelo-de-pesquisa-restaurante/",
+    "https://blog.binds.co/pesquisa-satisfacao-restaurantes/"
+   ]
+  },
+  {
+   "nome": "NPS Fast",
+   "pais": "Brasil",
+   "site": "https://npsfast.com.br/",
+   "descricao": "Plataforma brasileira de NPS com preco publico e landing page dedicada a restaurantes. Inclui totem fisico como canal de coleta, o que a coloca na mesma faixa funcional do Risposta por preco similar — porem sem qualquer camada de reputacao externa.",
+   "features": [
+    "Analise de Customer Experience",
+    "Calculo automatizado de NPS",
+    "Questionarios personalizados",
+    "Resultados em tempo real",
+    "Destaque dos termos mais mencionados nos comentarios abertos",
+    "Identificacao de engajamento de clientes e de funcionarios",
+    "Mapeamento de areas que precisam de melhoria",
+    "API para integracao e automatizacao (somente no plano Completo)",
+    "Trial de 7 dias gratis"
+   ],
+   "canais_coleta": [
+    "Totem fisico na recepcao",
+    "QR Code",
+    "SMS automatizado ou com operador humano",
+    "E-mail / navegador web",
+    "Ligacoes telefonicas",
+    "Links personalizados",
+    "Integracao no site"
+   ],
+   "integracoes": [
+    "API (exclusiva do plano Completo)",
+    "Embed em site"
+   ],
+   "preco": "Basica: R$ 250,00/mes. Intermediaria: R$ 350,00/mes. Completa: R$ 450,00/mes. Personalizada: consultar especialistas. Trial de 7 dias gratis.",
+   "modelo_cobranca": "Assinatura mensal por faixa de recursos; API liberada apenas no plano mais caro (R$450/mes)",
+   "publico_alvo": "Restaurantes, hospitais, escolas e franqueadoras",
+   "diferencial": "Preco publico com totem fisico e canal telefonico incluidos, e faixa de R$250 a R$450/mes que se sobrepoe exatamente ao que o cliente paga hoje ao Risposta — util para mostrar que a faixa R$501-1.000/mes esta acima do mercado mesmo entre fornecedores com hardware.",
+   "fraquezas": [
+    "NENHUMA mencao a IA em todo o site — analise de comentario aberto se limita a nuvem de termos mais mencionados",
+    "NAO centraliza avaliacoes do Google nem do iFood; nao le reputacao externa",
+    "Nenhuma integracao com PDV brasileiro documentada",
+    "API trancada no plano de R$450/mes — inviabiliza automacao barata",
+    "Trial curto: 7 dias contra 30 dias do Risposta",
+    "Nao e verticalizado em food service — restaurante e um entre quatro segmentos, ao lado de hospital e escola",
+    "Nao encontrei nenhuma avaliacao de cliente verificavel (G2, Capterra, Reclame Aqui)"
+   ],
+   "confianca": "alta",
+   "fontes": [
+    "https://npsfast.com.br/restaurantes/",
+    "https://npsfast.com.br/"
+   ]
+  },
+  {
+   "nome": "Opinae",
+   "pais": "Brasil",
+   "site": "https://opinae.com.br/",
+   "descricao": "Aplicativo brasileiro de pesquisa de satisfacao e NPS desenhado especificamente para TABLET, TOTEM e QR Code, com app Android publicado no Google Play e operacao hibrida offline/online. E o concorrente mais proximo em MECANICA do tablet em mesa do Risposta — e um bom modelo de referencia tecnica para um build proprio.",
+   "features": [
+    "App em tablet (Android via Google Play) com modo quiosque em tela cheia e auto-loop",
+    "Operacao hibrida offline/online — continua coletando sem internet e sincroniza depois",
+    "Tipos de pergunta: Sim/Nao, multipla escolha, escala NPS, avaliacao por emoji, avaliacao por estrelas, texto aberto",
+    "Logica condicional: salto conforme resposta selecionada",
+    "QR Codes dinamicos que mantem consistencia mesmo apos atualizacao da pesquisa",
+    "Branding proprio: logo da empresa e imagens de fundo",
+    "Dashboard em tempo real",
+    "Exportacao para Excel e relatorios em PDF com graficos",
+    "Construtor de pesquisas (survey builder)"
+   ],
+   "canais_coleta": [
+    "Tablet",
+    "Totem / modo quiosque",
+    "QR Code (dinamico)",
+    "Link por e-mail ou WhatsApp"
+   ],
+   "integracoes": [
+    "DESCONHECIDO — nenhuma integracao de terceiro documentada no site"
+   ],
+   "preco": "NAO PUBLICO",
+   "modelo_cobranca": "Ha paginas de PLANOS e Precos referenciadas no site, mas os valores nao aparecem no conteudo publico; a entrada e por formulario de 'Cotacao Express'.",
+   "publico_alvo": "Qualquer ponto de venda ou atendimento presencial (generico)",
+   "diferencial": "Modo offline com sincronizacao posterior e QR Code dinamico — dois detalhes de engenharia que resolvem problemas reais de operacao de salao (WiFi instavel, troca de pesquisa sem reimprimir material) e que valem ser copiados num build proprio.",
+   "fraquezas": [
+    "Preco nao publicado, apesar de ter pagina de planos — atrito comercial",
+    "NENHUMA mencao a IA em todo o conteudo lido",
+    "Nenhuma integracao com terceiros documentada — nem Google, nem iFood, nem PDV, nem API citada",
+    "NAO le nem centraliza avaliacoes externas (Google/iFood): e puramente coleta propria",
+    "Totalmente generico, sem banco de perguntas ou benchmark de food service",
+    "Sem CRM, fidelidade ou automacao de marketing — escopo bem menor que o do Risposta"
+   ],
+   "confianca": "alta",
+   "fontes": [
+    "https://opinae.com.br/"
+   ]
+  },
+  {
+   "nome": "Solvis",
+   "pais": "Brasil",
+   "site": "https://solvis.com.br/",
+   "descricao": "Empresa brasileira com mais de 20 anos de mercado, autodeclarada a maior de pesquisas de satisfacao em ponto de venda do Brasil, presente em mais de 4.000 restaurantes. Forte em totem fisico e no nicho de restaurante CORPORATIVO / alimentacao coletiva, onde a pesquisa serve para comprovar SLA contratual.",
+   "features": [
+    "Totem de pesquisa fisico (produto principal)",
+    "Coleta por tablet",
+    "Coleta por QR Code",
+    "Pesquisa online",
+    "Assinatura de e-mail como canal de coleta",
+    "Ferramentas de IA tanto na coleta quanto na analise de dados",
+    "Analise de padroes, tendencias e insights de mercado",
+    "Monitoramento em tempo real para comprovacao de SLA contratual",
+    "Retail Media no Totem (monetizacao do totem com publicidade)",
+    "Recomendacoes estrategicas / consultoria"
+   ],
+   "canais_coleta": [
+    "Totem fisico",
+    "Tablet",
+    "QR Code",
+    "Pesquisa online",
+    "Assinatura de e-mail"
+   ],
+   "integracoes": [
+    "Retail Media no Totem (modulo proprio de publicidade)",
+    "Nenhuma integracao com PDV, Google ou iFood documentada"
+   ],
+   "preco": "NAO PUBLICO",
+   "modelo_cobranca": "Somente proposta comercial — o site oferece apenas 'Solicitar proposta' e 'Fale com Especialista'. Contatos: (41) 3891-1800.",
+   "publico_alvo": "Varejo, franquias, facilities, super e hipermercados, saude, concessionarias, food e especialmente restaurantes corporativos / alimentacao coletiva",
+   "diferencial": "Vinte anos de base instalada em totem de ponto de venda e um argumento comercial unico: para restaurante corporativo, a pesquisa e prova documental de SLA na renovacao de contrato. Tambem defende, com dado proprio, que totem gera taxa de participacao significativamente maior que QR Code.",
+   "fraquezas": [
+    "Preco 100% fechado, so por proposta — perfil claramente enterprise",
+    "Nicho real e alimentacao coletiva e restaurante corporativo, nao restaurante comercial a la carte; a proposta de valor (SLA contratual) nao se aplica a uma pizzaria propria",
+    "NAO centraliza Google nem iFood — nao atua em reputacao publica",
+    "Nenhuma integracao com PDV brasileiro documentada",
+    "Modelo dependente de hardware proprio (totem), o que empurra custo de implantacao e manutencao",
+    "Nenhuma avaliacao de cliente verificavel encontrada em G2, Capterra ou Reclame Aqui"
+   ],
+   "confianca": "alta",
+   "fontes": [
+    "https://solvis.com.br/",
+    "https://solvis.com.br/totem-de-pesquisa-solvis/",
+    "https://solvis.com.br/descubra-a-melhor-ferramenta-para-pesquisas-de-satisfacao-no-seu-restaurante-corporativo-totem-x-qr-code/",
+    "https://solvis.com.br/como-criar-uma-pesquisa-de-satisfacao-para-um-restaurante-corporativo/",
+    "https://solvis.com.br/a-solvis/",
+    "https://solvis.com.br/alimentacao-corporativa-prova-de-valor-estrategico/"
+   ]
+  },
+  {
+   "nome": "Tagme (modulo Tagme Review)",
+   "pais": "Brasil",
+   "site": "https://tagme.com.br/",
+   "descricao": "Suite de tecnologia exclusiva para food service (reserva, fila de espera, cardapio digital) que embute o Tagme Review, ferramenta de coleta automatica de feedback disparada logo apos o uso dos servicos. Concorrente indireto: a pesquisa e modulo satelite de um produto de reserva, nao o produto principal.",
+   "features": [
+    "Tagme Review: coleta automatica de feedback logo apos o uso do servico",
+    "NPS com a pergunta nucleo 'De 0 a 10, quanto voce recomendaria este restaurante?'",
+    "Disparo automatico apos uso de reserva, fila de espera ou cardapio digital",
+    "Relatorios com insights para tomada de decisao",
+    "CRM com 10.000 envios de e-mail por mes (conforme descricao de plano em fonte de terceiro)",
+    "Suporte humanizado de segunda a domingo por WhatsApp"
+   ],
+   "canais_coleta": [
+    "QR Code na conta ou na mesa",
+    "WhatsApp pos-visita",
+    "SMS pos-visita",
+    "E-mail marketing para clientes cadastrados",
+    "Disparo automatico integrado a reserva, fila e cardapio digital"
+   ],
+   "integracoes": [
+    "Ecossistema proprio Tagme (reserva, fila, cardapio digital)",
+    "Nenhuma integracao com PDV brasileiro, Google ou iFood documentada nas paginas lidas"
+   ],
+   "preco": "NAO PUBLICO",
+   "modelo_cobranca": "A pagina oficial de planos (landing.tagme.com.br/planos/) retornou HTTP 503 na consulta e nao pude ler valores. Nenhuma pagina lida divulga preco em reais.",
+   "publico_alvo": "Restaurantes de medio e alto padrao que operam reserva e fila de espera",
+   "diferencial": "Gatilho de pesquisa amarrado ao ciclo de vida da reserva e da fila — o cliente ja esta identificado com nome e telefone quando reserva, o que resolve o problema de contato que trava plataformas por envio. Melhor gatilho contextual do mercado.",
+   "fraquezas": [
+    "Preco nao publico e pagina de planos instavel (503 no momento da consulta)",
+    "A pesquisa e modulo acessorio: quem nao usa reserva ou fila do Tagme perde o principal gatilho de coleta",
+    "NAO coleta por tablet nem totem em mesa",
+    "NAO centraliza avaliacoes do Google nem do iFood",
+    "Nenhuma integracao com PDV brasileiro documentada",
+    "IA nao e mencionada explicitamente — so 'relatorios com insights'",
+    "Pizzaria de um salao com 20 mesas/dia e so jantar tipicamente nao opera reserva formal, o que esvazia o diferencial do produto"
+   ],
+   "confianca": "media",
+   "fontes": [
+    "https://tagme.com.br/tudo-sobre-pesquisa-de-satisfacao-em-restaurante/",
+    "https://landing.tagme.com.br/planos/"
+   ]
+  },
+  {
+   "nome": "ReviewBR",
+   "pais": "Brasil",
+   "site": "https://reviewbr.com/",
+   "descricao": "Ferramenta brasileira barata e de escopo estreito: automacao de pedido de avaliacao por WhatsApp que roteia notas 4 e 5 para o Google e retem feedback negativo internamente. Concorrente direto do RISPOSTA no eixo 'mais avaliacoes no Google', por uma fracao do preco.",
+   "features": [
+    "Envio automatico de ate 3 mensagens por WhatsApp nos intervalos de 30 minutos, 1 hora e 24 horas apos o atendimento",
+    "Avaliacao com um clique, sem o cliente instalar nada",
+    "Roteamento: 'Notas 4 e 5 vao direto para o Google. Feedbacks negativos chegam so para voce resolver'",
+    "Painel para cadastro de cliente com nome e WhatsApp",
+    "Sem fidelidade contratual, cancelamento a qualquer momento"
+   ],
+   "canais_coleta": [
+    "WhatsApp (canal unico)"
+   ],
+   "integracoes": [
+    "Google Reviews (nativa)",
+    "Nenhuma outra integracao documentada"
+   ],
+   "preco": "Essencial: R$ 79,90/mes — 100 fluxos WhatsApp/mes. Profissional: R$ 139,90/mes — 1.500 fluxos WhatsApp/mes. Business: R$ 299,00/mes — fluxos ilimitados.",
+   "modelo_cobranca": "Assinatura mensal por volume de 'fluxos' de WhatsApp, sem fidelidade",
+   "publico_alvo": "Negocios locais brasileiros, incluindo restaurantes, que querem mais avaliacoes no Google",
+   "diferencial": "Preco publico e o mais baixo do mercado para o problema mais valioso do cliente (volume de reviews no Google): R$79,90/mes para 100 fluxos cobre exatamente a faixa de 50-200 interacoes/mes da pizzaria.",
+   "fraquezas": [
+    "Escopo estreito: NAO e plataforma de pesquisa. Sem NPS estruturado, sem questionario multi-dimensao, sem dashboard analitico profundo",
+    "Canal unico WhatsApp — nao coleta em mesa, sem tablet, sem totem, sem QR Code",
+    "Exige cadastro de nome e WhatsApp de cada cliente no painel, aparentemente manual: atrito operacional real num salao de 20 mesas por noite e incompativel com publico anonimo",
+    "NENHUMA mencao a IA",
+    "Nenhuma integracao com PDV brasileiro; nao le nem centraliza iFood",
+    "O roteamento de notas 4-5 para o Google e retencao das negativas e review gating, pratica que contraria a politica de avaliacoes do Google e cria risco de penalizacao do perfil — esta e uma INFERENCIA minha, nao uma afirmacao do fornecedor",
+    "Sem qualquer avaliacao de cliente verificavel encontrada"
+   ],
+   "confianca": "alta",
+   "fontes": [
+    "https://reviewbr.com/home"
+   ]
+  },
+  {
+   "nome": "Ecoa (Geengoo)",
+   "pais": "Brasil",
+   "site": "https://geengoo.com/ecoa",
+   "descricao": "Produto brasileiro de NPS moderno para restaurante: QR Code na mesa, resposta por emoji e estrelas por dimensao, e IA que classifica cada avaliacao em tempo real disparando acao automatica diferente para promotor, neutro e detrator. Funcionalmente e o desenho mais proximo do que o cliente quer construir por conta propria.",
+   "features": [
+    "QR Code na mesa com resposta por toque em emoji de emocao",
+    "Notas separadas por dimensao: atendimento, comida e ambiente",
+    "Comentario aberto opcional",
+    "IA classifica cada avaliacao em tempo real como positiva, neutra ou negativa",
+    "Automacao por perfil — promotor: recebe brinde automatico e e convidado a deixar review publico no Google; neutro: gera notificacao de follow-up para entender o que faltou; detrator: dispara alerta imediato ao dono ou gerente para resolver antes do cliente ir embora",
+    "Elimina planilha de controle de NPS"
+   ],
+   "canais_coleta": [
+    "QR Code na mesa"
+   ],
+   "integracoes": [
+    "Google (convite a review publico)",
+    "iFood (citado, sem detalhe de integracao)"
+   ],
+   "preco": "NAO PUBLICO",
+   "modelo_cobranca": "DESCONHECIDO — nenhum valor localizado",
+   "publico_alvo": "Restaurantes e bares",
+   "diferencial": "A arquitetura de acao automatica por perfil (brinde + convite Google para promotor, follow-up para neutro, alerta imediato ao gerente para detrator) e o padrao de ouro funcional deste mercado e e replicavel com custo de infra proximo de zero — vale copiar integralmente no build proprio.",
+   "fraquezas": [
+    "Preco nao publicado e nenhuma pagina oficial do produto lida diretamente — toda a informacao veio de artigo de terceiro (Mundo Food Service), o que reduz a confianca",
+    "Canal unico QR Code — sem tablet e sem totem, portanto sujeito exatamente a limitacao de volume que o Risposta usa como argumento de venda",
+    "Integracoes com Google e iFood sao citadas sem nenhum detalhe tecnico verificavel",
+    "Nenhuma integracao com PDV brasileiro",
+    "Marca e empresa (Geengoo) sem presenca verificavel: nao encontrei base de clientes, avaliacoes, imprensa ou porte",
+    "O padrao de convidar apenas promotores a avaliar publicamente e review gating, com o mesmo risco de politica do Google — inferencia minha"
+   ],
+   "confianca": "media",
+   "fontes": [
+    "https://mundofoodservice.com.br/nps-para-restaurante-explicado-em-5-minutos-sem-planilha-sem-complicacao/"
+   ]
+  },
+  {
+   "nome": "Track.co",
+   "pais": "Brasil",
+   "site": "https://track.co/",
+   "descricao": "Plataforma brasileira consolidada de gestao da experiencia do cliente, com aplicacao de NPS, CES e CSAT ao longo de toda a jornada, aderente a LGPD. Concorrente indireto: e horizontal, corporativa e nao tem produto vertical de food service.",
+   "features": [
+    "Metricas NPS, CES e CSAT",
+    "Monitoramento de interacoes ao longo de toda a jornada de relacionamento",
+    "Conformidade com a LGPD",
+    "NPS via WhatsApp (documentado no proprio blog da empresa)",
+    "Universidade corporativa propria (UniTrack, plataforma de cursos)"
+   ],
+   "canais_coleta": [
+    "E-mail",
+    "WhatsApp",
+    "SMS"
+   ],
+   "integracoes": [
+    "DESCONHECIDO — nao consegui ler o site oficial e nenhuma lista publica de conectores foi localizada"
+   ],
+   "preco": "NAO PUBLICO",
+   "modelo_cobranca": "DESCONHECIDO — nenhuma pagina de precos localizada em nenhuma busca",
+   "publico_alvo": "Empresas brasileiras de medio e grande porte, horizontal por segmento",
+   "diferencial": "Marca consolidada em CX no Brasil com trilha de educacao propria (UniTrack), o que sustenta venda consultiva de longo ciclo.",
+   "fraquezas": [
+    "O site oficial track.co retornou HTTP 403 na consulta — nao pude verificar nada em pagina oficial, o que rebaixa toda a informacao a confianca media",
+    "Preco totalmente opaco; nenhuma faixa de valor encontrada em nenhuma fonte",
+    "NAO e food service: nenhum produto, template ou benchmark vertical de restaurante localizado",
+    "Sem coleta em mesa: nada de tablet, totem ou QR Code documentado — so e-mail, WhatsApp e SMS, o que de novo pressupoe contato identificado",
+    "NAO centraliza avaliacoes do Google nem do iFood",
+    "Nenhuma integracao com PDV brasileiro documentada",
+    "Nao encontrei avaliacoes de clientes especificas de Track.co em G2 ou Capterra — as buscas retornaram Track-POD, produto sem relacao"
+   ],
+   "confianca": "media",
+   "fontes": [
+    "https://track.co/",
+    "https://track.co/blog/tracksale-nps-no-whatsapp/",
+    "https://www.getapp.com/all-software/a/track-1/",
+    "https://digitaliza.ai/nps/compare/track-vs-solucx"
+   ]
+  },
+  {
+   "nome": "SoluCX",
+   "pais": "Brasil",
+   "site": "https://solucx.com.br/",
+   "descricao": "Software brasileiro de gestao de experiencia fundado em 2015, focado em NPS, CSAT e CES com analise por IA. Premiado em 2022 e 2024 nas categorias de NPS e de software de feedback. Concorrente indireto de perfil corporativo, sem verticalizacao em food service.",
+   "features": [
+    "NPS, CSAT e CES",
+    "Pesquisa de menos de 15 segundos para o cliente",
+    "Sistema de inteligencia artificial que analisa as pesquisas e gera insights para executivos",
+    "Like & Dislikes para identificar atributos que elevam NPS, CSAT e CES",
+    "Captura e rastreamento de leads em tempo real",
+    "Disponivel em navegador web e mobile iOS e Android",
+    "Suporte por e-mail, chat e telefone em horario comercial"
+   ],
+   "canais_coleta": [
+    "Web",
+    "Mobile (iOS e Android)",
+    "DESCONHECIDO para tablet, totem e QR Code — nao documentado nas fontes lidas"
+   ],
+   "integracoes": [
+    "DESCONHECIDO — nenhuma integracao especifica mencionada nas fontes lidas"
+   ],
+   "preco": "NAO PUBLICO",
+   "modelo_cobranca": "No Capterra o campo de preco inicial aparece como 'Contact vendor'; no B2B Stack nenhum valor em reais e informado. Venda por contato comercial.",
+   "publico_alvo": "Empresas de medio e grande porte, horizontal por segmento",
+   "diferencial": "Pesquisa ultracurta (menos de 15 segundos) combinada a mecanica de Like & Dislikes que atribui o movimento do NPS a atributos especificos — bom modelo de UX para maximizar taxa de resposta em salao.",
+   "fraquezas": [
+    "Preco totalmente fechado em todas as fontes",
+    "Social proof praticamente inexistente e um alerta em si: 1 unica avaliacao no Capterra (nota 5.0, de fevereiro de 2022, de um CEO de e-learning, cujo unico comentario de contra foi 'Nao tenho algo a relatar sobre isso - gosto muito') e 0 avaliacoes no B2B Stack. Base amostral insuficiente para qualquer conclusao",
+    "Nenhum produto ou material vertical de food service localizado",
+    "NAO centraliza avaliacoes do Google nem do iFood",
+    "Nenhuma integracao com PDV brasileiro documentada",
+    "Canais de coleta em ponto de venda fisico nao documentados",
+    "Suporte apenas em horario comercial — inadequado para operacao de jantar de terca a domingo",
+    "Treinamento oferecido apenas em formato texto"
+   ],
+   "confianca": "media",
+   "fontes": [
+    "https://solucx.com.br/",
+    "https://solucx.com.br/nps/",
+    "https://solucx.com.br/sobre-nos/",
+    "https://www.capterra.com/p/209545/SoluCX/",
+    "https://www.b2bstack.com.br/product/solucx",
+    "https://digitaliza.ai/nps/software/solucx",
+    "https://solucx.com.br/blog/como-aumentar-o-nps-aprendizados-dos-principais-segmentos-do-brasil/"
+   ]
+  },
+  {
+   "nome": "Get In",
+   "pais": "Brasil",
+   "site": "https://restaurante.getin.app/",
+   "descricao": "Plataforma brasileira lider em reserva e fila de espera para restaurantes (autodeclarada nº1, 3.000+ restaurantes usando e 10.000+ na base do app de consumidor) que centraliza tambem pesquisa de satisfacao, cardapio digital e gestao de dados de cliente. Concorrente indireto — pesquisa e modulo agregado.",
+   "features": [
+    "Reserva de mesa e lista de espera online em tempo real",
+    "Recepcao de fila digital",
+    "Pesquisa de satisfacao (modulo agregado)",
+    "Cardapio digital",
+    "Gestao de dados de cliente",
+    "Customizacao completa de horarios",
+    "Taxa de no-show",
+    "Reservas pelos canais Get In (marketplace de consumidor)",
+    "Relatorios detalhados nos planos superiores",
+    "Suporte por WhatsApp de segunda a sexta, 9h as 18h"
+   ],
+   "canais_coleta": [
+    "Disparo apos reserva ou fila",
+    "Cardapio digital",
+    "DESCONHECIDO para tablet, totem e QR Code em mesa"
+   ],
+   "integracoes": [
+    "Ecossistema proprio Get In (app de consumidor)",
+    "Nenhuma integracao com PDV brasileiro, Google ou iFood documentada nas fontes acessiveis"
+   ],
+   "preco": "Plano Starter: R$ 239,00/mes. ATENCAO: a pagina oficial de planos (restaurante.getin.app/planos-e-precos/) retornou HTTP 403 e eu NAO consegui ler os valores diretamente — o R$239/mes vem de resumo de busca atribuido a essa pagina. Valores dos planos superiores: DESCONHECIDO.",
+   "modelo_cobranca": "Assinatura mensal por faixa de recursos, com plano de entrada Starter",
+   "publico_alvo": "Restaurantes e bares que operam reserva e fila de espera",
+   "diferencial": "Traz demanda, nao so mede satisfacao: o marketplace de consumidor com 10.000+ restaurantes gera reserva nova, algo que nenhuma plataforma de pesquisa entrega.",
+   "fraquezas": [
+    "Preco nao verificado em pagina oficial (403 no acesso) — trate R$239/mes como confianca media",
+    "Pesquisa de satisfacao e modulo secundario de um produto de reserva: profundidade analitica presumivelmente muito menor que a de plataforma dedicada",
+    "NAO centraliza avaliacoes do Google nem do iFood",
+    "Nenhuma integracao com PDV brasileiro documentada",
+    "Sem tablet e sem totem em mesa",
+    "Suporte so em dia util de 9h as 18h — a pizzaria opera de terca a domingo, so no jantar, portanto praticamente todo o horario de operacao fica sem suporte",
+    "Relatorios detalhados so nos planos superiores, cujo preco e desconhecido",
+    "Modelo de reserva e pouco aderente a pizzaria de bairro com 20 mesas/dia"
+   ],
+   "confianca": "media",
+   "fontes": [
+    "https://restaurante.getin.app/planos-e-precos/",
+    "https://www.getin.app/location",
+    "https://blog.getinapp.com.br/sistemas-reserva-restaurantes/",
+    "https://apps.apple.com/br/app/get-in-restaurantes-e-bares/id919815190",
+    "https://restaurante.getin.app/otimizando-reservas/"
+   ]
+  },
+  {
+   "nome": "Opinion Box",
+   "pais": "Brasil",
+   "site": "https://www.opinionbox.com/",
+   "descricao": "NAO e concorrente direto do Risposta. E instituto de pesquisa de mercado online com painel proprio de respondentes (1 milhao de usuarios B2B e B2C). Vende estudo pontual, nao monitoramento continuo de satisfacao no ponto de venda. Investiguei porque estava na lista, e a conclusao e que o modelo de negocio e outro.",
+   "features": [
+    "Painel proprio com 1 milhao de respondentes B2B e B2C",
+    "Segmentacoes avancadas de publico",
+    "Entrega de dados em ate 5 dias uteis apos aprovacao do questionario",
+    "Simulador de preco automatico no site",
+    "IA para gerar insights e recomendacoes",
+    "Plataforma de pesquisa self-service"
+   ],
+   "canais_coleta": [
+    "Painel online proprio de respondentes",
+    "Questionario online self-service"
+   ],
+   "integracoes": [
+    "Nenhuma relevante para operacao de restaurante"
+   ],
+   "preco": "Pesquisa no Painel de Respondentes a partir de R$ 300,00 por projeto; o simulador de preco parte de R$ 6,00 (unidade nao esclarecida nas fontes lidas — provavelmente por entrevista). Questionarios com mais de 50 perguntas, mais de 1.000 entrevistas ou publico muito especifico exigem falar com consultor.",
+   "modelo_cobranca": "Por PROJETO de pesquisa, nao assinatura mensal de monitoramento",
+   "publico_alvo": "Empresas de qualquer setor que precisam de estudo de mercado pontual",
+   "diferencial": "Acesso a painel de 1 milhao de respondentes — serve para estudo de mercado (ex.: testar preco de pizza ou aceitacao de um novo sabor na cidade), nao para medir a satisfacao de quem jantou ontem.",
+   "fraquezas": [
+    "Nao e produto de CX continuo: e estudo pontual com entrega em 5 dias uteis, nao termometro diario da operacao",
+    "Nao coleta feedback dos SEUS clientes no seu salao — coleta opiniao de um painel de terceiros",
+    "NAO centraliza Google nem iFood; nao faz gestao de reputacao",
+    "Nenhuma integracao com PDV",
+    "Cobranca por projeto (a partir de R$300) torna o monitoramento recorrente economicamente absurdo",
+    "Nao e food service"
+   ],
+   "confianca": "media",
+   "fontes": [
+    "https://www.opinionbox.com/",
+    "https://www.opinionbox.com/plataforma-de-pesquisa/",
+    "https://www.opinionbox.com/painel/",
+    "https://www.opinionbox.com/plataforma-de-pesquisa/painel-de-respondentes/",
+    "https://blog.opinionbox.com/quanto-custa-uma-pesquisa-de-mercado/"
+   ]
+  },
+  {
+   "nome": "Koncluí",
+   "pais": "Brasil",
+   "site": "https://konclui.com/",
+   "descricao": "NAO e concorrente direto: e app de checklists inteligentes para padronizacao operacional de restaurantes (abertura, fechamento, limpeza, producao), com mais de 3.500 restaurantes na base. Aparece nas buscas de 'pesquisa de satisfacao restaurante' apenas por marketing de conteudo no blog. Concorrente adjacente pelo orcamento de tecnologia do restaurante.",
+   "features": [
+    "Criacao e agendamento de checklists pelo gestor no computador",
+    "Execucao pela equipe em celular ou tablet com anexo de evidencia fotografica",
+    "Verificacao se a evidencia corresponde ao padrao definido",
+    "Alerta no WhatsApp do gestor quando algo sai do padrao",
+    "Painel de controle em tempo real",
+    "Multi-unidade e multi-turno",
+    "Landing pages por segmento (ex.: pastelaria)"
+   ],
+   "canais_coleta": [
+    "N/A — coleta execucao de tarefa da EQUIPE, nao feedback de CLIENTE"
+   ],
+   "integracoes": [
+    "WhatsApp (alertas)"
+   ],
+   "preco": "NAO PUBLICO",
+   "modelo_cobranca": "DESCONHECIDO — nenhum valor localizado",
+   "publico_alvo": "Restaurantes, bares e operacoes de food service que precisam padronizar processo",
+   "diferencial": "Resolve a CAUSA e nao o sintoma: enquanto a pesquisa mede que o cliente reclamou, o checklist garante que a operacao rodou no padrao. O alerta no WhatsApp quando a foto nao bate com o padrao e um bom modelo de mecanica de alerta.",
+   "fraquezas": [
+    "NAO faz pesquisa de satisfacao de cliente, NAO faz NPS e NAO faz gestao de reputacao — nao substitui o Risposta em nada",
+    "Nao centraliza Google nem iFood",
+    "Nenhuma integracao com PDV brasileiro documentada",
+    "Preco nao publico",
+    "Nao li o site oficial em profundidade — informacao vem de resumo de busca, portanto confianca media"
+   ],
+   "confianca": "media",
+   "fontes": [
+    "https://konclui.com/",
+    "https://blog.konclui.com/",
+    "https://konclui.com/blog/avaliacoes-online-restaurante/",
+    "https://blog.konclui.com/feedback-clientes-restaurante-como-coletar/",
+    "https://konclui.com/blog/atendimento-cliente-delivery/"
+   ]
+  },
+  {
+   "nome": "i9Menu / i9Cardápios",
+   "pais": "Brasil",
+   "site": "https://i9menu.com.br/",
+   "descricao": "NAO e concorrente. Apurei especificamente porque estava na lista de investigacao: i9Menu e grafica e industria de cardapios personalizados, embalagens de delivery, potes, copos e jogos americanos, atendendo mais de 35.000 estabelecimentos. Nao vende software de pesquisa. O artigo 'Pesquisa de satisfacao de restaurante' no dominio deles e marketing de conteudo que, no fim, sugere CONTRATAR uma empresa especializada em pesquisa.",
+   "features": [
+    "Criacao, layout, impressao e fabricacao de cardapios personalizados",
+    "Embalagens de delivery, potes e copos",
+    "Jogos americanos",
+    "Manutencao de cardapio pos-entrega (alteracoes e inclusoes de conteudo)",
+    "Loja online (loja.i9menu.com.br)",
+    "NENHUMA funcionalidade de software de pesquisa de satisfacao"
+   ],
+   "canais_coleta": [
+    "N/A — nao coleta feedback"
+   ],
+   "integracoes": [
+    "N/A"
+   ],
+   "preco": "NAO PUBLICO",
+   "modelo_cobranca": "Venda de produto grafico e industrial por pedido, nao assinatura de software",
+   "publico_alvo": "Restaurantes e delivery que compram cardapio impresso e embalagem",
+   "diferencial": "Nenhum no escopo desta analise — a unica relevancia e negativa: nao considerar i9Menu como concorrente, para nao poluir o mapa competitivo.",
+   "fraquezas": [
+    "Nao e software, nao coleta feedback, nao mede NPS, nao gerencia reputacao",
+    "O conteudo sobre pesquisa de satisfacao no site deles termina recomendando terceirizar a pesquisa para uma empresa especializada com consultoria e relatorio — ou seja, e isca de conteudo, nao produto",
+    "Nenhuma integracao, nenhuma API, nenhum preco de software"
+   ],
+   "confianca": "media",
+   "fontes": [
+    "https://i9menu.com.br/pesquisa-de-satisfacao-restaurante/",
+    "https://i9menu.com.br/",
+    "https://i9menu.com.br/produtos/",
+    "https://i9menu.com.br/empresa/",
+    "https://i9cardapios.com.br/",
+    "https://i9cardapios.com.br/servicos/impressao-de-cardapios",
+    "https://i9menu.com.br/cardapios-por-segmento/cardapio-para-restaurante/"
+   ]
+  },
+  {
+   "nome": "Reviewax",
+   "pais": "Brasil (atuacao)",
+   "site": "DESCONHECIDO — nenhum dominio oficial confirmado",
+   "descricao": "ALERTA: aparece nas buscas de gestao de avaliacoes, mas a descricao encontrada e de VENDA DE AVALIACOES do Google em pacotes mensais ('comprar avaliacoes 5 estrelas para superar a concorrencia local'), com publicacao progressiva para 'evitar picos suspeitos'. Isso e compra de review, pratica que viola a politica de conteudo do Google e expoe o perfil do restaurante a remocao e penalizacao. Registro aqui exclusivamente como risco a evitar, nao como opcao.",
+   "features": [
+    "Pacotes de aproximadamente 5, 15 e 35 avaliacoes por mes (planos Basic, Growth e Pro)",
+    "Publicacao progressiva das avaliacoes para evitar picos suspeitos",
+    "Automacao via WhatsApp",
+    "Direcionamento de avaliacoes positivas para o Google",
+    "Sugestoes de resposta com IA",
+    "Dashboard em tempo real",
+    "Suporte em portugues por WhatsApp",
+    "Configuracao em 1 a 3 dias, primeiras avaliacoes na primeira semana"
+   ],
+   "canais_coleta": [
+    "WhatsApp",
+    "Avaliacoes fornecidas pelo proprio provedor (nao coletadas de clientes reais)"
+   ],
+   "integracoes": [
+    "Google (publicacao de avaliacoes)"
+   ],
+   "preco": "NAO PUBLICO — existem tres faixas (Basic, Growth, Pro) mas nenhum valor em reais foi localizado",
+   "modelo_cobranca": "Pacote mensal por quantidade de avaliacoes entregues",
+   "publico_alvo": "Restaurantes, profissionais, comercios locais e franquias que querem subir nota no Google Maps",
+   "diferencial": "Nenhum legitimo. E o extremo oposto do que uma pesquisa de satisfacao faz: nao mede nada da operacao, apenas injeta reputacao artificial.",
+   "fraquezas": [
+    "Modelo aparentemente baseado em compra de avaliacoes, o que viola a politica de avaliacoes do Google e pode gerar remocao em massa das reviews e penalizacao do Perfil de Empresa — risco reputacional e juridico",
+    "A fonte principal encontrada e 'conteudo publicitario' (advertorial) em portal de noticias, nao pagina institucional — credibilidade baixa",
+    "Nenhum dominio oficial, CNPJ, endereco ou porte verificavel localizado",
+    "Nenhum preco publicado",
+    "Nao gera nenhum dado operacional acionavel sobre a pizzaria",
+    "Nao substitui pesquisa de satisfacao em nada"
+   ],
+   "confianca": "baixa",
+   "fontes": [
+    "https://www.brasil247.com/conteudo-publicitario/comprar-avaliacoes-google-no-brasil-top-3-sites-e-guia-completo-2026-nos4y8m6/"
+   ]
+  },
+  {
+   "nome": "uselets (uselets.com)",
+   "pais": "DESCONHECIDO",
+   "site": "https://uselets.com (nao verificado)",
+   "descricao": "NAO ENCONTRADO. Fiz duas buscas dedicadas ('uselets.com pesquisa satisfacao restaurante' e '\"uselets\" lets pesquisa satisfacao NPS plataforma brasileira') e nenhuma retornou qualquer referencia a esse dominio ou marca em nenhum contexto de pesquisa de satisfacao, NPS, CX ou reputacao no Brasil. Nao existe pegada digital indexada. Ou a marca nao existe, ou nao tem presenca de busca relevante, ou o nome esta incorreto.",
+   "features": [
+    "DESCONHECIDO — nenhuma pagina oficial localizada"
+   ],
+   "canais_coleta": [
+    "DESCONHECIDO"
+   ],
+   "integracoes": [
+    "DESCONHECIDO"
+   ],
+   "preco": "DESCONHECIDO",
+   "modelo_cobranca": "DESCONHECIDO",
+   "publico_alvo": "DESCONHECIDO",
+   "diferencial": "DESCONHECIDO",
+   "fraquezas": [
+    "Ausencia total de pegada digital indexada e, por si, um sinal: um fornecedor sem presenca de busca em pesquisa de satisfacao para restaurante nao tem escala nem trativa comercial relevante no Brasil hoje"
+   ],
+   "confianca": "baixa",
+   "fontes": [
+    "https://www.questionpro.com/blog/pt-br/pesquisa-de-satisfacao-em-restaurantes/",
+    "https://blog.stayapp.com.br/pesquisa-de-satisfacao-restaurante/"
+   ]
+  },
+  {
+   "nome": "Mesa 1 / Mesa1",
+   "pais": "DESCONHECIDO",
+   "site": "DESCONHECIDO",
+   "descricao": "NAO ENCONTRADO. Busca dedicada por '\"Mesa 1\" OR \"Mesa1\" pesquisa de satisfacao restaurante plataforma Brasil' nao retornou nenhuma plataforma com esse nome. O resultado mais proximo e outro produto: Reserva de Mesa (reservademesa.com.br), sistema de reservas que empacota controle de reservas, gestao de clientes, cardapio digital, vouchers e pesquisas de satisfacao no mesmo lugar. Possivel confusao de nome.",
+   "features": [
+    "DESCONHECIDO — nenhuma plataforma 'Mesa 1' localizada",
+    "Substituto provavel, Reserva de Mesa: controle de reservas, gestao de clientes, cardapio digital, vouchers e pesquisas de satisfacao (confianca baixa, apenas resumo de busca)"
+   ],
+   "canais_coleta": [
+    "DESCONHECIDO"
+   ],
+   "integracoes": [
+    "DESCONHECIDO"
+   ],
+   "preco": "DESCONHECIDO",
+   "modelo_cobranca": "DESCONHECIDO",
+   "publico_alvo": "DESCONHECIDO",
+   "diferencial": "DESCONHECIDO",
+   "fraquezas": [
+    "Marca nao identificavel no mercado brasileiro de pesquisa de satisfacao para food service",
+    "Se a referencia real for Reserva de Mesa, vale a mesma critica de Tagme e Get In: pesquisa e modulo acessorio de produto de reserva, sem preco publico verificado, sem tablet em mesa e sem centralizacao de Google e iFood"
+   ],
+   "confianca": "baixa",
+   "fontes": [
+    "https://reservademesa.com.br/"
+   ]
+  },
+  {
+   "nome": "Tellus",
+   "pais": "DESCONHECIDO",
+   "site": "DESCONHECIDO",
+   "descricao": "NAO ENCONTRADO. Busca dedicada por '\"Tellus\" plataforma experiencia do cliente NPS Brasil restaurante' nao retornou nenhuma empresa com esse nome atuando em CX, NPS ou reputacao para food service no Brasil. Nao ha pagina oficial, imprensa ou diretorio de software que a posicione nesse mercado.",
+   "features": [
+    "DESCONHECIDO — nenhuma pagina oficial localizada"
+   ],
+   "canais_coleta": [
+    "DESCONHECIDO"
+   ],
+   "integracoes": [
+    "DESCONHECIDO"
+   ],
+   "preco": "DESCONHECIDO",
+   "modelo_cobranca": "DESCONHECIDO",
+   "publico_alvo": "DESCONHECIDO",
+   "diferencial": "DESCONHECIDO",
+   "fraquezas": [
+    "Nao localizavel como fornecedor deste mercado; nao deve entrar no mapa competitivo sem uma fonte primaria que a posicione"
+   ],
+   "confianca": "baixa",
+   "fontes": [
+    "https://www.capterra.com.br/blog/4091/ferramenta-nps"
+   ]
+  },
+  {
+   "nome": "Reviewz (provavel confusao com Reviewr)",
+   "pais": "Brasil",
+   "site": "https://harmo.me/",
+   "descricao": "NAO EXISTE como 'Reviewz'. A busca dedicada nao encontrou nenhuma plataforma com esse nome. O que existe, e quase certamente a origem da confusao, e REVIEWR: startup criada em 2017 em Florianopolis para explorar o nicho da 'economia do feedback' com gestao automatizada de reviews publicados em redes sociais para varejo e servicos. Em 2020 a Reviewr formalizou fusao com a Gorila (Rio Grande do Sul) e o resultado passou a se chamar HARMO. Ou seja: Reviewz nao e um concorrente separado — e a Harmo, ja mapeada acima.",
+   "features": [
+    "Gestao automatizada de reviews publicados em redes sociais (proposta original da Reviewr, 2017)",
+    "Agregacao de DOIS tipos de feedback no mesmo produto, pesquisas proprias e reviews publicos — diferencial declarado da fusao, seguindo modelos de mercado americano e europeu",
+    "Passagem pela incubadora Miditec e pela aceleradora Darwin Startups",
+    "Lancamento pos-fusao com carteira de 60 clientes"
+   ],
+   "canais_coleta": [
+    "Reviews publicos de redes sociais e plataformas",
+    "Pesquisas proprias (survey)"
+   ],
+   "integracoes": [
+    "Ver ficha da Harmo: Google, iFood, TripAdvisor, Facebook, Reclame Aqui"
+   ],
+   "preco": "NAO PUBLICO",
+   "modelo_cobranca": "Ver ficha da Harmo: mensalidade por local conforme Proposta Comercial",
+   "publico_alvo": "Redes de lojas fisicas de medio e grande porte",
+   "diferencial": "Historicamente, foi a primeira plataforma brasileira a juntar pesquisa propria e review publico no mesmo produto, em vez de operar so um dos dois — que e exatamente a tese que hoje sustenta a Harmo e tambem o Risposta.",
+   "fraquezas": [
+    "Nao e um concorrente autonomo a ser avaliado: mapear 'Reviewz' separadamente duplicaria a Harmo e distorceria o tamanho do mercado",
+    "Todas as fraquezas aplicaveis sao as da Harmo (preco por loja com desconto por volume, foco enterprise, sem coleta em mesa, sem integracao de PDV)"
+   ],
+   "confianca": "media",
+   "fontes": [
+    "https://redeinovacao.floripa.br/reviewr-anuncia-fusao-para-criar-a-primeira-plataforma-brasileira-de-gestao-da-experiencia-do-consumidor-com-reputacao-online/",
+    "https://scinova.com.br/reclame-aqui-anuncia-sociedade-com-a-harmo-startup-catarinense-de-gestao-de-reviews/",
+    "https://acontecendoaqui.com.br/tech/startups-da-regiao-sul-anunciam-fusao-para-criar-primeira-plataforma-brasileira-de-gestao-da/",
+    "https://startupi.com.br/startups-anunciam-fusao-a-fim-de-criar-plataforma-que-permite-gestao-da-experiencia-do-consumidor-com-reputacao-online/",
+    "https://scinova.com.br/da-crise-ao-break-even-startup-harmo-supera-queda-de-receita-com-a-pandemia/",
+    "https://www.baguete.com.br/noticias/reclame-aqui-cria-sociedade-com-harmo",
+    "https://institutomillenium.org.br/startups-se-uniram-para-que-os-negocios-conquistem-mais-seus-clientes/"
+   ]
+  },
+  {
+   "nome": "Qustodio de reputacao",
+   "pais": "DESCONHECIDO",
+   "site": "DESCONHECIDO",
+   "descricao": "NAO ENCONTRADO e provavelmente nome incorreto. Nenhuma busca retornou fornecedor de gestao de reputacao para restaurantes no Brasil com esse nome. Qustodio, com esse grafia, e uma empresa de controle parental / seguranca digital para familias, sem nenhuma relacao com reputacao de restaurante, CX ou NPS. Recomendo confirmar com o cliente qual e o nome real antes de gastar mais apuracao.",
+   "features": [
+    "DESCONHECIDO — nenhuma pagina oficial localizada nesse mercado"
+   ],
+   "canais_coleta": [
+    "DESCONHECIDO"
+   ],
+   "integracoes": [
+    "DESCONHECIDO"
+   ],
+   "preco": "DESCONHECIDO",
+   "modelo_cobranca": "DESCONHECIDO",
+   "publico_alvo": "DESCONHECIDO",
+   "diferencial": "DESCONHECIDO",
+   "fraquezas": [
+    "Nome provavelmente incorreto; nao existe fornecedor com esse nome no mercado brasileiro de reputacao para food service"
+   ],
+   "confianca": "baixa",
+   "fontes": [
+    "https://marcelopoliti.com.br/blog/marketing-e-vendas/gestao-avaliacoes-google/"
+   ]
+  }
+ ],
+ "achados_tecnicos": [
+  "PISO DE PRECO DO PROPRIO RISPOSTA: a home oficial diz 'planos a partir de R$ 200 por mes com 30 dias de teste gratuito' e a pagina do Risposta Tap diz 'planos a partir de 150 reais mensais' para quem opta somente por QR Code. O cliente paga entre R$501 e R$1.000/mes — de 2,5x a 5x o piso publicado pelo proprio fornecedor. Antes de construir qualquer coisa, existe uma alavanca de renegociacao imediata baseada em preco publicado do proprio vendedor. Confianca alta. Fontes: https://www.risposta.app/ e https://www.risposta.app/risposta-tap/",
+  "TETO DE REFERENCIA PARA O BUILD PROPRIO: Avalio Starter a 12x R$ 64,00/mes entrega 16.000 respostas/ANO com modo totem, IA e API inclusos. A pizzaria precisa de 600 a 2.400 respostas/ano (50 a 200/mes). Ou seja, o mercado ja entrega 7x a 27x a capacidade necessaria por R$64/mes. Qualquer solucao propria precisa ficar abaixo disso para se justificar economicamente, e o alvo de 'custo de infra proximo de zero' e perfeitamente realista nesse volume. Confianca alta. Fonte: https://avalio.com.br/planos",
+  "BENCHMARK COMPLETO DE PRECO PUBLICO (unicos fornecedores que publicam valor): Avalio 12x R$64,00 a 12x R$312,00/mes; ReviewBR R$79,90 / R$139,90 / R$299,00 por mes; Risposta a partir de R$150 (QR) e R$200 (geral); NPS Fast R$250 / R$350 / R$450 por mes; Get In Starter R$239/mes (nao verificado em pagina oficial, 403); binds.co R$499,99 / R$799,99 / R$2.499,99 por mes. NAO PUBLICAM PRECO: Falae, Harmo, Solvis, SoluCX, Track.co, Tagme, Opinae, Ecoa. Confianca alta para os lidos em pagina oficial.",
+  "MODELO DE COBRANCA E O DIVISOR DE AGUAS: as plataformas corporativas (binds.co, Track.co, SoluCX) cobram por ENVIO e coletam por e-mail, SMS ou WhatsApp, o que pressupoe contato identificado. Um salao de pizzaria com 20 mesas por noite atende publico majoritariamente ANONIMO. Por isso o Risposta vende tablet e afirma que 'os tablets normalmente sao responsaveis por 90% das avaliacoes' e que a avaliacao anonima garante volume maior e dado mais preciso. Consequencia de projeto para o build proprio: coleta em mesa, anonima e sem cadastro previo e o requisito nº1; se o substituto for so QR Code, o volume cai e o dado piora. Confianca alta para a alegacao (e do proprio fornecedor). Fonte: https://www.risposta.app/risposta-tap/",
+  "INTEGRACAO COM PDV BRASILEIRO E UM VAZIO TOTAL DO MERCADO: em nenhum dos 20+ fornecedores investigados encontrei integracao com PDV nomeada, doc de API publica ou changelog. Especificamente sobre Altec/Next: a Altec documenta sistema PDV para restaurante, comanda eletronica e modulo gerencial e diz integrar 'com os principais aplicativos do mercado', mas NAO documenta nenhum modulo de pesquisa de satisfacao nem parceiro de CX. Ou seja, ninguem no mercado tem essa integracao — e portanto ela nao e um requisito para paridade competitiva, e sim uma oportunidade de diferenciacao se o build proprio conseguir ler o PDV. Confianca alta para a ausencia de documentacao; a existencia de API na Altec e DESCONHECIDA. Fontes: https://altec.ws/solucoes/sistema-pdv-para-restaurante/ e https://altec.ws/solucoes/gerencial/",
+  "CENTRALIZACAO DE iFOOD E BARREIRA REAL PARA UM BUILD PROPRIO: o iFood reconhece formalmente cinco tipos de empresa integradora, e uma delas e 'gestores de reputacao', que automatizam respostas e monitoram avaliacoes. O acesso passa por homologacao no portal de developers do iFood. Isso significa que ler e responder avaliacoes do iFood programaticamente exige ser parceiro homologado — nao e um scrape trivial nem um endpoint aberto. Recomendacao: no MVP proprio, tratar iFood como fora de escopo ou como coleta manual, e nao prometer paridade com o painel unificado do Risposta nesse ponto. Confianca media (categoria confirmada em fonte do iFood; requisitos exatos de homologacao nao lidos). Fontes: https://blog-parceiros.ifood.com.br/ferramentas-parceiros-integrados/, https://blog-parceiros.ifood.com.br/parceiro-integrado/, https://developermercado.ifood.com.br/docs/partners/",
+  "PADRAO ARQUITETURAL A COPIAR (Ecoa): a mecanica mais eficiente e mais barata do mercado e QR Code na mesa com resposta por emoji e estrelas em tres dimensoes (atendimento, comida, ambiente), IA classificando em tempo real, e TRES automacoes distintas: promotor recebe brinde e convite para review no Google; neutro gera notificacao de follow-up; detrator dispara alerta imediato ao dono ANTES do cliente ir embora. Essa ultima e a que gera valor economico direto (recuperacao em tempo real) e custa quase nada para implementar. Confianca media (fonte terceira, nao pagina do fornecedor). Fonte: https://mundofoodservice.com.br/nps-para-restaurante-explicado-em-5-minutos-sem-planilha-sem-complicacao/",
+  "DETALHES DE ENGENHARIA QUE VALE COPIAR DO OPINAE: (1) operacao hibrida offline/online, o app continua coletando sem internet e sincroniza depois — critico num salao com WiFi instavel; (2) QR Codes DINAMICOS que mantem consistencia mesmo quando a pesquisa e atualizada, evitando reimprimir material de mesa; (3) modo quiosque em tela cheia com auto-loop, que impede o cliente sair do app no tablet; (4) logica condicional com salto conforme resposta. Confianca alta (lido na pagina oficial). Fonte: https://opinae.com.br/",
+  "RISCO DE POLITICA A DECIDIR CONSCIENTEMENTE: tres fornecedores (Risposta, ReviewBR e Ecoa) descrevem explicitamente o mesmo padrao — rotear avaliacao positiva para o Google e retER a negativa internamente. O ReviewBR chega a escrever 'Notas 4 e 5 vao direto para o Google. Feedbacks negativos chegam so para voce resolver'. Isso e review gating e, pelo meu entendimento da politica de avaliacoes do Google, e pratica proibida que pode gerar remocao de reviews e penalizacao do Perfil de Empresa. Esta e uma INFERENCIA minha, nao verifiquei o texto atual da politica nesta apuracao — precisa ser confirmado antes de replicar no build proprio. Confianca baixa quanto a politica; confianca alta quanto ao fato de que o mercado faz isso abertamente.",
+  "QUEM E CONCORRENTE DIRETO DE VERDADE (filtro final): direto no mesmo nicho do Risposta, so Falae (pesquisa propria food service + reputacao) e Harmo (reputacao food service em escala de rede). Diretos parciais, por preco ou por mecanica: NPS Fast (totem, R$250-450), Opinae (tablet/totem), Avalio (totem + IA, preco baixo), ReviewBR (Google via WhatsApp, R$79,90), Ecoa (QR + IA + automacao), Solvis (totem, mas nicho de alimentacao coletiva). Indiretos com pesquisa como modulo acessorio: Tagme, Get In, Reserva de Mesa, Delivery Direto (NPS por e-mail 3 horas apos o pedido), Goomer, Saipos, StayApp. Horizontais corporativos: binds.co, SoluCX, Track.co, SULTS, QuestionPro. Nao concorrentes que poluem a busca: Konclui (checklist), i9Menu (grafica), Opinion Box (instituto de pesquisa). Confianca alta.",
+  "DADOS DE MERCADO UTEIS PARA O ARGUMENTO DE VALOR: restaurantes respondem a somente 24% das avaliacoes online de clientes (estudo Harmo); 96% das pessoas leem avaliacoes antes de escolher onde comprar (pesquisa Decisao Local 2025, Harmo com Reclame Aqui, 1.591 consumidores brasileiros); 63% dos consumidores escolhem restaurante com base em reviews do Google; a nota media de bares e restaurantes no Google e 4,3 estrelas (analise divulgada pela Abrasel em jan/2025), com fonte mais recente indicando alta de 4,2 para 4,5 e mais de 80% das avaliacoes positivas; restaurantes que passam a pedir avaliacao ativamente saem de cerca de 10 para mais de 50 reviews por mes sem custo adicional. Confianca media (todos de terceiros ou de material comercial de fornecedor). ",
+  "ESCALA DOS CONCORRENTES DIRETOS: Falae declara 'Mais de 1600 operacoes' na home oficial, a imprensa cita 'mais de 2 mil restaurantes', e a empresa captou R$1,5 milhao em abril de 2026 para escalar no food service. Harmo atende mais de 30.000 lojas, tem Reclame Aqui como socio (20% do capital com previsao de mais 30%) e clientes como Burger King, Bob's, C&A, Ipiranga, Cinemark, Hering, Panvel, GPA, Ambev e Beto Carrero World; em 2021 projetava R$2 milhoes de receita com 200 clientes. Traducao pratica: Falae e o rival direto no segmento do cliente; Harmo joga em outro campeonato (redes) e nao vai brigar por uma pizzaria de um salao. Confianca media (mistura de site oficial e imprensa).",
+  "LACUNA COMPETITIVA MAIS EXPLORAVEL: nenhum concorrente une, ao mesmo tempo, (a) preco publico e baixo, (b) coleta anonima em mesa por tablet, (c) leitura de reviews do Google no mesmo painel e (d) alerta de detrator em tempo real no WhatsApp do dono. Falae nao documenta tablet; Harmo nao faz pesquisa em mesa; Avalio e Opinae nao leem Google; ReviewBR nao faz pesquisa; NPS Fast nao tem IA nem Google. Um build proprio que entregue esses quatro itens juntos supera funcionalmente todo o mercado de entrada, e nenhum deles exige infraestrutura caR. Confianca media (inferencia estruturada a partir das fichas verificadas).",
+  "BUGS DE APURACAO A REGISTRAR PARA HONESTIDADE DO RELATORIO: (1) falae.app/planos e www.falae.app/planos retornam HTTP 404 — a Falae anuncia planos mas nao tem pagina de planos acessivel; o valor 'a partir de R$180' apareceu em resumo de mecanismo de busca e NAO foi confirmado em nenhuma fonte primaria, portanto NAO deve ser usado. (2) track.co, conexto.com.br e restaurante.getin.app/planos-e-precos retornaram HTTP 403 e landing.tagme.com.br/planos retornou HTTP 503 — nenhum preco desses quatro foi verificado em pagina oficial. (3) O artigo da Economia SP sobre a rodada da Falae retornou 404 na leitura direta; o dado da captacao de R$1,5 milhao vem do titulo indexado. (4) Ha conflito de fonte no binds.co: a pagina oficial de precos hoje mostra piso de R$499,99/mes, enquanto um resumo de terceiro citava R$239/mes com R$0,11 a R$0,24 por pesquisa — usar o valor oficial."
+ ],
+ "fontes": [
+  "https://www.falae.app/",
+  "https://www.falae.app/blog/reputacao-google-meu-negocio-restaurante-2026",
+  "https://www.falae.app/blog/feedback-negativo-restaurante-fidelizacao",
+  "https://www.falae.app/termos-de-uso",
+  "https://conteudo.falae.app/demo-gratuita-site-v2",
+  "https://falae.app/planos/",
+  "https://naturalbot.com.br/falae-pesquisa-para-restaurantes/",
+  "https://naturalbot.com.br/pesquisa-de-satisfacao-para-restaurantes/",
+  "https://economiasp.com/2026/04/14/falae-levanta-r1-5-milhao-para-escalar-gestao-de-experiencia-no-food-service/",
+  "https://harmo.me/restaurantes-no-google",
+  "https://harmo.me/inteligencia-2026",
+  "https://harmo.me/termos-de-uso",
+  "https://harmo.me/wp-content/uploads/2024/12/Termos-de-uso-Harmo.pdf",
+  "https://harmo.me/blog/pesquisa-decisao-local-avaliacoes-google",
+  "https://harmo.me/blog/reviews-e-negocios-locais",
+  "https://scinova.com.br/reclame-aqui-anuncia-sociedade-com-a-harmo-startup-catarinense-de-gestao-de-reviews/",
+  "https://scinova.com.br/da-crise-ao-break-even-startup-harmo-supera-queda-de-receita-com-a-pandemia/",
+  "https://www.acate.com.br/noticias/reclame-aqui-anuncia-sociedade-com-a-harmo-startup-catarinense-de-gestao-de-reviews/",
+  "https://redeinovacao.floripa.br/reviewr-anuncia-fusao-para-criar-a-primeira-plataforma-brasileira-de-gestao-da-experiencia-do-consumidor-com-reputacao-online/",
+  "https://acontecendoaqui.com.br/tech/startups-da-regiao-sul-anunciam-fusao-para-criar-primeira-plataforma-brasileira-de-gestao-da/",
+  "https://startupi.com.br/startups-anunciam-fusao-a-fim-de-criar-plataforma-que-permite-gestao-da-experiencia-do-consumidor-com-reputacao-online/",
+  "https://www.baguete.com.br/noticias/reclame-aqui-cria-sociedade-com-harmo",
+  "https://acontecendoaqui.com.br/marketing/reputacao-digital-estudo-revela-que-restaurantes-respondem-a-somente-24-das-avaliacoes-online-de-clientes/",
+  "https://institutomillenium.org.br/startups-se-uniram-para-que-os-negocios-conquistem-mais-seus-clientes/",
+  "https://www.risposta.app/",
+  "https://www.risposta.app/risposta-tap/",
+  "https://www.risposta.app/risposta-qr-code/",
+  "https://www.risposta.app/segurancadosdados/",
+  "https://www.risposta.app/solicitar-demonstracao/",
+  "https://binds.co/precos/",
+  "https://binds.co/pesquisa-nps/",
+  "https://binds.co/pesquisa/modelo-de-pesquisa-de-satisfacao-do-cliente-para-restaurantes/",
+  "https://binds.co/pesquisa/modelo-de-pesquisa-restaurante/",
+  "https://blog.binds.co/pesquisa-satisfacao-restaurantes/",
+  "https://www.projetodraft.com/como-a-binds-co-oferece-a-grandes-empresas-um-termometro-de-satisfacao-do-cliente-em-tempo-real/",
+  "https://avalio.com.br/planos",
+  "https://avalio.com.br/pesquisas-para/pesquisa-de-satisfacao-para-restaurantes",
+  "https://avalio.com.br/pesquisas/pesquisa-de-satisfacao",
+  "https://avalio.com.br/pesquisa-de-satisfacao-restaurante-perguntas",
+  "https://npsfast.com.br/restaurantes/",
+  "https://npsfast.com.br/",
+  "https://opinae.com.br/",
+  "https://solvis.com.br/",
+  "https://solvis.com.br/totem-de-pesquisa-solvis/",
+  "https://solvis.com.br/descubra-a-melhor-ferramenta-para-pesquisas-de-satisfacao-no-seu-restaurante-corporativo-totem-x-qr-code/",
+  "https://solvis.com.br/como-criar-uma-pesquisa-de-satisfacao-para-um-restaurante-corporativo/",
+  "https://solvis.com.br/a-solvis/",
+  "https://solvis.com.br/alimentacao-corporativa-prova-de-valor-estrategico/",
+  "https://tagme.com.br/tudo-sobre-pesquisa-de-satisfacao-em-restaurante/",
+  "https://landing.tagme.com.br/planos/",
+  "https://restaurante.getin.app/planos-e-precos/",
+  "https://www.getin.app/location",
+  "https://blog.getinapp.com.br/sistemas-reserva-restaurantes/",
+  "https://apps.apple.com/br/app/get-in-restaurantes-e-bares/id919815190",
+  "https://reviewbr.com/home",
+  "https://mundofoodservice.com.br/nps-para-restaurante-explicado-em-5-minutos-sem-planilha-sem-complicacao/",
+  "https://track.co/",
+  "https://track.co/blog/tracksale-nps-no-whatsapp/",
+  "https://www.getapp.com/all-software/a/track-1/",
+  "https://digitaliza.ai/nps/compare/track-vs-solucx",
+  "https://digitaliza.ai/nps/software/solucx",
+  "https://solucx.com.br/",
+  "https://solucx.com.br/nps/",
+  "https://solucx.com.br/sobre-nos/",
+  "https://solucx.com.br/blog/como-aumentar-o-nps-aprendizados-dos-principais-segmentos-do-brasil/",
+  "https://www.capterra.com/p/209545/SoluCX/",
+  "https://www.b2bstack.com.br/product/solucx",
+  "https://www.capterra.com.br/blog/4091/ferramenta-nps",
+  "https://konclui.com/",
+  "https://blog.konclui.com/",
+  "https://konclui.com/blog/avaliacoes-online-restaurante/",
+  "https://blog.konclui.com/feedback-clientes-restaurante-como-coletar/",
+  "https://konclui.com/blog/atendimento-cliente-delivery/",
+  "https://i9menu.com.br/pesquisa-de-satisfacao-restaurante/",
+  "https://i9menu.com.br/",
+  "https://i9menu.com.br/produtos/",
+  "https://i9menu.com.br/empresa/",
+  "https://i9cardapios.com.br/",
+  "https://i9cardapios.com.br/servicos/impressao-de-cardapios",
+  "https://i9menu.com.br/cardapios-por-segmento/cardapio-para-restaurante/",
+  "https://www.opinionbox.com/",
+  "https://www.opinionbox.com/plataforma-de-pesquisa/",
+  "https://www.opinionbox.com/painel/",
+  "https://www.opinionbox.com/plataforma-de-pesquisa/painel-de-respondentes/",
+  "https://blog.opinionbox.com/quanto-custa-uma-pesquisa-de-mercado/",
+  "https://altec.ws/solucoes/sistema-pdv-para-restaurante/",
+  "https://altec.ws/solucoes/gerencial/",
+  "https://www.altecsistemas.com.br/blog/comanda-eletronica-para-restaurantes",
+  "https://blog-parceiros.ifood.com.br/ferramentas-parceiros-integrados/",
+  "https://blog-parceiros.ifood.com.br/parceiro-integrado/",
+  "https://blog-parceiros.ifood.com.br/restaurantes-integrados/",
+  "https://blog-parceiros.ifood.com.br/como-integrar-ifood-ao-seu-pdv/",
+  "https://developermercado.ifood.com.br/docs/partners/",
+  "https://blog.deliverydireto.com.br/funcionalidade-delivery-direto-pesquisa-de-satisfacao-nps/",
+  "https://goomer.com.br/blog/avaliacoes-google-restaurante",
+  "https://goomer.com.br/blog/cliente-oculto-restaurante",
+  "https://goomer.com.br/",
+  "https://blog.stayapp.com.br/pesquisa-de-satisfacao-restaurante/",
+  "https://saipos.com/sistema/restaurante/pesquisa-de-satisfacao-do-cliente-em-restaurante",
+  "https://saipos.com/sistema/restaurante/rj/rio-de-janeiro",
+  "https://reservademesa.com.br/",
+  "https://conexto.com.br",
+  "https://www.sults.com.br/produtos/nps",
+  "https://www.questionpro.com/blog/pt-br/pesquisa-de-satisfacao-em-restaurantes/",
+  "https://www.sindrio.com.br/2026/07/seu-restaurante-esta-invisivel-no-google-a-culpa-pode-ser-da-sua-reputacao-digital/",
+  "https://ro.abrasel.com.br/noticias/noticias/analise-aponta-nota-media-bares-restaurantes-google-4-3-estrelas250123094523/",
+  "https://www.meioemensagem.com.br/marketing/media-avaliacoes-restaurantes-google",
+  "https://ancora1.com/noticias/pesquisa-revela-que-63-dos-consumidores-escolhem-restaurantes-com-base-em-reviews-no-google",
+  "https://marcelopoliti.com.br/blog/marketing-e-vendas/gestao-avaliacoes-google/",
+  "https://centraldovarejo.com.br/gestao-de-restaurantes-tecnologia-e-dados-redefinem-a-operacao-do-foodservice-em-2026/",
+  "https://controlenamao.com.br/blog/avaliacoes-google-restaurante/",
+  "https://anrbrasil.org.br/pesquisa-de-satisfacao-de-clientes-guia-para-aplicar-em-seu-restaurante/",
+  "https://www.brasil247.com/conteudo-publicitario/comprar-avaliacoes-google-no-brasil-top-3-sites-e-guia-completo-2026-nos4y8m6/",
+  "https://revioreputation.com/pt",
+  "https://www.g2.com/pt/products/opinas/pricing",
+  "https://ishopforipsos.com/pt-BR/news/article/443-mystery-diner-opportunities",
+  "https://seuclienteoculto.com.br/",
+  "https://sisfood.com.br/saiba-mais/autoatendimento/quanto-custa-totem-autoatendimento",
+  "https://www.daitech.com.br/totem-avaliacao-atendimento.html"
+ ]
+}

@@ -1,0 +1,277 @@
+{
+ "resumo": "A Altec Sistemas e Tecnologia (site oficial www.altecsistemas.com.br; o domínio antigo altec.ws hoje faz 301 para ele) é uma fornecedora brasileira de software de gestão para bares e restaurantes, com sede em São Paulo, atuando desde 2003. O produto do cliente pertence à linha \"Next\" — nome que a própria Altec usa publicamente em blog e em release de imprensa, e que aparece internamente decomposto em quatro módulos (Caixa Next, Next POS, Next Admin, Next Hub) no repositório público de documentação da empresa no GitHub. A documentação interna do cliente (skills da QT) chama o back-office de \"Altec Riser\", nome que NÃO EXISTE em nenhuma página pública da Altec — precisa ser confirmado com o suporte qual linha/versão está instalada. CONCLUSÃO CENTRAL SOBRE INTEGRAÇÃO: não existe API pública, portal de desenvolvedor, documentação de webhook nem programa técnico de parceiros. O único \"programa de parceria\" publicado é comercial (revenda com 30%/20%/10% do MRR). O repositório público altec-sistemas/hub-api-docs, que teria a documentação de API, está VAZIO. Existe evidência forte de API REST interna, mas apenas no sistema sucessor (\"Logos\", que substitui o Next): o arquivo Requisitos Backend.md do repositório logos-docs descreve 93+ endpoints REST, runners de sincronização periódica (vendas a cada 5 min, produtos a cada 30 min) e configuração de banco com host localhost e porta 3306 — ou seja, MySQL. Isso é a melhor pista sobre o banco, mas é inferência sobre o Next, não confirmação. A arquitetura é oficialmente HÍBRIDA: o FAQ da própria página do PDV diz textualmente \"O PDV funciona mesmo offline. Porém, é necessário estar conectado à internet para sincronizar as informações e realizar atualizações do sistema\" — logo há base local no salão e sincronização com nuvem. Existe portal em nuvem acessível por navegador (produto \"Retaguarda Cloud\", \"100% em nuvem\", PC ou mobile), mas o ENDEREÇO DE LOGIN NÃO É PÚBLICO (não está no site, nem no sitemap, nem no link-in-bio). Sobre o relatório R3 — Vendas por Produto Detalhado: NÃO HÁ documentação pública nenhuma. O que se sabe vem do uso real do cliente (skills financial-qt e ficha-tecnica-qt): sai em Excel/CSV, tem ID do produto, nome em maiúsculas frequentemente sem acento, grupo e venda líquida. Agendamento de envio automático por e-mail: DESCONHECIDO, sem qualquer evidência pública. Integrações nativas confirmadas: iFood, Keeta/Meituan, \"Eu Falo\" (fidelidade/cashback), emissão fiscal NF-e/NFC-e, KDS, Cardápio Digital e um BI próprio (\"Insight BI\", que entrega diagnósticos por WhatsApp e foi lançado \"inicialmente para os sistemas Classic e Next\"). Nenhuma integração com Power BI é anunciada. Só um integrador terceiro foi encontrado citando a Altec pelo nome (VocêQpad), e por padrão Open Delivery — que é fluxo de ENTRADA de pedido de delivery, não saída de dados de venda. RECOMENDAÇÃO PRÁTICA: assumir o pior caso. Construir primeiro o caminho que não depende de nada da Altec (pasta do Google Drive com o R3 exportado + watcher gratuito em nuvem, e botão de upload manual como rede de segurança), e só depois, se o suporte confirmar, migrar para e-mail agendado ou API. O Raspberry Pi só é necessário nos caminhos 5 a 7 (banco local e automação de navegador); nos caminhos recomendados ele é dispensável, o que reduz ainda mais custo e manutenção.",
+ "topicos": [
+  {
+   "tema": "Identidade da empresa e site oficial",
+   "conclusao": "Altec Sistemas e Tecnologia, fornecedora de software de gestão para bares e restaurantes, sede em São Paulo, atuando desde 2003, com mais de 1.800 clientes declarados. Site oficial: https://www.altecsistemas.com.br — o domínio antigo altec.ws responde 301 para ele (verifiquei o redirecionamento em três URLs distintas). Há também um CNPJ 06.142.226/0001-03 listado em base de terceiros. Atenção: existem outras empresas chamadas Altec sem relação (Altec Alumínio, Altec Brasil, Alteccom, Altec dos EUA) — não confundir.",
+   "confianca": "média",
+   "evidencia": "Páginas do próprio fornecedor lidas (solucoes, suporte, sitemap, parceria-altec) confirmam domínio e posicionamento; ano de fundação, sede e nº de clientes vieram de trechos de busca das páginas do fornecedor, não de leitura direta da página quem-somos; CNPJ vem de base de terceiros (cnpj.biz).",
+   "fontes": [
+    "https://www.altecsistemas.com.br/",
+    "https://www.altecsistemas.com.br/sitemap.xml",
+    "https://www.altecsistemas.com.br/suporte",
+    "https://cnpj.biz/06142226000103"
+   ]
+  },
+  {
+   "tema": "Nome do produto: Next, Classic e Riser",
+   "conclusao": "A linha se chama \"Next\" (a Altec publica \"sistema Next\" em blog próprio e em release de imprensa, que cita disponibilidade \"inicialmente para os sistemas Classic e Next\"). Internamente o Next é decomposto em quatro módulos, nomeados no repositório público da empresa: Caixa Next, Next POS, Next Admin e Next Hub. Não existe nenhuma marca pública \"NextPDV\" nem \"Altec Next\" como produto único. Já \"Altec Riser\", nome usado na documentação interna do cliente para o back-office, NÃO APARECE EM NENHUMA FONTE PÚBLICA — é ou nome comercial legado, ou nome interno, e precisa ser confirmado com o suporte.",
+   "confianca": "alta",
+   "evidencia": "README do repositório público altec-sistemas/logos-docs lista verbatim: Logos Cashier substitui \"Caixa Next\", Logos POS substitui \"Next POS\", Logos Admin substitui \"Next Admin\", Logos substitui \"Next Hub\". Blog do fornecedor tem post dedicado ao \"sistema Next\". Busca por \"Altec Riser\" retorna zero resultado do fornecedor.",
+   "fontes": [
+    "https://github.com/altec-sistemas/logos-docs",
+    "https://raw.githubusercontent.com/altec-sistemas/logos-docs/main/README.md",
+    "https://www.altecsistemas.com.br/blog/altec-na-fispal-2025-sistema-next"
+   ]
+  },
+  {
+   "tema": "Módulos vendidos",
+   "conclusao": "Módulos anunciados no site: Sistema PDV, Comanda Eletrônica, Sistema KDS, Sistema POS/SmartPOS, Cardápio Digital, Retaguarda Cloud, Sistema para Delivery, Integração com iFood, Integração com Eu Falo. Some-se o Insight BI, módulo de BI com IA lançado dentro do próprio ERP, que envia diagnóstico e recomendação por WhatsApp. Funções de retaguarda declaradas: estoque com ficha técnica e estoque mínimo, DRE, contas a pagar/receber, fluxo de caixa e emissão de NF-e/NFC-e.",
+   "confianca": "alta",
+   "evidencia": "Página /solucoes lista os módulos; página /sistema-de-retaguarda-para-restaurante detalha estoque, financeiro e fiscal; release de imprensa descreve o Insight BI.",
+   "fontes": [
+    "https://www.altecsistemas.com.br/solucoes/",
+    "https://www.altecsistemas.com.br/sistema-de-retaguarda-para-restaurante",
+    "https://gironews.com/food-service/altec-lanca-inteligencia-embarcada-para-elevar-a-performance-no-food-service/"
+   ]
+  },
+  {
+   "tema": "API pública ou de parceiro — NÃO EXISTE publicamente",
+   "conclusao": "NÃO PÚBLICO. Nenhuma página do fornecedor menciona API, webservice, webhook, sandbox, chave de acesso ou documentação de desenvolvedor. Não há portal de integração. O repositório público que teria a documentação da API do Hub — altec-sistemas/hub-api-docs — está literalmente vazio (\"This repository is empty\"). O único programa de parceria publicado é COMERCIAL, de revenda, sem qualquer trilha técnica: remunera 30% do MRR nos anos 1-2, 20% no ano 3 e 10% no ano 4. Buscas em português e inglês por \"Altec API\", \"Altec webservice\", \"Altec Next integração\" e \"Altec Sistemas documentação\" não retornam nada do fornecedor. Não testei nem invento nenhum endpoint: não há host de API conhecido.",
+   "confianca": "alta",
+   "evidencia": "Repositório hub-api-docs vazio; página /parceria-altec sem qualquer menção a API ou integração técnica; sitemap completo do site não tem página de desenvolvedor, docs ou integrações técnicas; múltiplas buscas sem resultado.",
+   "fontes": [
+    "https://github.com/altec-sistemas/hub-api-docs",
+    "https://www.altecsistemas.com.br/parceria-altec",
+    "https://www.altecsistemas.com.br/sitemap.xml"
+   ]
+  },
+  {
+   "tema": "Existe API REST — mas no sistema SUCESSOR (Logos), não documentada para terceiros",
+   "conclusao": "A Altec mantém repositório público de requisitos do sistema que vai SUBSTITUIR o Next, chamado Logos. O arquivo \"Requisitos Backend.md\" descreve mais de 90 endpoints REST agrupados por domínio (vendas, CRM/clientes, caixa e movimento, relatórios, admin), runners de sincronização periódica bidirecional (upload de vendas e fechamentos de caixa a cada ~5 min; download de produtos/usuários/configurações a cada ~30 min) e operação offline com banco local. Ou seja: a capacidade técnica existe na casa, mas é interna e voltada ao produto novo. Não confunda com API disponível ao cliente hoje.",
+   "confianca": "média",
+   "evidencia": "Leitura do arquivo Requisitos Backend.md do repositório público logos-docs (contagem de endpoints e runners citados no próprio documento). É documentação de requisitos de produto futuro, não contrato de API para terceiros.",
+   "fontes": [
+    "https://raw.githubusercontent.com/altec-sistemas/logos-docs/main/Requisitos%20Backend.md",
+    "https://github.com/altec-sistemas/logos-docs"
+   ]
+  },
+  {
+   "tema": "Banco de dados — provavelmente MySQL, NÃO CONFIRMADO para o Next",
+   "conclusao": "Para o Next: NÃO PÚBLICO. Não há página de requisitos de instalação publicada. A melhor evidência disponível aponta MySQL: (a) o Requisitos Backend.md do Logos traz exemplo de configuração de banco com host \"localhost\" e porta 3306, que é a porta padrão do MySQL; (b) a organização da Altec no GitHub mantém um fork ativo de mysql.dart, um cliente MySQL nativo escrito em Dart (atualizado em 2026, testado com Percona 5.7/8 e MariaDB 10/11), o que só faz sentido se o produto fala MySQL/MariaDB. Firebird, SQL Server e PostgreSQL não aparecem em nenhuma fonte ligada à Altec. NÃO INVENTEI nome de tabela nem de schema — nada disso é público. Vagas de emprego não ajudaram: a página trabalhe-conosco não lista tecnologia, e a única vaga pública que achei (via frontendbr/vagas) pede React, React Native e Flutter, sem citar banco.",
+   "confianca": "baixa",
+   "evidencia": "Porta 3306 e host localhost no exemplo do Requisitos Backend.md (documento do Logos, não do Next); fork de mysql.dart na org altec-sistemas; ausência total de menção a Firebird/SQL Server/Postgres. Inferência, não confirmação.",
+   "fontes": [
+    "https://raw.githubusercontent.com/altec-sistemas/logos-docs/main/Requisitos%20Backend.md",
+    "https://github.com/altec-sistemas/mysql.dart",
+    "https://github.com/orgs/altec-sistemas/repositories",
+    "https://github.com/frontendbr/vagas/issues/2124",
+    "https://www.altecsistemas.com.br/trabalhe-conosco"
+   ]
+  },
+  {
+   "tema": "Arquitetura: híbrido confirmado oficialmente (local + nuvem)",
+   "conclusao": "HÍBRIDO, confirmado pelo próprio fornecedor. O FAQ da página do PDV responde, verbatim: \"Não. O PDV funciona mesmo offline. Porém, é necessário estar conectado à internet para sincronizar as informações e realizar atualizações do sistema.\" Isso implica base de dados local no salão. Em paralelo, a Retaguarda Cloud é descrita como \"100% em nuvem\", acessível por navegador de PC ou mobile, com \"integração total com PDV\" e \"backup automático\". O PDV pode ser instalado em \"computadores, smartphones, tablets e POS compatíveis\". CONSEQUÊNCIA DIRETA PARA O PROJETO: há duas superfícies de coleta possíveis — a base local (só acessível enquanto a máquina estiver ligada, o que colide com o PC do caixa que desliga) e a nuvem (acessível 24h, independente do PC do caixa). A nuvem é a superfície certa para um agente diário.",
+   "confianca": "alta",
+   "evidencia": "FAQ na página oficial do Sistema PDV (offline + sincronização); página oficial da Retaguarda Cloud/retaguarda (100% em nuvem, navegador, backup automático).",
+   "fontes": [
+    "https://www.altecsistemas.com.br/sistema-pdv-para-restaurante",
+    "https://www.altecsistemas.com.br/sistema-de-retaguarda-para-restaurante"
+   ]
+  },
+  {
+   "tema": "Portal em nuvem existe; endereço de login NÃO é público",
+   "conclusao": "SIM, existe: produto \"Retaguarda Cloud\", com dashboard inicial e área de Relatórios com vendas, pagamentos e desempenho por unidade, filtrável por período e filial, acessível por navegador em PC ou celular. Porém o ENDEREÇO DE LOGIN É NÃO PÚBLICO: não consta no site, não está no sitemap completo e não está na página link-in-bio (que só oferece links de WhatsApp para contrato e suporte, um podcast no YouTube e uma agenda de treinamento). O acesso é liberado \"em até 2 dias úteis\" após validação de contrato. O dono do restaurante certamente já tem esse endereço — é preciso pegar com ele ou com o suporte, e não deve ser adivinhado.",
+   "confianca": "alta",
+   "evidencia": "Página oficial da Retaguarda descreve acesso por navegador e área de relatórios; sitemap e link-in-bio lidos integralmente sem nenhuma URL de login/app/portal.",
+   "fontes": [
+    "https://www.altecsistemas.com.br/sistema-de-retaguarda-para-restaurante",
+    "https://www.altecsistemas.com.br/link-in-bio",
+    "https://www.altecsistemas.com.br/sitemap.xml"
+   ]
+  },
+  {
+   "tema": "Relatórios Web: 13 relatórios, exportação PDF e Excel",
+   "conclusao": "Existia (e provavelmente existe, sob outro nome no site novo) um módulo \"Relatórios Web\" com 13 relatórios analíticos com filtros, gráficos e visualizações, exportáveis para PDF e Excel, incluindo indicadores de venda de produtos e top 10 mais vendidos. RESSALVA IMPORTANTE: a página original (altec.ws/solucoes/relatorios-web/) hoje faz 301 para o site novo, onde a URL equivalente retorna 404; não consegui ler a página inteira, apenas o trecho indexado, e o Wayback Machine é inacessível deste ambiente. Trate \"13 relatórios\" e \"PDF e Excel\" como confiança média, e a existência de CSV como DESCONHECIDO.",
+   "confianca": "média",
+   "evidencia": "Trecho indexado da página do próprio fornecedor em altec.ws/solucoes/relatorios-web/; redirecionamento 301 verificado; página de destino 404 verificada.",
+   "fontes": [
+    "https://altec.ws/solucoes/relatorios-web/",
+    "https://www.altecsistemas.com.br/sistema-de-retaguarda-para-restaurante"
+   ]
+  },
+  {
+   "tema": "Relatório R3 — Vendas por Produto Detalhado",
+   "conclusao": "NÃO EXISTE UMA LINHA de documentação pública sobre o R3. Nem o site, nem blog, nem YouTube, nem fórum. Tudo que se sabe vem do uso real do cliente, registrado na documentação interna dele: o R3 sai em planilha Excel ou CSV, é uma listagem de produtos vendidos do período, e traz ao menos ID do produto, nome do produto (em MAIÚSCULAS e frequentemente SEM ACENTO — \"RUCOLA\", \"FANTASTICA\"), grupo/categoria (ex.: PIZZAS, ENTRADAS, QUEIJOS BRASILEIROS) e valor de venda líquida, permitindo ranking por grupo e cálculo de CMV. AGENDAMENTO DE ENVIO AUTOMÁTICO POR E-MAIL: DESCONHECIDO — zero evidência pública, nem a favor nem contra. É a pergunta de maior alavancagem para o suporte. Também é DESCONHECIDO se o R3 carrega número de mesa/comanda e horário; pela natureza do relatório (agregado por produto), provavelmente NÃO — e isso é crítico, porque o cruzamento por comanda que o cliente prefere dependeria de outro relatório ou do banco.",
+   "confianca": "média",
+   "evidencia": "Documentação interna do cliente (skills financial-qt e ficha-tecnica-qt) descreve o fluxo de importação da planilha e o mapeamento de nomes do R3, incluindo a regra de normalização de acentos e a coluna de ID. Busca pública por \"Altec R3 vendas por produto detalhado\" não retorna nada do fornecedor.",
+   "fontes": [
+    "/root/.claude/skills/synced/financial-qt/SKILL.md",
+    "/root/.claude/skills/synced/ficha-tecnica-qt/SKILL.md",
+    "https://www.altecsistemas.com.br/sistema-de-retaguarda-para-restaurante"
+   ]
+  },
+  {
+   "tema": "Integrações nativas existentes",
+   "conclusao": "Confirmadas no site do fornecedor: Integração com iFood (página própria); integração com Keeta/Meituan (citada no post da Fispal 2025); Integração com \"Eu Falo\" (fidelidade/cashback com \"cadastro automático\" e \"integração total com seu PDV\"); emissão fiscal NF-e e NFC-e nativa; KDS; Cardápio Digital; e BI próprio (Insight BI, com entrega de diagnóstico por WhatsApp, lançado \"inicialmente para os sistemas Classic e Next\"). MAQUININHAS: existe produto SmartPOS/POS, mas quais adquirentes são homologados é NÃO PÚBLICO. POWER BI: nenhuma menção em nenhuma fonte — assuma que NÃO existe conector. LEITURA PARA O PROJETO: como a Altec já publica e consome integrações de delivery e de fidelidade, existe canal técnico interno; o que falta é ele ser aberto ao cliente, e nenhuma das integrações existentes é de EXPORTAÇÃO de vendas.",
+   "confianca": "alta",
+   "evidencia": "Páginas /solucoes (lista Integração com Ifood e Integração com Eu Falo), /integracao-eu-falo (\"Cadastro automático - Integração total com seu PDV\", sem detalhe técnico), /sistema-de-retaguarda-para-restaurante (NF-e/NFC-e), blog da Fispal 2025 (Keeta/Meituan), release do Insight BI (Classic e Next).",
+   "fontes": [
+    "https://www.altecsistemas.com.br/solucoes/",
+    "https://www.altecsistemas.com.br/integracao-eu-falo",
+    "https://www.altecsistemas.com.br/blog/altec-na-fispal-2025-sistema-next",
+    "https://gironews.com/food-service/altec-lanca-inteligencia-embarcada-para-elevar-a-performance-no-food-service/"
+   ]
+  },
+  {
+   "tema": "Integradores terceiros que já leem a Altec",
+   "conclusao": "Praticamente inexistentes no material público. O único encontrado citando a Altec pelo nome é o VocêQpad (delivery próprio), que lista verbatim entre os PDVs integrados: \"Colibri, Totvs Chef, Aloha, Linked Gourmet, e-Comanda, Eclética, POS Controle, Linx, Linx Menew, GCom, Teknisa, Agile, JGarcia, e-Deploy, Altec, PDV Legal, Garçon Web, Alterdada\", e declara conectar-se a sistemas \"aderente ao padrão Open Delivery\". RESSALVA DECISIVA: Open Delivery é padrão de ENTRADA de pedido de delivery no PDV, não de SAÍDA de dados de venda — não serve para o cruzamento satisfação × faturamento. Nenhuma plataforma de BI para restaurante encontrada anuncia conector Altec. Uma outra lista de \"sistemas homologados\" (AppPonte) não pôde ser verificada (HTTP 403).",
+   "confianca": "média",
+   "evidencia": "Lista de PDVs integrados lida na página institucional do VocêQpad, com a menção explícita a Open Delivery; buscas por \"Altec\" combinado com Power BI, dashboard e consultoria de dados não retornam nenhum integrador.",
+   "fontes": [
+    "https://institucional.voceqpad.com.br/",
+    "https://appponte.com.br/sistemas"
+   ]
+  },
+  {
+   "tema": "Reclamações e relatos sobre acesso e exportação de dados",
+   "conclusao": "Não encontrei nenhuma reclamação pública específica sobre exportação ou acesso a dados. O volume de reclamações da Altec Sistemas e Tecnologia no Reclame Aqui é muito baixo (1 reclamação no período mais recente, 100% respondidas, tempo médio de resposta ~1 dia), o que impede tirar conclusão sobre o tema. Há um relato antigo, em perfil distinto (\"Altecsis\"), sobre pós-venda e suporte fracos e problema com envio de cupom fiscal — pode não ser a mesma empresa. A tentativa de ler a lista completa de reclamações retornou HTTP 403. O canal de suporte é WhatsApp e telefone, todos os dias das 08:00 às 00:00, sem base de conhecimento pública nem ticket/portal — o que significa que TODA resposta técnica virá por conversa, não por documento.",
+   "confianca": "baixa",
+   "evidencia": "Números e horários vindos de trechos indexados do Reclame Aqui e da página /suporte do fornecedor; a lista de reclamações não pôde ser lida (403); identidade do perfil \"Altecsis\" não confirmada.",
+   "fontes": [
+    "https://www.reclameaqui.com.br/empresa/altec-sistemas-e-tecnologia/",
+    "https://www.reclameaqui.com.br/empresa/altec-sistemas-e-tecnologia/lista-reclamacoes/",
+    "https://www.altecsistemas.com.br/suporte"
+   ]
+  },
+  {
+   "tema": "Suficiência da informação pública",
+   "conclusao": "INSUFICIENTE para decidir arquitetura só com pesquisa. Não é público: se há API para o cliente, o banco exato e sua versão, a URL do Retaguarda Cloud, o conteúdo e as colunas do R3, se há agendamento de e-mail, e se existe relatório com granularidade de mesa/comanda. O que é público e sólido: existe portal em nuvem por navegador (superfície 24h, imune ao PC que desliga), existe base local com operação offline, existe exportação para Excel e PDF, e NÃO existe API documentada. Por isso o plano abaixo é desenhado para o PIOR CASO — nenhuma API e banco local inacessível — e melhora sozinho se o suporte responder bem.",
+   "confianca": "alta",
+   "evidencia": "Cobertura de busca: 16 consultas distintas em português e inglês (incluindo \"Altec API\", \"Altec webservice\", \"Altec Next integração\", \"api.altec\", \"Next API restaurante\", \"Altec Sistemas documentação\") e leitura de 18 páginas reais, incluindo o sitemap completo do fornecedor e a organização da Altec no GitHub.",
+   "fontes": [
+    "https://www.altecsistemas.com.br/sitemap.xml",
+    "https://github.com/orgs/altec-sistemas/repositories",
+    "https://github.com/altec-sistemas/hub-api-docs"
+   ]
+  }
+ ],
+ "caminhos_de_integracao": [
+  {
+   "caminho": "1. API oficial ou de parceiro da Altec (REST) consumida por cron gratuito em nuvem",
+   "viabilidade": "desconhecida — provavelmente inviável hoje",
+   "esforco": "baixo SE existir (1 a 2 dias de integração); zero manutenção contínua",
+   "depende_de": "Confirmação do suporte de que existe API/webservice para o cliente na linha Next/Riser, com credencial e documentação. Toda a evidência pública diz que NÃO existe: hub-api-docs vazio, nenhum portal de desenvolvedor, programa de parceria puramente comercial. A API REST de 90+ endpoints que encontrei é do sistema sucessor (Logos), interna.",
+   "risco": "Risco de bloqueio total: se não existir, o caminho morre. Risco secundário: a Altec cobrar por integração ou exigir contrato de parceria. Nenhum endpoint conhecido — nada aqui pode ser presumido.",
+   "recomendacao": "Perguntar PRIMEIRO, porque muda tudo, mas NÃO esperar por essa resposta para começar. Se existir e for gratuita, é o melhor caminho de todos: nada roda no restaurante, nada quebra quando a Altec atualiza a tela, e não precisa de Raspberry Pi."
+  },
+  {
+   "caminho": "2. Agendamento de envio automático do R3 por e-mail, com anexo consumido por robô",
+   "viabilidade": "desconhecida — viável com ressalva se a Altec suportar",
+   "esforco": "baixo (1 a 2 dias): caixa de e-mail dedicada + função serverless com cron lendo a caixa e parseando o anexo",
+   "depende_de": "O suporte confirmar que o Retaguarda Cloud (ou o Next Admin) agenda envio periódico de relatório por e-mail em Excel/CSV. ZERO evidência pública disso, em nenhum sentido. Depende também de o anexo ter layout estável.",
+   "risco": "Layout de planilha muda sem aviso e o parser quebra em silêncio. E-mail pode ir para spam ou o agendamento pode ser desligado numa atualização. Mitigar com alerta simples: se não chegou planilha em 36h, avisa por WhatsApp/e-mail.",
+   "recomendacao": "É o melhor caminho REALISTA de manutenção zero, porque não exige máquina no restaurante, não exige ninguém clicando e não exige Raspberry Pi. Se o suporte disser que existe, migre para cá e mantenha o caminho 3 como fallback."
+  },
+  {
+   "caminho": "3. Pasta sincronizada no Google Drive com o R3 exportado + watcher gratuito em nuvem",
+   "viabilidade": "viável",
+   "esforco": "médio-baixo (2 a 3 dias): pasta compartilhada + função agendada gratuita que lista arquivos novos, importa, marca como processado e é idempotente por data",
+   "depende_de": "Nada da Altec. Depende apenas de o dono (ou o gerente) exportar o R3 da Retaguarda Cloud e salvar na pasta. Como a exportação para Excel já existe e o dono JÁ FAZ isso hoje para as análises de CMV, o hábito está formado.",
+   "risco": "Risco humano, não técnico: alguém esquece de exportar. Mitigável porque o cruzamento satisfação × faturamento não é tempo real — importar 2 ou 3 vezes por semana, ou uma vez por semana com os dias separados, resolve. Risco técnico baixíssimo e custo de infra R$ 0 (Drive pessoal + cron gratuito).",
+   "recomendacao": "ESTE É O CAMINHO PADRÃO. Construa este primeiro, antes de falar com a Altec. Ele não depende de fornecedor, não depende do PC do caixa, não depende de Raspberry Pi, não tem host para pagar e não tem nada para manter além do parser. Faça o parser tolerante: aceitar CSV e XLSX, casar por ID do produto quando existir e por nome normalizado sem acento como reserva, e nunca duplicar a mesma data."
+  },
+  {
+   "caminho": "4. Upload manual do R3 direto no painel do sistema próprio (botão \"importar planilha\")",
+   "viabilidade": "viável",
+   "esforco": "baixo (1 dia, reaproveita o mesmo parser do caminho 3)",
+   "depende_de": "Nada. Só do próprio sistema.",
+   "risco": "Depende 100% de ação humana; se ninguém subir, não há dado. Nenhum risco técnico.",
+   "recomendacao": "Construir SEMPRE, junto com o caminho 3, como rede de segurança permanente. É a garantia de que o produto nunca fica cego: se o Drive falhar, se a Altec mudar o layout, se o agendamento morrer, o dono ainda consegue arrastar a planilha para o painel do celular e o número aparece. Custa quase nada porque é a mesma rotina de importação."
+  },
+  {
+   "caminho": "5. Leitura direta do banco de dados local via Raspberry Pi na mesma rede",
+   "viabilidade": "viável com ressalva — e é o ÚNICO caminho que pode dar granularidade de mesa/comanda",
+   "esforco": "alto (1 a 2 semanas): mapear schema desconhecido, escrever consultas, tratar fuso e fechamento de caixa, empacotar como serviço no Pi com cron",
+   "depende_de": "Quatro confirmações, todas com o suporte: (a) qual banco e versão; (b) em que máquina ele roda — se for o PC do caixa que desliga, a coleta tem de acontecer ANTES do desligamento, tipicamente 23h com o salão ainda aberto, o que pode perder o fechamento; (c) liberação de usuário somente-leitura e senha; (d) se isso viola contrato, garantia ou suporte. Todas em aberto: o banco NÃO é público (indício forte de MySQL na porta 3306, por inferência) e nenhum nome de tabela é público — nada aqui pode ser escrito às cegas.",
+   "risco": "O mais alto de todos. Schema proprietário sem documentação muda em atualização e quebra a consulta em silêncio. Consulta mal escrita pode competir com o PDV em horário de operação. Pode gerar atrito contratual com a Altec. E viola frontalmente a restrição \"ninguém vai manter o sistema depois de pronto\": é o caminho que mais exige manutenção. Custo do Pi é baixo e único, mas o custo humano é o maior.",
+   "recomendacao": "NÃO usar para faturamento diário — o caminho 3 resolve isso melhor e mais barato. Considerar SÓ se o cliente insistir no cruzamento por comanda/mesa (a preferência declarada dele) e se o suporte liberar acesso somente-leitura por escrito. Sem essa liberação, use o plano B que ele mesmo já aceitou: garçom digita mesa + PIN no tablet antes de entregar."
+  },
+  {
+   "caminho": "6. Endpoint interno do Retaguarda Cloud descoberto por inspeção das chamadas do próprio portal",
+   "viabilidade": "viável com ressalva",
+   "esforco": "médio (3 a 5 dias): inspecionar as requisições que o portal faz ao carregar os relatórios, reproduzir a autenticação e a chamada de dados",
+   "depende_de": "Ter o login real do Retaguarda Cloud (endereço NÃO PÚBLICO — pegar com o dono) e a chamada retornar JSON. Depende também de não haver 2FA nem token de vida curta amarrado ao navegador. Nada disso é conhecido hoje; não há host, rota ou parâmetro que se possa presumir.",
+   "risco": "API não documentada muda sem aviso e sem changelog. Pode ferir os termos de uso do fornecedor — vale checar o contrato antes. Pode haver rate limit ou bloqueio por detecção de automação.",
+   "recomendacao": "Só depois de esgotar 1, 2 e 3, e preferencialmente com o suporte ciente. Se funcionar, é bem mais estável que automação de navegador (caminho 7), porque não depende de layout de tela. Não implemente nada aqui sem antes observar o tráfego real do portal logado."
+  },
+  {
+   "caminho": "7. Automação de navegador (Playwright/Puppeteer headless) no Raspberry Pi, baixando o R3 do portal",
+   "viabilidade": "viável",
+   "esforco": "alto na manutenção (2 a 4 dias para montar; quebra recorrente depois)",
+   "depende_de": "URL e login do Retaguarda Cloud; ausência de 2FA e de CAPTCHA; Pi ARM com navegador headless (funciona, mas é pesado num Pi de 2GB — prefira Raspberry Pi 4 ou 5 com 4GB ou mais).",
+   "risco": "O MAIS FRÁGIL dos automatizados. Qualquer mudança de layout, de rótulo de botão ou de fluxo de login derruba a coleta. Silencioso: quebra e ninguém percebe até faltar dado. Colide diretamente com \"ninguém vai manter depois de pronto\".",
+   "recomendacao": "Último recurso automatizado. Só se o suporte fechar as portas 1, 2 e 6 e o cliente rejeitar a exportação manual. Se for por aqui, três regras não negociáveis: rodar de madrugada (04h), salvar o arquivo bruto baixado antes de parsear (para reprocessar sem repetir a coleta), e alertar ativamente quando falhar duas execuções seguidas."
+  },
+  {
+   "caminho": "8. Agente diário rodando no PC do caixa",
+   "viabilidade": "inviável",
+   "esforco": "irrelevante",
+   "depende_de": "Que o PC ficasse ligado — e ele não fica. Restrição dura declarada pelo cliente.",
+   "risco": "Coleta simplesmente não acontece nos dias em que fecham no horário; e agendamento no Windows do caixa é o tipo de coisa que ninguém reconfigura depois de uma formatação ou troca de máquina.",
+   "recomendacao": "Descartar. Está listado apenas para registrar que foi avaliado e rejeitado. O Raspberry Pi existe justamente para substituir este papel — mas só é necessário nos caminhos 5 e 7."
+  },
+  {
+   "caminho": "9. Captura do arquivo de backup automático gerado pela Altec",
+   "viabilidade": "desconhecida — provavelmente inviável",
+   "esforco": "médio se o arquivo existir localmente e for legível; alto se for formato proprietário ou criptografado",
+   "depende_de": "A Altec afirma no site que \"o backup é realizado automaticamente\", mas NÃO diz onde o arquivo é gravado, em que formato, nem se fica na máquina do cliente ou só no servidor dela. Tudo isso é DESCONHECIDO.",
+   "risco": "Alto: backup costuma ficar do lado do fornecedor; se for dump proprietário ou criptografado, não há o que ler. E depender de artefato de backup para operação diária é frágil por natureza.",
+   "recomendacao": "Não planejar em cima disso. Vale apenas UMA pergunta ao suporte (incluída na lista): se o backup gera arquivo na máquina do restaurante, em que pasta e em que formato. Se a resposta for um dump legível numa pasta local, isso reabre o caminho 5 de forma muito mais segura, porque a leitura passa a ser de cópia, sem tocar no banco em produção."
+  }
+ ],
+ "perguntas_para_o_suporte": [
+  "1) Qual produto e versão exata está instalado na minha loja — Classic, Next ou Riser? Preciso do nome comercial e do número de versão do PDV e do módulo de retaguarda.",
+  "2) O sistema tem API REST ou webservice que eu (o cliente) possa usar para consultar minhas próprias vendas, com credencial e documentação? Se tiver, como solicito o acesso e a documentação, e há custo?",
+  "3) Consigo agendar o envio automático diário, por e-mail, do relatório \"R3 — Vendas por Produto Detalhado\" já em Excel ou CSV? Se sim, onde configuro isso? Se não existe, existe algum agendamento de relatório por e-mail no sistema?",
+  "4) O relatório R3 pode ser exportado em CSV além de Excel, e ele traz número de mesa/comanda e horário do pedido, ou só o total por produto no período? Se não traz, existe algum outro relatório com venda por comanda/mesa e horário, exportável em Excel ou CSV?",
+  "5) O banco de dados da minha loja fica no PC do caixa, em um servidor local, ou só no servidor da Altec? Qual é o banco e a versão (MySQL, MariaDB, Firebird, SQL Server, PostgreSQL)?",
+  "6) Vocês liberam um usuário somente-leitura no banco de dados para eu conectar uma ferramenta própria de análise? Isso quebra contrato, garantia ou direito a suporte? Preciso da resposta por escrito.",
+  "7) Qual é o endereço (URL) do Retaguarda Cloud do meu estabelecimento, e ele tem autenticação em dois fatores? Posso criar um segundo usuário, somente-leitura, só para relatórios?",
+  "8) O backup automático que vocês fazem gera algum arquivo na minha máquina? Se sim, em qual pasta e em qual formato, e eu posso copiar esse arquivo para uso próprio?"
+ ],
+ "fontes": [
+  "https://www.altecsistemas.com.br/",
+  "https://www.altecsistemas.com.br/sitemap.xml",
+  "https://www.altecsistemas.com.br/solucoes/",
+  "https://www.altecsistemas.com.br/sistema-de-retaguarda-para-restaurante",
+  "https://www.altecsistemas.com.br/sistema-pdv-para-restaurante",
+  "https://www.altecsistemas.com.br/integracao-eu-falo",
+  "https://www.altecsistemas.com.br/parceria-altec",
+  "https://www.altecsistemas.com.br/suporte",
+  "https://www.altecsistemas.com.br/trabalhe-conosco",
+  "https://www.altecsistemas.com.br/link-in-bio",
+  "https://www.altecsistemas.com.br/blog/altec-na-fispal-2025-sistema-next",
+  "https://altec.ws/solucoes/relatorios-web/",
+  "https://altec.ws/solucoes/retaguarda-cloud/",
+  "https://github.com/altec-sistemas",
+  "https://github.com/orgs/altec-sistemas/repositories",
+  "https://github.com/altec-sistemas/logos-docs",
+  "https://raw.githubusercontent.com/altec-sistemas/logos-docs/main/README.md",
+  "https://raw.githubusercontent.com/altec-sistemas/logos-docs/main/Requisitos%20Backend.md",
+  "https://github.com/altec-sistemas/hub-api-docs",
+  "https://github.com/altec-sistemas/mysql.dart",
+  "https://github.com/frontendbr/vagas/issues/2124",
+  "https://gironews.com/food-service/altec-lanca-inteligencia-embarcada-para-elevar-a-performance-no-food-service/",
+  "https://www.cidadeacidade.com.br/noticia/altec-lanca-solucao-de-ia-que-monitora-operacoes-de-bares-e-restaurantes-em-tempo-real",
+  "https://institucional.voceqpad.com.br/",
+  "https://appponte.com.br/sistemas",
+  "https://www.reclameaqui.com.br/empresa/altec-sistemas-e-tecnologia/",
+  "https://www.reclameaqui.com.br/empresa/altec-sistemas-e-tecnologia/lista-reclamacoes/",
+  "https://cnpj.biz/06142226000103",
+  "https://br.linkedin.com/company/altec-sistemas",
+  "/root/.claude/skills/synced/financial-qt/SKILL.md",
+  "/root/.claude/skills/synced/ficha-tecnica-qt/SKILL.md",
+  "/home/user/risposta-qt/docs/00-briefing.md"
+ ]
+}

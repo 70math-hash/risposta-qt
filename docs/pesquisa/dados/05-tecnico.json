@@ -1,0 +1,398 @@
+{
+ "resumo": "Veredito geral: o substituto próprio é tecnicamente viável com infra perto de R$0/mês, mas NÃO em todas as frentes que o Risposta cobre hoje. O núcleo (PWA de pesquisa no tablet + banco + cron diário + e-mail + classificação por LLM) fecha em custo zero real e sem aprovação de ninguém. As duas frentes que travam são as fontes externas de avaliação: Google Business Profile API é gratuita mas exige aprovação da Google (prazo oficial: análise em até 14 dias) e GBP verificado e ativo há 60+ dias; iFood tem API de Review, porém só para aplicação homologada com CNPJ de CNAE de tecnologia, o que é escopo grande demais para uma pizzaria de salão. Três achados que mudam decisão de arquitetura: (1) o plano Hobby da Vercel é oficialmente restrito a uso não comercial, então para um restaurante ele está fora, e o Cloudflare (Pages + Workers + Cron Triggers) passa a ser a escolha certa, com assets estáticos grátis e ilimitados, sem cobrança de egress e cron com granularidade de 1 minuto no plano free; (2) os Termos do Google Maps Platform proíbem copiar e salvar nomes, endereços e avaliações de usuários, então Places API serve para ler a nota, não para montar histórico próprio de reviews (só place_id pode ser guardado indefinidamente); (3) o tier gratuito da Gemini API usa o conteúdo enviado para melhorar produtos e treinar modelos, com revisão humana, e o próprio termo diz para não enviar informação pessoal, o que proíbe mandar nome/WhatsApp de cliente para lá. Recomendação de stack custo zero: Cloudflare Pages + Workers + Cron Triggers, Supabase Free, Resend Free (3.000/mês, 100/dia), Groq para classificar (não treina com o dado, 14.400 req/dia no llama-3.1-8b-instant), tablet Android de entrada travado com fixação de tela nativa (grátis), sem Raspberry Pi e sem WhatsApp API na v1. Único custo de capital: o tablet, na faixa de R$900 a R$1.200 (fonte de terceiro).",
+ "topicos": [
+  {
+   "tema": "1. Google Business Profile API para LER avaliações + alternativa Places API",
+   "conclusao": "VIA CERTA E GRATUITA, MAS COM PORTÃO DE APROVAÇÃO. A GBP API não é aberta por padrão: projeto novo no Google Cloud nasce com cota 0 QPM e só passa a 300 QPM depois de aprovado. Pré-requisitos oficiais: conta Google, projeto no Cloud Console, conta de Organização, gerenciar um Google Business Profile verificado e ativo há mais de 60 dias, e ter um site representando o negócio listado no GBP. O pedido é feito pelo formulário de contato da GBP API escolhendo 'Application for Basic API Access'. Prazo oficial no FAQ da Google: 'Requests are reviewed within 14 days'. Fontes de terceiros falam em 3 a 10 dias úteis e ~40% de rejeição por formulário incompleto. Custo: zero. Texto oficial da página de preços: 'The Google My Business API is available to registered users at no charge.' Escopo OAuth único: https://www.googleapis.com/auth/business.manage. Cota: 300 QPM por projeto (a Reviews API cai sob os limites da Business Information API); edições limitadas a 10 por minuto por perfil e esse limite não pode ser aumentado. O dono do próprio negócio pode pedir acesso (não precisa ser agência), mas o FAQ é explícito: ter acesso à API não dá acesso a dados, você só consulta perfis aos quais já tem permissão. ALTERNATIVA LEGÍTIMA (Places API New): o campo 'reviews' está no SKU Place Details Enterprise + Atmosphere, US$25,00 por 1.000 requisições na faixa 0–100k, com 1.000 chamadas gratuitas por mês; 'rating' e 'userRatingCount' estão em Place Details Enterprise, US$20,00 por 1.000 com 1.000 grátis/mês; Place Details Essentials custa US$5,00/1.000 com 10.000 grátis/mês; e a variante IDs Only é ilimitada e gratuita. A Places API devolve no máximo 5 avaliações por lugar ('A maximum of 5 reviews can be returned'). Para o caso da pizzaria, 1 chamada por dia = ~30/mês, dentro da cota gratuita de 1.000 → custo real R$0. ARMADILHA JURÍDICA DECISIVA: os Termos do Google Maps Platform proíbem copiar e salvar nomes de empresas, endereços e avaliações de usuários, e proíbem cache de conteúdo Maps fora das exceções; o place_id é a única exceção que pode ser guardada indefinidamente, e coordenadas até 30 dias. Além disso, ao exibir review é obrigatório creditar o autor (avatar, nome e link de perfil; com espaço reduzido, o mínimo é o avatar) e dar acesso à review original no Google Maps. Consequência prática: Places API serve para ler a nota agregada no dia, não para montar um banco histórico de avaliações. Para histórico, o caminho legítimo é a GBP API aprovada.",
+   "viabilidade": "viavel com ressalva",
+   "custo": "GRATIS (GBP API, texto oficial 'at no charge'). Places API: R$0 no volume do cliente (30 chamadas/mês contra 1.000 grátis); acima disso US$25,00/1.000 no SKU Enterprise + Atmosphere que contém 'reviews'",
+   "confianca": "alta",
+   "risco": "Alto risco de cronograma: sem aprovação da Google não existe leitura de reviews via GBP API, e o projeto fica com 0 QPM. Risco de rejeição por formulário incompleto. Risco jurídico se usar Places API como banco de dados de reviews (viola a proibição de salvar avaliações de usuários). Risco de dependência: se o GBP não estiver verificado e ativo há 60+ dias, o pedido nem é elegível.",
+   "limites": [
+    "Cota 0 QPM até aprovação; 300 QPM depois",
+    "Reviews API sob os limites da Business Information API (300 QPM)",
+    "Edições: 10 por minuto por perfil, não aumentável",
+    "Places API devolve no máximo 5 reviews por lugar",
+    "Proibido armazenar reviews, nomes e endereços vindos do Maps Platform; só place_id é livre",
+    "Atribuição de autor obrigatória ao exibir review",
+    "Prazo oficial de análise: até 14 dias"
+   ],
+   "alternativa": "Plano A: pedir Basic API Access da GBP API agora (grátis, 14 dias) e usar a Reviews API como fonte de verdade. Plano B enquanto espera: Places API Enterprise + Atmosphere 1x/dia só para capturar rating e userRatingCount agregados (dentro do free tier), exibindo sem armazenar o texto. Plano C, sem API: leitura manual semanal no painel do Google Business Profile e digitação do que importa — para 22 mesas isso custa 10 minutos por semana e zero risco.",
+   "fontes": [
+    "https://developers.google.com/my-business/content/prereqs",
+    "https://developers.google.com/my-business/content/faq",
+    "https://developers.google.com/my-business/content/basic-setup",
+    "https://developers.google.com/my-business/content/limits",
+    "https://developers.google.com/my-business/content/pricing",
+    "https://developers.google.com/maps/billing-and-pricing/pricing",
+    "https://developers.google.com/maps/documentation/places/web-service/data-fields",
+    "https://developers.google.com/maps/documentation/places/web-service/reference/rest/v1/places",
+    "https://developers.google.com/maps/documentation/places/web-service/policies",
+    "https://cloud.google.com/maps-platform/terms"
+   ]
+  },
+  {
+   "tema": "2. iFood: API para ler avaliações, exportação pelo painel e o que os termos proíbem",
+   "conclusao": "EXISTE API, MAS NÃO PARA O RESTAURANTE — É PARA INTEGRADOR HOMOLOGADO. O iFood mantém APIs públicas por módulo para integradores homologados: Authentication, Merchant, Order, Catalog, Financial, Review e Merchants. O módulo Review permite consultar as avaliações feitas nas lojas parceiras nos últimos dias, ver e responder comentários do consumidor final, obter o detalhe de uma avaliação, avaliar um pedido e ler as métricas de performance de avaliação da loja. O problema é o portão de entrada: o cadastro no Developer Portal exige CNPJ (CPF e conta de estudante não são aceitos) e CNAE correspondente a empresa de tecnologia; o fluxo é registrar-se, receber loja e app de teste, desenvolver, criar o app de produção e abrir ticket pedindo homologação com aplicação completa e funcional; se reprovar, nova tentativa só 15 dias depois. As APIs são gratuitas para quem cumpre os requisitos. Ou seja: uma pizzaria com CNAE de restaurante não se cadastra como integradora; ela precisaria abrir/usar um CNPJ de tecnologia e passar por homologação, ou consumir via um integrador já homologado (o próprio PDV, por exemplo). O QUE O PAINEL DO LOJISTA PERMITE: a seção Avaliações do Portal do Parceiro mostra a média dos últimos 3 meses (a mesma exibida ao cliente no app), os comentários dos clientes e o percentual de satisfação com a entrega; perfis com permissão adequada exportam relatórios de pedidos e de desempenho. Não encontrei confirmação oficial de um botão de exportação CSV específico das avaliações — isso fica DESCONHECIDO. O QUE OS TERMOS PROÍBEM: não consegui ler o texto integral. developer.ifood.com.br/pt-BR/terms-of-use/partner devolveu HTTP 403 e o PDF de Termos e Condições Gerais de Contratação não foi extraível. O que é público e verificável: o acesso à área de Developer Applications no Portal do Parceiro é restrito a parceiros que aceitem as condições, tenham contrato válido e atendam requisitos a critério exclusivo do iFood; e o iFood mantém políticas internas e penalidades revisáveis sem aviso. Portanto, a cláusula literal sobre raspagem é NÃO PÚBLICO para mim, mas o risco prático de automatizar login no painel é alto: quebra em qualquer mudança de front-end, pode acionar antibot, e coloca a conta comercial do restaurante em risco de sanção. VEREDITO: para esta pizzaria, iFood é escopo a cortar da v1. É um salão de 22 mesas aberto só no jantar; o valor marginal de puxar reviews do iFood via API não paga o custo de homologação.",
+   "viabilidade": "dificil",
+   "custo": "GRATIS (as APIs do iFood são gratuitas para quem cumpre os requisitos). Custo de habilitação: DESCONHECIDO (exige CNPJ com CNAE de tecnologia e processo de homologação de duração não publicada)",
+   "confianca": "media",
+   "risco": "Risco de conformidade alto se optar por raspagem do Portal do Parceiro: quebra silenciosa, possível violação de termos que não consegui ler, e exposição da conta comercial. Risco de esforço: homologação é um projeto em si, com reprovação e espera de 15 dias para nova tentativa. Risco de dependência: acesso concedido a critério exclusivo do iFood.",
+   "limites": [
+    "Cadastro só com CNPJ e CNAE de tecnologia; CPF não aceito",
+    "Homologação obrigatória via ticket, com app de produção completo",
+    "Reprovação exige esperar 15 dias",
+    "Review API cobre 'os últimos dias' — janela exata de histórico não publicada",
+    "Portal do Parceiro mostra média dos últimos 3 meses",
+    "Texto literal dos termos sobre scraping: NAO PUBLICO (403 na página de termos)"
+   ],
+   "alternativa": "Cortar iFood da v1. Se o dado for realmente necessário depois: (a) perguntar ao PDV Altec/Next se a integração iFood dele já expõe avaliações, aproveitando a homologação que ele já tem; (b) leitura manual do Portal do Parceiro uma vez por semana, que para o volume de delivery de um salão de jantar é minutos; (c) só em último caso, buscar um integrador homologado disposto a repassar o endpoint de Review.",
+   "fontes": [
+    "https://medium.com/ifood-developer/como-utilizar-a-api-de-reviews-do-ifood-do-zero-bbb408f5f824",
+    "https://developer.ifood.com.br/pt-BR",
+    "https://developer.ifood.com.br/pt-BR/docs/guides/modules/order/homologation/",
+    "https://blog-parceiros.ifood.com.br/portal-do-parceiro/",
+    "https://blog-parceiros.ifood.com.br/avaliacoes-e-moderacoes/",
+    "https://developer.ifood.com.br/pt-BR/terms-of-use/partner/",
+    "https://blog-parceiros.ifood.com.br/ferramentas-parceiros-integrados/"
+   ]
+  },
+  {
+   "tema": "3. Supabase plano gratuito em 2026: limites exatos e o que acontece ao estourar",
+   "conclusao": "VIÁVEL COM FOLGA GIGANTE PARA O VOLUME DO CLIENTE. Limites oficiais do plano Free na página de preços: banco de 500 MB por projeto (Shared CPU, 500 MB RAM); 50.000 usuários ativos mensais (MAU); 5 GB de egress mais 5 GB de egress em cache; 1 GB de file storage; 500.000 invocações de Edge Functions; requisições de API ilimitadas; e o limite duro de 2 projetos ativos por organização. Retenção de logs: 1 dia para logs de API e banco, 1 hora para audit log de auth. Projetos pausados não contam para o limite de projetos ativos. PAUSA POR INATIVIDADE: a página de preços diz 'Free projects are paused after 1 week of inactivity'; a doc de Project Pausing detalha que a decisão olha baixa atividade numa janela de 7 dias e que 'algumas requisições de usuário ao banco por dia ao longo da semana anterior já basta para o projeto não ser pausado'. Restauração: a doc atual fala em janela de até 1 ano para restaurar pelo Studio; um changelog de 2024 falou em 90 dias — trate o prazo como incerto e não conte com ele. AO ESTOURAR: primeiro chega notificação no e-mail de billing e a organização entra em período de graça. Depois do período de graça, aplica-se a Fair Use Policy, cujas restrições incluem pausar projetos, colocar o banco em modo somente leitura, bloquear criação/transferência de projetos e responder com status 402 em todas as requisições de API. A restrição é aplicada em geral a todos os projetos da organização, e só é levantada quando a cota renova no início do próximo ciclo ou ao subir para plano pago. Aviso importante da doc: depois que o período de graça termina, o aviso continua no dashboard mesmo que você volte para dentro dos limites, e um novo estouro não ganha novo período de graça — vai direto para restrição. DIMENSIONAMENTO DO CASO: 200 respostas/mês com nome, WhatsApp, notas e comentário de texto ficam na casa de poucos MB por ano. 500 MB é folga de anos. 5 GB de egress para um dashboard usado pelo dono e um tablet é folga enorme. O risco real não é cota, é a pausa por inatividade — e o cron diário do relatório já resolve isso sozinho, porque toca o banco todo dia.",
+   "viabilidade": "viavel",
+   "custo": "GRATIS. Se precisar sair do Free: plano Pro US$25/mês por organização (valor citado nas comparações; a página de preços do Supabase foi lida mas o número do Pro não foi capturado no recorte — trate como referência)",
+   "confianca": "alta",
+   "risco": "Risco operacional principal: pausa por inatividade se o projeto ficar 7 dias sem tráfego (mitigado pelo cron diário). Risco de escalada de restrição: após o período de graça, um estouro futuro aplica restrição imediata, inclusive 402 em toda a API e read-only no banco, afetando todos os projetos da organização. Risco de capacidade de conta: só 2 projetos ativos, então ambiente de dev e de produção já consomem a organização inteira. Risco de forense: retenção de log de 1 dia, então incidente detectado 48h depois não tem log.",
+   "limites": [
+    "Banco: 500 MB por projeto (Shared CPU, 500 MB RAM)",
+    "MAU: 50.000",
+    "Egress: 5 GB + 5 GB em cache",
+    "File storage: 1 GB",
+    "Edge Functions: 500.000 invocações",
+    "Projetos ativos: 2 por organização",
+    "Requisições de API: ilimitadas",
+    "Pausa após 1 semana (janela de 7 dias) de inatividade",
+    "Retenção de logs: 1 dia (API/DB), 1 hora (auth audit)",
+    "Restauração de projeto pausado: doc diz até 1 ano; changelog de 2024 dizia 90 dias — prazo incerto"
+   ],
+   "alternativa": "Manter Supabase Free como banco e auth, com backup diário próprio (pg_dump agendado no mesmo cron do Cloudflare, guardando o dump fora do Supabase) para não depender da janela de restauração de projeto pausado. Alternativas de custo zero equivalente: Cloudflare D1 (fica na mesma conta do Workers e evita um fornecedor a mais) ou Turso. Não use o segundo slot de projeto para brincadeiras — reserve-o para staging.",
+   "fontes": [
+    "https://supabase.com/pricing",
+    "https://supabase.com/docs/guides/platform/free-project-pausing",
+    "https://supabase.com/docs/guides/platform/billing-faq",
+    "https://supabase.com/docs/guides/platform/billing-on-supabase",
+    "https://supabase.com/docs/guides/platform/manage-your-usage/egress",
+    "https://supabase.com/changelog/27497-paused-free-plan-projects-are-restorable-for-90-days"
+   ]
+  },
+  {
+   "tema": "4. Vercel vs Netlify vs Cloudflare Pages no plano gratuito, e quem permite cron gratuito para o relatório diário",
+   "conclusao": "CLOUDFLARE GANHA, E POR UM MOTIVO QUE NÃO É TÉCNICO. Achado que decide o tema: a documentação oficial da Vercel diz, na página do plano Hobby, que 'the Hobby plan restricts users to non-commercial, personal use only'. Um sistema de pesquisa de satisfação operando dentro de uma pizzaria é uso comercial. Logo, Vercel Hobby está fora por termos, não por limite técnico — usar Vercel aqui significa Pro a US$20 por desenvolvedor/mês. VERCEL HOBBY (números oficiais, para registro): 100 GB de Fast Data Transfer, 1.000.000 de invocações de função, 4 CPU-hrs de Active CPU, 360 GB-hrs de memória provisionada, até 1.000.000 de edge requests, 200 projetos, 100 deploys por dia, 1 build concorrente, build máximo de 45 minutos, logs de runtime por 1 hora, e não permite conectar projeto Hobby a repositório de organização do Git. Cron: 100 cron jobs por projeto, mas no Hobby o mínimo é uma vez por dia e a precisão é por hora (±59 min) — uma expressão como '0 * * * *' falha no deploy. Ao estourar limite no Hobby, na maioria dos casos você espera 30 dias para voltar a usar o recurso. NETLIFY FREE (modelo novo por créditos, 2026): 300 créditos por mês, 100 GB de banda, 300 minutos de build, 125.000 invocações de function, 1.000.000 de invocações de edge function e 10 GB de storage, sem cartão de crédito. Avisos de uso em 50%, 75%, 90% e 100%. Texto oficial sobre estouro: 'If your app or site exceeds the Free plan limits for the month, it will be suspended for the remaining days in the calendar month' — ou seja, o site sai do ar até virar o mês. A tabela de créditos (15 créditos por deploy de produção, 20 créditos por GB de banda, 10 créditos por GB-hora de compute) vem de fontes de terceiros. CLOUDFLARE (a escolha): Pages Free = 500 builds por mês, 1 build concorrente, 20.000 arquivos por site, 25 MiB por arquivo e 100 domínios customizados. Workers Free = 100.000 requisições por dia, 10 ms de CPU por invocação e 50 subrequests por requisição. E o que fecha a conta, texto oficial: 'Requests to static assets are free and unlimited' e o plano inclui 'no additional charges for data transfer (egress) or throughput (bandwidth)'. CRON GRATUITO: Cloudflare Cron Triggers estão disponíveis no plano free, sem preço separado (consomem requisição e CPU), com granularidade de 1 minuto e 5 triggers por conta no free (250 no pago). RESPOSTA DIRETA À PERGUNTA: quem permite cron/agendamento gratuito com horário confiável é o Cloudflare. A Vercel também tem cron no Hobby e de graça, mas só 1x/dia e com deriva de até 59 minutos, além do bloqueio de uso comercial. Netlify tem scheduled functions consumindo créditos de compute.",
+   "viabilidade": "viavel",
+   "custo": "GRATIS no Cloudflare (Pages + Workers + Cron Triggers). Vercel: R$0 no Hobby mas proibido para uso comercial; Pro a US$20 por desenvolvedor/mês. Netlify: GRATIS dentro dos 300 créditos/mês",
+   "confianca": "alta",
+   "risco": "Vercel: risco contratual real de usar Hobby comercialmente (a própria doc cita fair use e conta/deploy pausados por violação de política). Netlify: risco de site suspenso pelo resto do mês civil ao estourar créditos, o que num relatório diário significa ficar sem coleta. Cloudflare: risco técnico do teto de 10 ms de CPU por invocação — mitigável, porque espera de I/O (chamada ao LLM, ao banco, ao provedor de e-mail) não é tempo de CPU, mas processar imagem ou gerar gráfico pesado dentro do Worker estoura.",
+   "limites": [
+    "Vercel Hobby: uso comercial proibido (texto oficial)",
+    "Vercel Hobby cron: mínimo 1x/dia, precisão ±59 min, expressões mais frequentes falham no deploy",
+    "Vercel Hobby: 100 GB transfer, 1M invocações, 4 CPU-hrs, 100 deploys/dia, 1 build concorrente, log 1h",
+    "Netlify Free: 300 créditos, 100 GB banda, 300 min build, 125k functions, 1M edge functions, 10 GB storage; suspensão pelo resto do mês ao estourar",
+    "Cloudflare Pages Free: 500 builds/mês, 1 concorrente, 20.000 arquivos, 25 MiB por arquivo, 100 domínios",
+    "Cloudflare Workers Free: 100.000 req/dia, 10 ms de CPU por invocação, 50 subrequests",
+    "Cloudflare Cron Triggers Free: 5 por conta, granularidade de 1 minuto",
+    "Cloudflare: assets estáticos grátis e ilimitados, sem cobrança de egress"
+   ],
+   "alternativa": "Arquitetura recomendada: Cloudflare Pages serve o PWA (assets grátis e ilimitados), um Worker atende a API de gravação de respostas, e um Cron Trigger às 09:00 dispara o Worker que monta e envia o relatório diário. Se o relatório precisar de processamento pesado de CPU (gerar PNG de gráfico), gere o gráfico como SVG inline no HTML do e-mail em vez de rasterizar, ou mova essa etapa para GitHub Actions agendado (grátis em repositório público), mantendo o Worker só como orquestrador de I/O.",
+   "fontes": [
+    "https://vercel.com/docs/plans/hobby",
+    "https://vercel.com/docs/limits",
+    "https://vercel.com/docs/cron-jobs/usage-and-pricing",
+    "https://www.netlify.com/blog/introducing-netlify-free-plan/",
+    "https://www.netlify.com/pricing/",
+    "https://developers.cloudflare.com/pages/platform/limits/",
+    "https://developers.cloudflare.com/workers/platform/limits/",
+    "https://developers.cloudflare.com/workers/platform/pricing/"
+   ]
+  },
+  {
+   "tema": "5. E-mail transacional gratuito: Resend, Brevo, Mailgun, Amazon SES, Gmail SMTP",
+   "conclusao": "RESEND É A ESCOLHA PARA 1 A 5 E-MAILS POR DIA COM ANEXO. RESEND FREE (oficial): 3.000 e-mails por mês, limitado a 100 por dia, 1 domínio, retenção de dados de 30 dias, envio e recebimento, 10.000 automation runs por mês. Para 1 a 5 e-mails/dia isso é 30x de folga. MAILGUN FREE (oficial): 100 e-mails por dia, 1 domínio de envio, 1 dia de retenção de log, US$0/mês, plano gratuito permanente e não trial; pagos começam em US$15/mês por 10.000 e-mails. BREVO FREE: 300 e-mails por dia (~9.000/mês) com acesso a SMTP e API transacional; o limite diário é global e compartilhado entre marketing e transacional — atenção, a página oficial de preços não renderizou na coleta, então esses números vêm de fontes de terceiros (confiança média). AMAZON SES (oficial): não encontrei tier gratuito permanente. O que a página de preços diz hoje é que novos clientes AWS recebem até US$200 em créditos do AWS Free Tier, aplicáveis ao SES, com o free tier disponível por 6 meses após a criação da conta e créditos usáveis em até 12 meses. Depois disso: US$0,16 por 1.000 e-mails no plano Essentials na faixa 0–10M/mês, mais US$0,12 por GB de dados de anexo enviados. Não achei o antigo tier permanente de envio a partir de EC2/Lambda. GMAIL SMTP: nos limites oficiais do Google Workspace, contas pagas enviam 2.000 mensagens por dia, mail merge 1.500/dia, contas em trial 500/dia; usuários de SMTP/POP/IMAP têm limite de 100 destinatários por mensagem; total de 10.000 destinatários por dia. Os limites de contas @gmail.com gratuitas não constam na página do Workspace — DESCONHECIDO na fonte oficial. DOMÍNIO VERIFICADO: todos os provedores de e-mail transacional exigem autenticação de domínio (SPF/DKIM) para entregar de forma confiável em nome do seu domínio; não consegui confirmar o texto exato dessa exigência nas páginas de preço lidas, então marque isso como prática do setor a validar no onboarding, não como número verificado. VEREDITO: Resend para 1 a 5 e-mails/dia com anexo/gráfico — 3.000/mês, API simples, 1 domínio no free e retenção de 30 dias suficiente para depurar. Se um dia o volume diário passar de 100, Brevo (300/dia) é o degrau seguinte gratuito. SES só compensa em volume alto e cobra anexo por GB. Gmail SMTP funciona para um destinatário único (o dono) e custo zero absoluto, mas sem logs, sem métricas de entrega e com risco de bloqueio por política — aceitável como fallback, não como principal.",
+   "viabilidade": "viavel",
+   "custo": "GRATIS (Resend Free: 3.000/mês, 100/dia). Mailgun Free: GRATIS, 100/dia. Brevo Free: GRATIS, ~300/dia (terceiro). Amazon SES: US$200 em créditos por 6 meses para conta nova, depois US$0,16/1.000 e-mails + US$0,12/GB de anexo. Gmail/Workspace: GRATIS dentro dos limites da conta",
+   "confianca": "alta",
+   "risco": "Risco de entregabilidade se enviar sem SPF/DKIM no próprio domínio: o relatório diário pode cair em spam e o dono conclui que 'o sistema não funciona'. Risco de anexo: SES cobra US$0,12/GB de anexo — irrelevante em 5 e-mails/dia, mas é o único dos cinco que cobra por dado de anexo. Risco de retenção curta: Resend guarda 30 dias e Mailgun 1 dia de log, então investigar 'não recebi o relatório de mês passado' pode ser impossível. Risco de Gmail SMTP: sem SLA, sujeito a bloqueio por política de segurança da conta.",
+   "limites": [
+    "Resend Free: 3.000/mês, 100/dia, 1 domínio, retenção 30 dias",
+    "Mailgun Free: 100/dia, 1 domínio, log 1 dia",
+    "Brevo Free: ~300/dia compartilhado marketing+transacional (terceiro)",
+    "Amazon SES: sem tier gratuito permanente identificado; US$200 em créditos por 6 meses; depois US$0,16/1.000 + US$0,12/GB de anexo",
+    "Google Workspace pago: 2.000 mensagens/dia; SMTP/POP/IMAP: 100 destinatários por mensagem; trial: 500/dia",
+    "Limites de @gmail.com gratuito: DESCONHECIDO na fonte oficial",
+    "Exigência exata de domínio verificado: NAO CONFIRMADO nas páginas de preço lidas"
+   ],
+   "alternativa": "Resend como principal, com domínio próprio autenticado (SPF/DKIM) para o relatório diário chegar na caixa de entrada. Fallback automático: se a API do Resend falhar, o Worker reenvia via Brevo SMTP. Alternativa que elimina e-mail: publicar o relatório diário como página protegida no próprio Cloudflare Pages e mandar só um link — reduz a dependência de entregabilidade a zero, com o custo de o dono ter que abrir o link.",
+   "fontes": [
+    "https://resend.com/pricing",
+    "https://www.mailgun.com/pricing/",
+    "https://aws.amazon.com/ses/pricing/",
+    "https://knowledge.workspace.google.com/admin/gmail/gmail-sending-limits-in-google-workspace",
+    "https://www.brevo.com/pricing/",
+    "https://www.brevo.com/free-smtp-server/",
+    "https://www.emailtooltester.com/en/reviews/brevo/pricing/"
+   ]
+  },
+  {
+   "tema": "6. Camada gratuita de LLM em 2026: Gemini, Groq, Cerebras, Mistral, OpenRouter",
+   "conclusao": "GROQ É A ESCOLHA, E POR PRIVACIDADE ANTES DE POR LIMITE. O volume do caso é ridiculamente pequeno: 200 comentários por mês para classificar (≈7 por dia) e 30 resumos diários. Qualquer free tier aguenta. O critério que decide, então, é o que o fornecedor faz com o texto — e aqui há um achado duro. GEMINI API FREE TIER: os números de rate limit deixaram de ser publicados na página oficial, que agora diz apenas que 'rate limits depend on a variety of factors (such as your usage tier) and can be viewed in Google AI Studio'. Fontes de terceiros, com confiança média a baixa, apontam para 2.5 Pro em 5 RPM e 100 requisições/dia, 2.5 Flash em 10 RPM e 250/dia, 2.5 Flash-Lite em 15 RPM e 1.000 a 1.500/dia, com corte de 50% a 80% nas cotas em dezembro de 2025 — trate como estimativa. O que é oficial e decisivo são os termos: no tier não pago, 'Google uses the content you submit to the Services and any generated responses to provide, improve, and develop Google products and services and machine learning technologies', 'Human reviewers may read, annotate, and process your API input and output' e, literalmente, 'Do not submit sensitive, confidential, or personal information to the Unpaid Services'. No tier pago, o texto é o oposto: 'Google doesn't use your prompts ... or responses to improve our products'. Consequência: mandar comentário de cliente com nome e WhatsApp para o Gemini free é incompatível com a LGPD e com o próprio termo da Google. GROQ FREE (oficial): limites por modelo, sem cartão. llama-3.1-8b-instant: 30 RPM, 14.400 requisições/dia, 6.000 tokens/min, 500.000 tokens/dia. llama-3.3-70b-versatile: 30 RPM, 1.000 requisições/dia, 12.000 tokens/min, 100.000 tokens/dia. whisper-large-v3: 20 RPM, 2.000/dia. Limites valem no nível da organização. E o contrato de serviços é explícito: 'Groq is not permitted to use Inputs or Outputs for training or fine-tuning any AI Model Services or other models, unless explicitly granted permission or instructed by Customer', além de não acessar nem reter inputs/outputs além do necessário para operar. CEREBRAS FREE TRIAL (oficial): 5 RPM, 30.000 tokens/min, 1.000.000 tokens/hora e 1.000.000 tokens/dia por modelo, com todo o catálogo público disponível; porém os créditos do trial (US$5) expiram 30 dias após a concessão e exigem método de pagamento verificado para ativar — não serve como base permanente. MISTRAL: existe tier gratuito 'Experiment' sem cartão, mas os limites não são publicados e aparecem só no console da organização — DESCONHECIDO. OPENROUTER modelos :free (oficial): 20 requisições por minuto e 50 por dia; com pelo menos US$10 em créditos comprados na vida da conta, o teto diário sobe para 1.000 requisições/dia. VEREDITO: Groq classifica os 200 comentários/mês e escreve o resumo diário com custo zero, dentro de 14.400 req/dia, e sem treinar com o dado do cliente. Use llama-3.1-8b-instant para classificação (o volume de RPD é o maior) e llama-3.3-70b-versatile para o resumo diário (1.000/dia sobra para 1 chamada). Se quiser redundância, Gemini free só com texto anonimizado — sem nome, sem telefone, sem número de mesa.",
+   "viabilidade": "viavel",
+   "custo": "GRATIS (Groq free tier, sem cartão, sem cobrança por token). Gemini free: GRATIS mas com uso do dado para treino. OpenRouter free: GRATIS a 50 req/dia, ou 1.000 req/dia após comprar US$10 em créditos. Cerebras: GRATIS com trial de US$5 que expira em 30 dias",
+   "confianca": "alta",
+   "risco": "Risco de privacidade e conformidade se escolher Gemini free: dado usado para treino, revisão humana, e advertência explícita do próprio termo contra enviar informação pessoal. Risco de continuidade dos free tiers: a Google já cortou cota do Gemini free entre 50% e 80% em dez/2025 e retirou os números da doc pública, sinal de que free tier de LLM não é base contratual estável. Risco de lock-in invertido: como o volume é minúsculo, o custo de migrar de provedor é baixo — mantenha o prompt e o parser desacoplados do SDK.",
+   "limites": [
+    "Gemini free: números de RPM/RPD não publicados na doc oficial; terceiros citam 5 RPM/100 RPD (Pro), 10 RPM/250 RPD (Flash), 15 RPM/1.000-1.500 RPD (Flash-Lite)",
+    "Gemini free: conteúdo usado para melhorar produtos e treinar modelos, com revisão humana; termo pede para não enviar dado pessoal",
+    "Groq free: llama-3.1-8b-instant 30 RPM / 14.400 RPD / 6k TPM / 500k TPD; llama-3.3-70b-versatile 30 RPM / 1.000 RPD / 12k TPM / 100k TPD",
+    "Groq: não treina com inputs/outputs (cláusula contratual)",
+    "Cerebras free: 5 RPM, 30k TPM, 1M TPH, 1M TPD; créditos expiram em 30 dias e exigem pagamento verificado",
+    "Mistral tier Experiment: limites NAO PUBLICOS",
+    "OpenRouter :free: 20 RPM e 50 RPD; 1.000 RPD com US$10 em créditos históricos"
+   ],
+   "alternativa": "Groq como principal (não treina com o dado). Regra de ouro independente do fornecedor: nunca envie identificador direto ao LLM — mande só o texto do comentário e as notas, com nome/WhatsApp substituídos por um id interno, e reconstitua a identidade no seu banco. Assim, mesmo trocando para Gemini free amanhã, você não vaza dado pessoal. Alternativa sem LLM para a classificação: regras simples de palavra-chave e escala de nota cobrem a maior parte de 200 comentários/mês, com o LLM só nos casos ambíguos.",
+   "fontes": [
+    "https://ai.google.dev/gemini-api/docs/rate-limits",
+    "https://ai.google.dev/gemini-api/terms",
+    "https://console.groq.com/docs/rate-limits",
+    "https://console.groq.com/docs/legal/services-agreement",
+    "https://inference-docs.cerebras.ai/support/rate-limits",
+    "https://openrouter.ai/docs/api-reference/limits",
+    "https://www.aifreeapi.com/en/posts/gemini-api-free-tier-rate-limits",
+    "https://pricepertoken.com/endpoints/mistral/free"
+   ]
+  },
+  {
+   "tema": "7. WhatsApp Business Cloud API: custo por conversa no Brasil em 2026, cota gratuita e template aprovado",
+   "conclusao": "MUDOU O MODELO: NÃO É MAIS POR CONVERSA, É POR MENSAGEM ENTREGUE. Texto oficial da Meta: 'Effective July 1, 2025, Meta charges on a per-message basis' e 'You are only charged when a template message is delivered'. Cobrança acontece na entrega, não no envio. COTA GRATUITA: a antiga cota de 1.000 conversas de serviço gratuitas por mês deixou de existir porque o serviço virou gratuito por inteiro — texto oficial: 'Effective November 1, 2024 – Service conversations are now free for all businesses'. No modelo atual, 'All non-template messages are free' dentro de uma janela de atendimento aberta, e templates de utilidade entregues dentro de uma janela de atendimento aberta também são gratuitos. Existe ainda a janela de Free Entry Point: após um clique em anúncio Click-to-WhatsApp, responder em até 24 horas com qualquer tipo de mensagem é gratuito, com janela livre de 72 horas depois. TEMPLATE APROVADO: sim, continua obrigatório para iniciar conversa fora da janela de atendimento, e o template é classificado em Marketing, Utility ou Authentication, com a categoria determinando o preço. Mensagens de serviço (não-template) não precisam de template mas só valem dentro da janela aberta pelo cliente. FATURAMENTO EM BRL: a partir de 1º de julho de 2026, clientes elegíveis podem criar novas WABAs faturadas em reais pela entidade local da Meta no Brasil; a migração para real passa a ser obrigatória até 30 de junho de 2027. PREÇOS DO BRASIL: o rate card oficial da Meta é uma ferramenta interativa (você seleciona mercado, moeda e categoria) e não expõe os valores em página estática — portanto os números oficiais são NÃO PÚBLICOS na forma que consigo citar. Fontes de terceiros brasileiras, confiança média, convergem para: Utility entre R$0,03 e R$0,05; Authentication entre R$0,15 e R$0,19; Marketing entre R$0,31 e R$0,38; Serviço iniciado pelo cliente R$0,00. Há desconto por volume de até 40% em utility e authentication; marketing não entra em desconto por volume. APLICADO AO CASO: 20 mesas por dia, terça a domingo, dá cerca de 520 disparos por mês. Se você disparar a pesquisa ativamente como template Utility a R$0,04, dá cerca de R$21/mês. Se a Meta reclassificar como Marketing a R$0,35, vira cerca de R$182/mês — e essa reclassificação é justamente o risco, porque 'responda nossa pesquisa' fica na fronteira. Se, em vez de disparar, você deixar o cliente iniciar (QR code na mesa apontando para wa.me), tudo o que você responder nas 24 horas seguintes é gratuito. VEREDITO: viável e quase gratuito no desenho 'cliente inicia'; caro e com risco de enquadramento no desenho 'restaurante dispara'. Para a v1, corte o WhatsApp API e use QR code para o PWA — custo zero e sem aprovação de template.",
+   "viabilidade": "viavel com ressalva",
+   "custo": "Mensagens de serviço (cliente inicia, dentro da janela de 24h): GRATIS, sem cota mensal. Templates: pago por mensagem entregue. Preços Brasil oficiais: NAO PUBLICO (rate card interativo). Estimativa de terceiros: Utility R$0,03–0,05; Authentication R$0,15–0,19; Marketing R$0,31–0,38. Cenário do cliente (520 disparos/mês): ~R$21/mês como Utility, ~R$182/mês se cair em Marketing",
+   "confianca": "media",
+   "risco": "Risco de custo por reclassificação: um convite de pesquisa pode ser enquadrado como Marketing e multiplicar o custo por ~8x. Risco de aprovação: template precisa ser aprovado e pode ser rejeitado ou recategorizado sem aviso, quebrando o fluxo diário. Risco de qualidade do número: bloqueio ou rebaixamento de tier por marcação de spam, o que num restaurante custa o canal de atendimento inteiro. Risco de fornecedor: se usar BSP em vez de Cloud API direta, entra markup por mensagem ou mensalidade de plataforma, não coberto por esses números. Risco de LGPD: usar o WhatsApp do cliente coletado na pesquisa para disparo ativo é finalidade nova e exige consentimento próprio.",
+   "limites": [
+    "Cobrança por mensagem entregue desde 01/07/2025, não mais por conversa",
+    "Conversas de serviço gratuitas desde 01/11/2024, sem cota mensal",
+    "Mensagens não-template gratuitas dentro da janela de atendimento aberta",
+    "Templates de utilidade entregues em janela aberta: gratuitos",
+    "Free Entry Point: 24h para responder de graça, mais 72h de janela livre",
+    "Template aprovado obrigatório para iniciar conversa fora da janela",
+    "Faturamento em BRL disponível a partir de 01/07/2026; obrigatório até 30/06/2027",
+    "Valores por país: rate card interativo, NAO PUBLICO em página estática"
+   ],
+   "alternativa": "V1 sem WhatsApp API: QR code na mesa e no comprovante apontando para o PWA. Custo zero, nenhuma aprovação, nenhum template. V2, se quiser WhatsApp: desenho 'cliente inicia' — QR code que abre wa.me com mensagem pronta, e todo o diálogo dentro das 24h é gratuito. Só considere disparo ativo por template quando tiver medido que o retorno por resposta paga os R$21 a R$182/mês, e sempre testando a categoria Utility antes de escalar.",
+   "fontes": [
+    "https://developers.facebook.com/docs/whatsapp/pricing",
+    "https://developers.facebook.com/docs/whatsapp/pricing/updates-to-pricing",
+    "https://whatsappbusiness.com/products/platform-pricing/",
+    "https://www.socialhub.pro/blog/preco-whatsapp-api-2026-brasil/",
+    "https://www.messagecentral.com/blog/whatsapp-business-api-pricing-brazil"
+   ]
+  },
+  {
+   "tema": "8. Modo quiosque em tablet Android barato: como travar, hardware mínimo e modelos concretos",
+   "conclusao": "VIÁVEL E BARATO. O CAMINHO GRÁTIS RESOLVE 90% DO CASO. OPÇÃO 1 — Fixação de tela nativa do Android (grátis, zero app): Configurações > Segurança > Fixação de app, ativa; depois abre o PWA, entra em Visão geral, toca no ícone do app e escolhe Fixar. Texto oficial da Google: 'When app pinning is on, you need to enter your PIN, pattern, or password before you can unpin.' Ou seja, o cliente na mesa não sai do app sem a senha do gerente. Limites: não reabre sozinho depois de reiniciar o tablet, não bloqueia notificações nem volume, e alguns passos só existem no Android 11+. OPÇÃO 2 — Fully Kiosk Browser: dá lockdown de verdade (kiosk mode, boot on start, screensaver, API REST/JS/MQTT, scanner de QR). Suporte oficial de Android 6 a 16, com aviso de que derivados como Chrome OS, Android TV, Fire OS e Android Go 'may have restricted feature set or serious issues'. Modelo comercial: todas as features PLUS são liberadas para teste ilimitado (algumas com watermark), e a licença PLUS é por dispositivo. Preço na página oficial não foi exposto na coleta; fonte de terceiro cita EUR 7,90 por dispositivo, licença única, e Fully Cloud por assinatura a partir de ~EUR 1,18 por dispositivo/mês. OPÇÃO 3 — PWA instalado na tela inicial em display-mode fullscreen: elimina a barra do navegador mas não trava nada por si só; é o complemento das opções 1 ou 2, não substituto. OPÇÃO 4 — Android Enterprise / dispositivo dedicado (COSU) com MDM: é o jeito 'certo' de fábrica, mas para um tablet num salão de 22 mesas é exagero de operação. HARDWARE MÍNIMO COM FOLGA para um PWA leve (formulário de 5 a 8 campos, sem vídeo): 4 GB de RAM, Android 13 ou superior para ter Chrome/WebView atualizados e service worker moderno, tela de 10 a 11 polegadas para o cliente ler sentado, 64 GB de armazenamento, e Wi-Fi 5. Evite Android Go, tanto pela restrição que a própria Fully documenta quanto pela RAM. MODELOS CONCRETOS: (a) Samsung Galaxy Tab A11 — 8,7 polegadas, LCD IPS 1340x800 a 90 Hz, MediaTek Helio G99 de 6 nm, 4 ou 8 GB de RAM, 64 ou 128 GB, chega ao Brasil com Android 16 e One UI 8; lançamento em setembro de 2025 a R$1.099, encontrado por volta de R$950 em 2026 (preço de terceiro). (b) Samsung Galaxy Tab A11+ — 11 polegadas, 6 GB de RAM, 128 GB, microSD até 2 TB, processador de 4 nm, na loja oficial Samsung Brasil (preço não exposto na página lida; kimovil cita a partir de ~US$200). (c) Lenovo Tab M11 — 11 polegadas FHD, octa-core, 4 GB de RAM, 128 GB, Wi-Fi, Android 14, vendido no site da Lenovo Brasil com caneta e capa. (d) Xiaomi Redmi Pad 2 / Redmi Pad SE — citados por comparativos brasileiros como melhor custo-benefício de entrada. RECOMENDAÇÃO: Galaxy Tab A11+ ou Lenovo Tab M11 pelos 11 polegadas e Android recente, travado com fixação de tela nativa. Compre 2 se possível: um em uso, um de reserva carregado, porque tablet de quiosque quebra tela.",
+   "viabilidade": "viavel",
+   "custo": "Software: GRATIS com fixação de tela nativa do Android. Fully Kiosk PLUS: EUR 7,90 por dispositivo, licença única (fonte de terceiro; preço não exposto na página oficial). Fully Cloud: a partir de ~EUR 1,18/dispositivo/mês (terceiro). Hardware: Galaxy Tab A11 ~R$950 a R$1.099 (terceiro); Tab A11+ e Lenovo Tab M11: preço DESCONHECIDO nas páginas oficiais lidas",
+   "confianca": "media",
+   "risco": "Risco de operação: fixação de tela nativa não sobrevive a reboot, então após queda de energia alguém tem que reabrir e refixar o app — mitigável com Fully PLUS (boot on start). Risco de vandalismo e furto: tablet solto em salão pede suporte fixo com chave e cabo. Risco de fim de suporte: tablet de entrada recebe poucas atualizações de Android, e um WebView velho quebra PWA em 2 a 3 anos. Risco de Android Go: aparelho ainda mais barato pode ter feature set restrito, documentado pela própria Fully.",
+   "limites": [
+    "Fixação de tela exige PIN/padrão/senha para desafixar (oficial)",
+    "Fixação de tela: alguns passos só em Android 11+; não persiste após reboot",
+    "Fully Kiosk: Android 6 a 16; derivados Android Go/Fire OS/Chrome OS podem ter problemas sérios",
+    "Fully PLUS: licença por dispositivo; features liberadas para teste ilimitado com watermark em algumas",
+    "Hardware mínimo recomendado: 4 GB RAM, Android 13+, tela 10-11\", 64 GB",
+    "Galaxy Tab A11: 8,7\", 1340x800, 90 Hz, Helio G99, 4/8 GB, Android 16",
+    "Galaxy Tab A11+: 11\", 6 GB, 128 GB, microSD até 2 TB",
+    "Lenovo Tab M11: 11\" FHD, 4 GB, 128 GB, Android 14"
+   ],
+   "alternativa": "Começar com fixação de tela nativa e R$0 de software; migrar para Fully Kiosk PLUS (uma licença, ~EUR 7,90) só se a operação provar que precisa de reabertura automática após reboot e bloqueio de notificações. Alternativa que dispensa tablet por completo: QR code impresso na mesa e no comprovante, cliente responde no próprio celular. Isso elimina R$1.000 de hardware, elimina o problema de quiosque e ainda ganha o identificador de dispositivo do cliente para o tema 12 — mas custa taxa de resposta, porque quem tem que tirar o celular do bolso responde menos.",
+   "fontes": [
+    "https://support.google.com/android/answer/9455138",
+    "https://www.fully-kiosk.com/",
+    "https://touchhalloffame.us/blog/touchscreen-kiosk-app-fully-locked-down-browser-download/",
+    "https://www.gsmarena.com/samsung_galaxy_tab_a11-14141.php",
+    "https://reveio.com.br/samsung-galaxy-tab-a11-review/",
+    "https://shop.samsung.com.br/tab-a11-plus/p",
+    "https://www.kimovil.com/en/where-to-buy-samsung-galaxy-tab-a11-plus",
+    "https://www.lenovo.com/br/pt/p/tablets/android-tablets/lenovo-tab-series/lenovo-tab-m11-11-inch-mtk/kitzada0283br"
+   ]
+  },
+  {
+   "tema": "9. PWA offline com fila local: IndexedDB + service worker",
+   "conclusao": "VIÁVEL, E É A ARQUITETURA CERTA — O VOLUME É IRRISÓRIO PARA A COTA DISPONÍVEL. Cotas oficiais (MDN): no Chrome e derivados, tanto em modo best-effort como persistent, um origin pode usar até 60% do tamanho total do disco; no Firefox, best-effort é o menor entre 10% do disco e 10 GiB, e persistent vai até 50% do disco; no Safari a partir de macOS 14 e iOS 17, cerca de 60% do disco para navegador e web app instalado na tela inicial, e ~15% para WebView embutido. 200 respostas por mês com nome, WhatsApp, notas e comentário são kilobytes — não existe cenário de estouro de cota aqui. O que importa é EVICÇÃO, não cota. Por padrão o armazenamento é best-effort, o que significa que pode ser descartado sob pressão de disco, por política LRU. Chamando navigator.storage.persist() e obtendo permissão, o modo passa a persistent e os dados só são apagados se o usuário apagar. Dois detalhes que decidem o desenho: (1) quando um origin é despejado, TODOS os dados dele vão de uma vez — IndexedDB, Cache API, tudo — para não deixar estado inconsistente; então uma fila 'meio apagada' não acontece, ou está toda lá ou nada está; (2) o Safari apaga proativamente dados criados por script após 7 dias sem interação do usuário, aplicável somente a dados criados por script e quando a prevenção de rastreamento cross-site está ligada. DESENHO RECOMENDADO: service worker registrando os assets no Cache API para o app abrir sem rede; IndexedDB com uma object store 'fila_respostas', cada registro com um UUID v4 gerado no cliente, timestamp e status (pendente/enviado); envio por Background Sync quando houver rede, com retry exponencial e fallback de retentar no próximo load do app; idempotência no servidor pela chave UUID, para reenvio duplicado não gerar resposta duplicada; e chamada de navigator.storage.persist() na instalação. Mostre na tela um contador de 'X respostas aguardando envio' para o gerente perceber se o Wi-Fi caiu. VEREDITO: viável, barato e é o único jeito honesto de operar num salão onde o Wi-Fi cai. O risco que sobra é humano, não técnico: alguém limpar dados do navegador ou desinstalar o PWA com fila pendente.",
+   "viabilidade": "viavel",
+   "custo": "GRATIS",
+   "confianca": "alta",
+   "risco": "Risco de perda de dados se o armazenamento ficar em best-effort e o tablet encher o disco (evicção LRU apaga o origin inteiro de uma vez). Risco de limpeza manual: alguém limpar dados do site ou desinstalar o PWA com fila pendente perde tudo. Risco no iOS: se o fluxo migrar para o celular do cliente, o Safari apaga dados criados por script após 7 dias sem interação, o que quebra fila e identificador de recorrência. Risco de duplicidade se o servidor não for idempotente: o retry do Background Sync pode gravar a mesma resposta duas vezes.",
+   "limites": [
+    "Chrome/Chromium: até 60% do disco total por origin (best-effort e persistent)",
+    "Firefox best-effort: menor entre 10% do disco e 10 GiB; persistent até 50%",
+    "Safari (macOS 14/iOS 17+): ~60% do disco para navegador e web app instalado; ~15% para WebView",
+    "Padrão é best-effort: dado descartável sob pressão de disco, por LRU",
+    "navigator.storage.persist() muda para persistent, aí só o usuário apaga",
+    "Evicção apaga TODOS os dados do origin de uma vez",
+    "Safari apaga dados criados por script após 7 dias sem interação do usuário"
+   ],
+   "alternativa": "Reforço de segurança com custo zero: além da fila em IndexedDB, escreva cada resposta também num backup append-only no localStorage (redundância barata) e envie um 'heartbeat' diário do tablet para o Worker, para o dono ser avisado se o tablet ficou 24h sem sincronizar. Se quiser tolerância maior, coloque um segundo tablet como redundância física em noites de casa cheia.",
+   "fontes": [
+    "https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria"
+   ]
+  },
+  {
+   "tema": "10. Raspberry Pi como agente diário vs alternativas sem hardware",
+   "conclusao": "TECNICAMENTE VIÁVEL, MAS NÃO COMPRE. MODELO MÍNIMO se for comprar: Raspberry Pi Zero 2 W. Quad-core, roda Python com cron sem esforço, e é o mais eficiente da linha. Consumo medido por terceiros: cerca de 0,7 W em idle e até ~1,4 W em carga, com leituras variando entre 100 mA em idle e ~500 mA com os quatro núcleos saturados. Conta de energia: 0,7 W ligado 24 horas por 30 dias ≈ 0,5 kWh/mês, o que fica abaixo de R$1 por mês em qualquer tarifa residencial do Rio (a tarifa exata não foi verificada, trate como ordem de grandeza). Raspberry Pi 5 é exagero total para o caso: ~3,0 W em idle headless com Wi-Fi, ~3,6 W com Ethernet, HDMI e USB ativos, até 8,8 W em carga, e ~1,7 W mesmo desligado porque o chip de gerenciamento de energia continua ativo. POR QUE NÃO VALE: o trabalho descrito — 'buscar ou baixar um relatório e enviar para uma API', uma vez por dia — é exatamente o que um Cloudflare Cron Trigger faz de graça, com granularidade de 1 minuto, sem eletricidade, sem cartão SD que corrompe, sem depender do Wi-Fi do salão e sem alguém para reiniciar o aparelho. GitHub Actions com schedule também resolve, grátis em repositório público. Um Pi no salão adiciona um ponto de falha físico numa operação que tem zero pessoal de TI. QUANDO O PI GANHA: só se o dado estiver preso localmente e não houver como puxá-lo de fora — por exemplo, se o Altec/Next gerar o relatório apenas num arquivo ou impressora na máquina do PDV, sem nuvem e sem API. Nesse caso o Pi vira um 'agente de saída' que lê a pasta local e faz POST para a sua API. SOBRE O ALTEC: o material público da Altec fala em relatórios de caixa em tempo real no WhatsApp e em um produto Retaguarda Cloud, o que sugere que o dado já sai da máquina local — mas não encontrei documentação de API pública nem de agendamento de e-mail/CSV. Isso é DESCONHECIDO e é a primeira pergunta a fazer ao suporte da Altec, porque a resposta decide todo este tema. ORDEM DE PREFERÊNCIA: (1) API ou exportação agendada do próprio Altec, se existir; (2) cron na nuvem no Cloudflare Workers puxando de onde o Altec publica; (3) pasta sincronizada (Google Drive/OneDrive) na máquina do PDV, com o Worker lendo o arquivo; (4) só então Raspberry Pi Zero 2 W.",
+   "viabilidade": "viavel com ressalva",
+   "custo": "Energia do Pi Zero 2 W: ~0,5 kWh/mês, menos de R$1/mês (tarifa não verificada). Preço do hardware no Brasil: DESCONHECIDO (não pesquisado em varejista). Alternativa sem hardware (Cloudflare Cron Triggers, GitHub Actions agendado): GRATIS",
+   "confianca": "media",
+   "risco": "Risco de ponto único de falha físico num local sem TI: cartão SD corrompe, queda de energia, Wi-Fi do salão instável, e ninguém percebe que o agente parou até o relatório não chegar. Risco de manutenção: atualização de sistema, senha, acesso remoto — custo humano recorrente que não aparece na planilha. Risco de dependência desconhecida: se o Altec não expuser o dado de forma alguma, nem o Pi resolve sem raspar a interface do PDV, o que é frágil e possivelmente contra o contrato do fornecedor.",
+   "limites": [
+    "Pi Zero 2 W: ~0,7 W idle, até ~1,4 W em carga (terceiro)",
+    "Pi 5: ~3,0 W idle headless, ~3,6 W com periféricos, até 8,8 W em carga, ~1,7 W desligado (terceiro)",
+    "Cloudflare Cron Triggers no free: 5 por conta, granularidade de 1 minuto, sem custo separado",
+    "Capacidade do Altec/Next de expor relatório por API ou e-mail agendado: DESCONHECIDO",
+    "Preço de varejo do Pi no Brasil: DESCONHECIDO"
+   ],
+   "alternativa": "Não compre hardware na v1. Faça três perguntas ao suporte Altec/Next antes de qualquer decisão: existe API REST? existe agendamento de envio de relatório por e-mail ou exportação automática de CSV? o Retaguarda Cloud expõe os dados para fora? Se qualquer uma for sim, o agente vira um Cron Trigger de 20 linhas no Cloudflare, custo zero. Se todas forem não, então sim: Raspberry Pi Zero 2 W lendo a pasta local do PDV e postando na sua API, com watchdog que avisa por e-mail quando o agente não reporta em 24h.",
+   "fontes": [
+    "https://www.cnx-software.com/2021/12/09/raspberry-pi-zero-2-w-power-consumption/",
+    "https://raspberry.tips/en/raspberrypi-tutorials/raspberry-pi-power-consumption-update-2026-all-models-compared",
+    "https://www.jeffgeerling.com/blog/2021/disabling-cores-reduce-pi-zero-2-ws-power-consumption-half/",
+    "https://developers.cloudflare.com/workers/platform/limits/",
+    "https://altec.ws/solucoes/retaguarda-cloud/",
+    "https://www.altecsistemas.com.br/home-v4"
+   ]
+  },
+  {
+   "tema": "11. LGPD na prática para pesquisa de satisfação com nome, WhatsApp e histórico de consumo",
+   "conclusao": "VIÁVEL, E O CUSTO É ZERO SE FOR FEITO NO DESENHO — NÃO NO ADVOGADO. BASE LEGAL: para coletar nome, WhatsApp e histórico de consumo numa pesquisa voluntária, a base natural é o consentimento (art. 7, I), porque nada disso é necessário para executar o contrato de vender pizza. Legítimo interesse (art. 7, IX) pode sustentar a análise agregada da qualidade do serviço, mas a ANPD, no Guia Orientativo sobre Legítimo Interesse (fev/2024), exige um teste de balanceamento em três fases — finalidade, necessidade, e balanceamento com salvaguardas — e exige que o interesse seja concreto e não especulativo, com finalidade legítima, específica e explícita. Não use legítimo interesse como atalho quando o consentimento é perfeitamente viável, que é o caso aqui. Se depois você quiser usar o WhatsApp coletado para promoção, isso é FINALIDADE NOVA e precisa de consentimento próprio e destacado. O QUE A LEI EXIGE NA PRÁTICA, em ordem de implementação: (1) Aviso de privacidade curto na própria tela do quiosque, antes do envio: quem é o controlador (razão social e CNPJ da pizzaria), para que serve a pesquisa, quais dados são coletados, com quem são compartilhados (nomear as categorias: hospedagem, banco de dados, provedor de e-mail, serviço de IA), por quanto tempo ficam guardados, e o canal para exercer direitos. (2) Consentimento com caixa NÃO pré-marcada, separada em duas: uma para responder a pesquisa, outra para receber contato ou promoção. Guardar data, hora e a versão do texto aceito — sem esse registro você não consegue provar o consentimento. (3) Nome e WhatsApp OPCIONAIS: a pesquisa tem que funcionar em branco, porque coletar o que não é necessário viola o princípio da necessidade. Esse é o ponto mais violado por sistemas de pesquisa de restaurante. (4) Direito de exclusão e revogação por canal gratuito e facilitado, com revogação a qualquer momento. Na prática: um link 'apagar meus dados' no rodapé e um WhatsApp/e-mail publicado. (5) Retenção com prazo escrito e implementado em código, não em intenção — por exemplo, 12 meses para o dado identificado, depois um job que apaga nome e telefone e mantém só o agregado. O art. 16 manda eliminar após o término do tratamento. (6) Segurança proporcional: RLS ligado no Supabase, 2FA na conta, chave de serviço fora do front-end, e nada de exportar planilha de clientes para grupo de WhatsApp. (7) Registro simplificado das operações de tratamento (Res. CD/ANPD nº 2/2022, art. 9) — uma planilha de uma página basta. O QUE VOCÊ GANHA COMO AGENTE DE PEQUENO PORTE: a Resolução CD/ANPD nº 2/2022 enquadra microempresas e empresas de pequeno porte pelos limites de receita da LC 123/2006, e traz: art. 11, não é obrigatório indicar encarregado, desde que haja canal de comunicação para o titular; art. 9, registro simplificado; art. 13, política de segurança simplificada considerando custos, estrutura, escala e volume; art. 14, prazo em dobro para atender solicitações do titular, comunicar incidente e fornecer declarações (exceto a declaração simplificada, que continua em 15 dias). Atenção: a própria resolução diz que a flexibilização não isenta do cumprimento das bases legais e dos princípios. O QUE É EXAGERO PARA UMA PIZZARIA DE 22 MESAS: contratar DPO externo, produzir RIPD/DPIA completo, buscar ISO 27001, criptografia de campo, contrato de operador de dezenas de páginas com cada fornecedor SaaS, consentimento em papel assinado, e política de privacidade de 15 páginas que ninguém lê. LINHA VERMELHA ABSOLUTA: não envie comentário com nome e telefone para LLM em tier gratuito que treina com o dado — o termo da Gemini API diz literalmente 'Do not submit sensitive, confidential, or personal information to the Unpaid Services'.",
+   "viabilidade": "viavel com ressalva",
+   "custo": "GRATIS se implementado no próprio produto (tela de aviso, checkbox duplo, job de retenção, registro simplificado). Revisão jurídica do aviso de privacidade: opcional, custo DESCONHECIDO",
+   "confianca": "media",
+   "risco": "Risco de consentimento inválido por caixa pré-marcada ou consentimento único cobrindo pesquisa e marketing juntos — é o erro mais comum e o mais fácil de ser questionado. Risco de coleta desnecessária: exigir WhatsApp para responder a pesquisa fere o princípio da necessidade. Risco de retenção infinita: banco que nunca apaga é violação do art. 16 e cresce o dano de um eventual vazamento. Risco de vazamento por chave exposta no front-end do PWA (RLS desligada no Supabase é o caso clássico). Risco de transferência a LLM que treina com o dado. Nota de limite: o texto integral da Lei 13.709 não pôde ser lido na coleta (Planalto retornou HTTP 503 em três tentativas), então a citação dos artigos vem dos guias da ANPD e de fontes secundárias — valide os números de artigo com a lei antes de publicar o aviso.",
+   "limites": [
+    "Consentimento (art. 7, I) é a base natural; legítimo interesse (art. 7, IX) exige teste de balanceamento em 3 fases segundo a ANPD",
+    "Finalidade nova (marketing) exige consentimento próprio e destacado",
+    "Nome e WhatsApp devem ser opcionais (princípio da necessidade)",
+    "Revogação de consentimento a qualquer momento, por procedimento gratuito e facilitado",
+    "Art. 16: eliminar dados após o término do tratamento",
+    "Res. CD/ANPD 2/2022 art. 11: pequeno porte dispensado de encarregado, mas obrigado a ter canal de comunicação",
+    "Res. CD/ANPD 2/2022 art. 9: registro simplificado; art. 13: política de segurança simplificada; art. 14: prazos em dobro, exceto declaração simplificada em 15 dias",
+    "Flexibilização não isenta de bases legais nem de princípios",
+    "Texto integral da Lei 13.709 não verificado diretamente (Planalto HTTP 503)"
+   ],
+   "alternativa": "Desenho mínimo suficiente, todo dentro do produto: tela 1 = notas e comentário, sem identificação nenhuma, com um rodapé de 3 linhas e link para o aviso completo; tela 2 = 'quer que a gente te responda?' com nome e WhatsApp opcionais e dois checkboxes separados, nenhum pré-marcado; job diário que apaga nome e telefone de registros com mais de 12 meses e mantém o agregado; página pública 'privacidade' com controlador, finalidades, prazos e canal; e uma planilha de uma página como registro simplificado das operações. Isso cobre o que a ANPD espera de um agente de pequeno porte sem gastar um real.",
+   "fontes": [
+    "https://www.gov.br/anpd/pt-br/acesso-a-informacao/institucional/atos-normativos/regulamentacoes_anpd/resolucao-cd-anpd-no-2-de-27-de-janeiro-de-2022",
+    "https://www.gov.br/anpd/pt-br/centrais-de-conteudo/materiais-educativos-e-publicacoes/guia_orientativo_hipoteses_legais_tratamento_de_dados_pessoais_legitimo_interesse",
+    "https://www.gov.br/anpd/pt-br/assuntos/noticias/anpd-lanca-guia-orientativo-sobre-legitimo-interesse",
+    "https://ai.google.dev/gemini-api/terms",
+    "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm",
+    "https://lgpd-brasil.info/capitulo_02/artigo_07"
+   ]
+  },
+  {
+   "tema": "12. Identificar cliente recorrente sem cadastro, respeitando a LGPD",
+   "conclusao": "DÁ PARA FAZER, MAS ESQUEÇA A IDEIA DE 'ANÔNIMO' — QUASE TUDO AQUI AINDA É DADO PESSOAL. O erro conceitual mais comum é achar que hash do telefone resolve. Não resolve: hash de número de telefone é pseudonimização, não anonimização, porque o espaço de busca de um número brasileiro é pequeno o suficiente para força bruta reverter o hash em segundos. Dado pseudonimizado continua sob a LGPD; só dado anonimizado de forma irreversível, considerando meios técnicos razoáveis, sai do escopo. Com isso em mente, quatro desenhos possíveis, do mais limpo ao mais arriscado: (A) CÓDIGO VOLUNTÁRIO DE 6 CARACTERES — o cliente recebe (ou escolhe) um código curto e digita nas visitas seguintes. É o desenho mais equilibrado em LGPD: o vínculo só existe se o cliente quiser, ele entende exatamente o que está fazendo, a exclusão é trivial (apagar a linha do código) e você não guarda telefone nenhum para reconhecer recorrência. É também o mais honesto de explicar em uma frase. (B) IDENTIFICADOR DE DISPOSITIVO DO PRÓPRIO CLIENTE — se a resposta vier por QR code no celular dele, gere um UUID v4 aleatório no primeiro acesso e guarde em localStorage/IndexedDB do navegador dele. Recorrência sem nome, sem telefone, sem cruzamento. Exige aviso claro de que você usa um identificador local, e é frágil por natureza: navegação privada, limpar dados, trocar de celular, e no iOS a evicção de 7 dias sem interação apaga o identificador. Não serve no tablet do restaurante, porque ali o dispositivo é compartilhado e o UUID identificaria a mesa, não a pessoa. (C) RECORRÊNCIA PELO LADO DO PEDIDO, NÃO DA PESSOA — amarre a resposta ao número do pedido/mesa do PDV e trabalhe com padrão de consumo (itens, ticket, dia da semana, horário) para agrupar comportamento sem identificar ninguém. Isso é dado do negócio, não da pessoa, desde que não haja identificador do cliente pendurado. Cobre boa parte do valor analítico ('mesas que pedem entrada avaliam melhor', 'sexta tem nota pior') com risco zero. (D) OPT-IN LEVE COM APELIDO — primeiro nome mais os quatro últimos dígitos do telefone. Ainda é dado pessoal, mas minimizado, e resolve o 'você já veio antes?'. Só use se A e B não derem taxa de reconhecimento suficiente. O QUE NÃO FAZER, EM NENHUMA HIPÓTESE: reconhecimento facial ou qualquer biometria — é dado sensível (art. 11), exige consentimento específico e destacado, e para um salão de 22 mesas é desproporcional e cria um passivo enorme; fingerprinting de dispositivo por canvas/fontes/IP, porque é tratamento oculto e o titular não tem como se opor; cruzar o telefone do delivery com o salão sem aviso e sem consentimento para essa finalidade; e comprar ou enriquecer base de terceiros. DESENHO RECOMENDADO PARA A PIZZARIA: combine (C) como base analítica sempre ligada, com (A) como camada opcional de reconhecimento — 'guarde este código e ganhe o reconhecimento na próxima visita'. Zero telefone armazenado para fins de recorrência, retenção com prazo (por exemplo, apagar o código após 12 meses sem uso) e um botão de 'apagar meu código'. Custo: zero, é lógica de banco.",
+   "viabilidade": "viavel com ressalva",
+   "custo": "GRATIS",
+   "confianca": "baixa",
+   "risco": "Risco jurídico de tratar pseudonimização como anonimização: hash de telefone continua dado pessoal e um parecer contrário derruba a defesa de 'não guardamos dado'. Risco de tratamento oculto: qualquer identificador criado sem aviso (fingerprinting, cookie silencioso de recorrência) é tratamento sem transparência e sem base legal clara. Risco altíssimo em biometria: reconhecimento facial é dado sensível do art. 11, exige consentimento específico e destacado e cria passivo desproporcional para a operação. Risco técnico do identificador de dispositivo: navegação privada, limpeza de dados, troca de aparelho e evicção de 7 dias no iOS derrubam a taxa de reconhecimento. Nota de limite: esta análise é interpretação aplicada, não citação literal de dispositivo — o texto da lei não pôde ser lido diretamente na coleta.",
+   "limites": [
+    "Hash de telefone é pseudonimização, não anonimização: continua sob a LGPD",
+    "Só dado anonimizado de forma irreversível sai do escopo da lei",
+    "Biometria e reconhecimento facial: dado sensível, consentimento específico e destacado",
+    "Identificador em localStorage/IndexedDB do cliente é apagável por ele e evicto após 7 dias sem interação no Safari",
+    "UUID no tablet do restaurante identifica a mesa, não a pessoa",
+    "Análise por pedido/mesa sem identificador do cliente não é dado pessoal"
+   ],
+   "alternativa": "Base sempre ligada: análise por pedido/mesa e padrão de consumo, sem identificador de pessoa — risco zero e cobre a maior parte do valor. Camada opcional: código voluntário de 6 caracteres que o cliente digita se quiser ser reconhecido, com botão de apagar e expiração automática em 12 meses sem uso. Se o fluxo migrar para o celular do cliente via QR, some um UUID v4 em localStorage com aviso explícito. Nunca biometria, nunca fingerprinting, nunca cruzamento silencioso com a base de delivery.",
+   "fontes": [
+    "https://www.gov.br/anpd/pt-br/centrais-de-conteudo/materiais-educativos-e-publicacoes/guia_orientativo_hipoteses_legais_tratamento_de_dados_pessoais_legitimo_interesse",
+    "https://www.gov.br/anpd/pt-br/acesso-a-informacao/institucional/atos-normativos/regulamentacoes_anpd/resolucao-cd-anpd-no-2-de-27-de-janeiro-de-2022",
+    "https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria",
+    "https://lgpd-brasil.info/capitulo_02/artigo_07"
+   ]
+  }
+ ],
+ "fontes": [
+  "https://developers.google.com/my-business/content/prereqs",
+  "https://developers.google.com/my-business/content/faq",
+  "https://developers.google.com/my-business/content/basic-setup",
+  "https://developers.google.com/my-business/content/limits",
+  "https://developers.google.com/my-business/content/pricing",
+  "https://developers.google.com/maps/billing-and-pricing/pricing",
+  "https://developers.google.com/maps/documentation/places/web-service/usage-and-billing",
+  "https://developers.google.com/maps/documentation/places/web-service/data-fields",
+  "https://developers.google.com/maps/documentation/places/web-service/reference/rest/v1/places",
+  "https://developers.google.com/maps/documentation/places/web-service/policies",
+  "https://cloud.google.com/maps-platform/terms",
+  "https://developer.ifood.com.br/pt-BR",
+  "https://developer.ifood.com.br/pt-BR/docs/guides/modules/order/homologation/",
+  "https://developer.ifood.com.br/pt-BR/terms-of-use/partner/",
+  "https://medium.com/ifood-developer/como-utilizar-a-api-de-reviews-do-ifood-do-zero-bbb408f5f824",
+  "https://blog-parceiros.ifood.com.br/portal-do-parceiro/",
+  "https://blog-parceiros.ifood.com.br/avaliacoes-e-moderacoes/",
+  "https://blog-parceiros.ifood.com.br/ferramentas-parceiros-integrados/",
+  "https://supabase.com/pricing",
+  "https://supabase.com/docs/guides/platform/free-project-pausing",
+  "https://supabase.com/docs/guides/platform/billing-faq",
+  "https://supabase.com/docs/guides/platform/billing-on-supabase",
+  "https://supabase.com/docs/guides/platform/manage-your-usage/egress",
+  "https://supabase.com/changelog/27497-paused-free-plan-projects-are-restorable-for-90-days",
+  "https://vercel.com/docs/plans/hobby",
+  "https://vercel.com/docs/limits",
+  "https://vercel.com/docs/cron-jobs/usage-and-pricing",
+  "https://www.netlify.com/blog/introducing-netlify-free-plan/",
+  "https://www.netlify.com/pricing/",
+  "https://developers.cloudflare.com/pages/platform/limits/",
+  "https://developers.cloudflare.com/workers/platform/limits/",
+  "https://developers.cloudflare.com/workers/platform/pricing/",
+  "https://resend.com/pricing",
+  "https://www.mailgun.com/pricing/",
+  "https://aws.amazon.com/ses/pricing/",
+  "https://knowledge.workspace.google.com/admin/gmail/gmail-sending-limits-in-google-workspace",
+  "https://www.brevo.com/pricing/",
+  "https://www.brevo.com/free-smtp-server/",
+  "https://www.emailtooltester.com/en/reviews/brevo/pricing/",
+  "https://ai.google.dev/gemini-api/docs/rate-limits",
+  "https://ai.google.dev/gemini-api/terms",
+  "https://console.groq.com/docs/rate-limits",
+  "https://console.groq.com/docs/legal/services-agreement",
+  "https://inference-docs.cerebras.ai/support/rate-limits",
+  "https://openrouter.ai/docs/api-reference/limits",
+  "https://www.aifreeapi.com/en/posts/gemini-api-free-tier-rate-limits",
+  "https://pricepertoken.com/endpoints/mistral/free",
+  "https://developers.facebook.com/docs/whatsapp/pricing",
+  "https://developers.facebook.com/docs/whatsapp/pricing/updates-to-pricing",
+  "https://whatsappbusiness.com/products/platform-pricing/",
+  "https://www.socialhub.pro/blog/preco-whatsapp-api-2026-brasil/",
+  "https://www.messagecentral.com/blog/whatsapp-business-api-pricing-brazil",
+  "https://support.google.com/android/answer/9455138",
+  "https://www.fully-kiosk.com/",
+  "https://touchhalloffame.us/blog/touchscreen-kiosk-app-fully-locked-down-browser-download/",
+  "https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria",
+  "https://www.gsmarena.com/samsung_galaxy_tab_a11-14141.php",
+  "https://reveio.com.br/samsung-galaxy-tab-a11-review/",
+  "https://shop.samsung.com.br/tab-a11-plus/p",
+  "https://www.kimovil.com/en/where-to-buy-samsung-galaxy-tab-a11-plus",
+  "https://www.lenovo.com/br/pt/p/tablets/android-tablets/lenovo-tab-series/lenovo-tab-m11-11-inch-mtk/kitzada0283br",
+  "https://www.cnx-software.com/2021/12/09/raspberry-pi-zero-2-w-power-consumption/",
+  "https://raspberry.tips/en/raspberrypi-tutorials/raspberry-pi-power-consumption-update-2026-all-models-compared",
+  "https://www.jeffgeerling.com/blog/2021/disabling-cores-reduce-pi-zero-2-ws-power-consumption-half/",
+  "https://altec.ws/solucoes/retaguarda-cloud/",
+  "https://www.altecsistemas.com.br/home-v4",
+  "https://www.gov.br/anpd/pt-br/acesso-a-informacao/institucional/atos-normativos/regulamentacoes_anpd/resolucao-cd-anpd-no-2-de-27-de-janeiro-de-2022",
+  "https://www.gov.br/anpd/pt-br/centrais-de-conteudo/materiais-educativos-e-publicacoes/guia_orientativo_hipoteses_legais_tratamento_de_dados_pessoais_legitimo_interesse",
+  "https://www.gov.br/anpd/pt-br/assuntos/noticias/anpd-lanca-guia-orientativo-sobre-legitimo-interesse",
+  "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm",
+  "https://lgpd-brasil.info/capitulo_02/artigo_07"
+ ]
+}

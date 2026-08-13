@@ -1,0 +1,34 @@
+{
+ "veredito": "CONFIRMADO",
+ "correcoes": [
+  {
+   "item": "Uptime 99,98% e latencia ~80ms da API",
+   "afirmacao_original": "A propria doc alega 99,98% de uptime e ~80ms de latencia (numero de marketing, nao auditado)",
+   "problema": "Nao verificavel de forma independente. Confirmei que esses numeros aparecem literalmente na doc de api.risposta.app, mas sao autodeclarados pelo fornecedor, sem status page, sem historico e sem terceiro auditando. Um comprador nao deve tratar como SLA. O relatorio ja sinaliza isso corretamente; mantenho como ressalva, nao como erro.",
+   "valor_correto": "Numeros reais na doc (99.98% uptime, 80ms), porem sem lastro auditavel; tratar como claim de marketing, nao como garantia contratual.",
+   "fonte": "https://api.risposta.app/"
+  },
+  {
+   "item": "Contato de credenciais da API",
+   "afirmacao_original": "Credenciais so por solicitacao humana a christian@risposta.com.br",
+   "problema": "Parcialmente impreciso quanto a fonte unica. christian@risposta.com.br esta confirmado na pagina WordPress /apis-risposta/, mas o proprio site de documentacao api.risposta.app nao cita christian@ e sim support@risposta.app como contato. Ha dois canais, nao um so.",
+   "valor_correto": "Credenciais pedidas por e-mail; christian@risposta.com.br em www.risposta.app/apis-risposta/ e support@risposta.app na doc api.risposta.app. Segue nao self-service (sem portal/sandbox), como afirmado.",
+   "fonte": "https://www.risposta.app/apis-risposta/ e https://api.risposta.app/"
+  },
+  {
+   "item": "Fundacao em junho de 2015, CEO Gustavo Cesar Lima, colaboracao India-Inglaterra-Brasil, 11-50 funcionarios",
+   "afirmacao_original": "Fundada em junho de 2015 a partir de uma colaboracao India-Inglaterra-Brasil. CEO: Gustavo Cesar Lima. Porte no LinkedIn: 11-50 funcionarios (12 perfis identificados)",
+   "problema": "Nao verificavel de forma independente nesta checagem. Todos esses dados derivam do LinkedIn/autodeclaracao da empresa, que nao pude confirmar por fonte terceira (LinkedIn nao e fetchable). Circunstancialmente coerente (IP indiano no slug WordPress, escritorio Londres), mas sem prova externa. Nao refutado, apenas nao confirmado.",
+   "valor_correto": "Dados plausiveis porem autodeclarados; sem confirmacao por fonte independente (registro empresarial, imprensa). Para due diligence, checar Junta Comercial/CNPJ e nao so o LinkedIn.",
+   "fonte": "nenhuma fonte terceira encontrada; base e https://www.linkedin.com/company/risposta (autodeclarado)"
+  }
+ ],
+ "lacunas": [
+  "Nao consegui confirmar por fonte independente (registro publico/imprensa) a data de fundacao, o nome do CEO, o porte de 11-50 funcionarios nem a narrativa India-Inglaterra-Brasil; tudo veio do LinkedIn/autodeclaracao. Recomenda-se consulta ao CNPJ 25.308.696/0001-49 na Receita/Junta Comercial para data de constituicao e quadro societario reais.",
+  "Ausencia de reviews independentes (G2, Capterra, Reclame Aqui, Google Play, App Store) foi consistente com minha busca, mas ausencia de resultado nao e prova definitiva de inexistencia de perfil; nao esgotei todas as grafias/variacoes de marca.",
+  "Nao testei enumeracao de outros branch_id no endpoint monthlyPerformance (eticamente correto nao fazer), entao a extensao real do possivel IDOR (se retorna dados de outras unidades com id valido) permanece nao demonstrada alem do desenho sem token.",
+  "Preco dos modulos (Central de Reputacao, Marketing, Cliente Oculto), preco por unidade/tablet e faixas por volume permanecem nao publicos; confirmado que nao existe tabela de planos, mas o valor efetivo de uma proposta so sai via demo.",
+  "Nome do pacote Android, versao minima e modelo do tablet seguem desconhecidos; confirmei apenas indiretamente (pagina de suporte ensinando a desativar Play Protect) que a distribuicao e fora da Play Store."
+ ],
+ "observacoes": "Verificacao adversarial nao derrubou nenhuma afirmacao de preco, feature ou viabilidade tecnica load-bearing. Checados diretamente contra fonte primaria e confirmados: os dois pisos de preco (R$ 200 e R$ 150) verbatim; limite de 4 dias por requisicao na API ('The range must not exceed 4 days'), 50/pagina, token 60min/refresh 30d, Laravel Sanctum, 7 endpoints POST; e-mail christian@ para credenciais; corte do relatorio 23:59 vs reset do tablet 7:00 com o exemplo 20+4 (tablet 24 / relatorio 20); hosts de env.js.php exatos incluindo apiold-dashboard e o backend CakePHP; endpoint monthlyPerformance/3759 respondendo HTTP 200 'wrong branch id' sem token (retestado agora, ainda vivo); stack ng-app=BlurAdmin + bower + ckeditor + 5 libs de grafico; endpoints iFood merchant-api v1.0/v2.0, rotas /openai/*, /report/reviews/gbp/reply e titulo 'Reputation Center (Mock)' com guestOnly no bundle; contadores 11000000/900/7000 em data-to-value; titulo SEO 'Barra da Tijuca' contra rodape Botafogo. A critica de compliance ao review gating e valida: a politica do Google proibe desencorajar/reter avaliacoes negativas e solicitar seletivamente as positivas. As unicas ressalvas sao itens autodeclarados nao auditaveis (uptime/latencia da API, dados corporativos do LinkedIn), que o proprio relatorio ja trata com cautela. Veredito: CONFIRMADO com alta confianca."
+}

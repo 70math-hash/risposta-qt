@@ -114,7 +114,7 @@ Isso também elimina peso de anexo, e portanto a única linha da tabela acima qu
 
 ## 5. Camada gratuita de LLM
 
-O volume é pequeno: cerca de **8 comentários por dia** para classificar e **1 resumo diário**, algo como 9 chamadas por dia. Qualquer free tier da tabela aguenta com folga absurda. Por isso o critério que decide **não é limite, é o que o fornecedor faz com o texto**, porque o que vai para lá é comentário de cliente do restaurante.
+O volume é pequeno: cerca de **2 chamadas por dia**, com teto de 10 em noite cheia (número corrigido, ver `etapa-3/00-canonico.md` C12). Qualquer free tier da tabela aguenta com folga absurda. Por isso o critério que decide **não é limite, é o que o fornecedor faz com o texto**, porque o que vai para lá é comentário de cliente do restaurante.
 
 | Fornecedor e modelo | Limite por minuto | Limite por dia | O dado é usado para treino? | Confiança |
 |---|---|---|---|---|
@@ -137,7 +137,7 @@ O Gemini gratuito está **descartado como caminho principal**, e não por cota: 
 
 ### O risco de a política do fornecedor mudar, e o plano de contingência
 
-**O risco é real e já se materializou uma vez no mercado.** A Google retirou os números de rate limit da documentação pública do tier gratuito, e há relato amplo (inverificável, como o verificador registrou) de corte de 50% a 80% nas cotas em dezembro de 2025. **Free tier de LLM não é base contratual estável.** A boa notícia estrutural é que, com 9 chamadas por dia, o custo de migrar é quase zero, e a arquitetura deve explorar isso.
+**O risco é real e já se materializou uma vez no mercado.** A Google retirou os números de rate limit da documentação pública do tier gratuito, e há relato amplo (inverificável, como o verificador registrou) de corte de 50% a 80% nas cotas em dezembro de 2025. **Free tier de LLM não é base contratual estável.** A boa notícia estrutural é que, com cerca de 2 chamadas por dia, o custo de migrar é quase zero, e a arquitetura deve explorar isso.
 
 Plano de contingência em quatro camadas, da mais preventiva à mais drástica:
 

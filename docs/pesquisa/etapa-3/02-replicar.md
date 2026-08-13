@@ -55,9 +55,11 @@ Rotinas agendadas do MVP, e são só cinco. **Onde cada uma roda, porque isso es
 | `cron_classificador` | 07h | **Cloudflare Workers**, com Cron Triggers |
 | `cron_digest_16h` | 16h | **Cloudflare Workers**, com Cron Triggers |
 | `cron_retencao` | mensal, dia 1 | **Cloudflare Workers**, com Cron Triggers |
-| `backup_semanal` | domingo | **GitHub Actions** |
+| `backup_semanal` | **duas vezes por semana, domingo e quarta** | **GitHub Actions** |
 
 São duas plataformas, e não mais que duas, porque cada plataforma a mais é uma conta a mais que pode expirar em silêncio num sistema sem mantenedor. O `backup_semanal` fica no GitHub Actions e não no Cloudflare porque precisa de `pg_dump` e de armazenamento de artefato, que é onde o runner do GitHub já está.
+
+**Não existe rotina `cron_keepalive`, e nenhuma rotina é criada só para manter o banco acordado.** O backup roda duas vezes por semana, domingo e quarta, e a escolha de duas execuções é o que garante que nunca se passe uma semana inteira sem escrita, que é a janela de pausa por inatividade do plano gratuito. Entre a criação do schema e a entrada do digest, quem segura o banco acordado é a escrita do próprio workflow de backup. Depois que o digest das 16h existe, ele passa a ser o keep-alive, e o backup segue sendo backup (F53 e F54).
 
 ---
 
@@ -114,7 +116,8 @@ São duas plataformas, e não mais que duas, porque cada plataforma a mais é um
 - **Onde vive.** Validação no servidor, na gravação da resposta, mais um bloco no painel de qualidade da coleta.
 - **Dado que precisa.** `mesa`, `garcom_pin`, `dia_operacional`, `criado_em`, `dispositivo_id`, `duracao_ms`.
 - **Critério de aceite.**
-  - [ ] Segunda resposta da **mesma mesa, mesmo dia operacional, dentro de 20 minutos** é gravada com `suspeita = true` e **não entra** em nenhum indicador do painel nem do e-mail. Vinte minutos é decisão de projeto, não número de fonte: a mesa é juntada e existem comandas individuais, então bloquear de todo seria perder resposta legítima.
+  - [ ] A segunda resposta da mesma mesa, no mesmo dia operacional, dentro de 20 minutos, é **aceita, agradecida e gravada com `suspeita = true`**, e não entra nos indicadores. Não é rejeitada, porque mesas juntadas com comandas individuais produzem respostas legítimas em sequência. Vinte minutos é decisão de projeto, não número de fonte.
+  - [ ] Métrica única desta trava: **respostas marcadas como suspeitas abaixo de 3% e estável**. Acima disso, o que se investiga é a operação, não a trava.
   - [ ] Toda resposta carrega PIN. Resposta sem PIN é rejeitada na `T0`, que não deixa passar com campo vazio.
   - [ ] Se o total de respostas de um dispositivo num dia operacional passar de **30**, o e-mail das 16h traz uma linha de aviso com o número. Trinta é o teto de projeto para uma casa de até 20 mesas por dia.
   - [ ] O painel mostra, por garçom e por dia operacional, **respostas coletadas contra mesas atendidas informadas**, que é o relatório que expõe tanto quem não pede quanto quem pede demais.
@@ -207,7 +210,7 @@ São duas plataformas, e não mais que duas, porque cada plataforma a mais é um
 - **Dado que precisa.** `pergunta_banco` (`id`, `texto_pt`, `texto_en`, `opcoes`, `dimensao`, `peso`, `ativa`, `em_foco`, `sai_quando`), `resposta_pergunta_sorteada` (`resposta_uuid`, `pergunta_id`, `respondida`).
 - **Critério de aceite.**
   - [ ] As sete regras de sorteio implementadas em código, não em planilha: no máximo 2 por resposta; nunca duas da mesma dimensão; suprimir a dimensão já coberta pela ramificação de nota baixa; sorteio por peso com as perguntas em foco somando **50%** das impressões; gravar qual foi **sorteada** e qual foi **respondida**; não repetir a mesma pergunta na mesma mesa na mesma noite; **pergunta que o sistema pode responder sozinho sai do banco**.
-  - [ ] Arranque com **12 perguntas ativas, não 20**, incluindo as de peso alto 1, 2, 3, 4, 11, 15 e 17 do banco da seção 14.5 do questionário.
+  - [ ] Arranque com **12 perguntas ativas, não 20**, incluindo as de peso alto 1, 2, 3, 4, 11, 15 e 17 do banco da seção 14.5 do questionário. Os dois números são da **mesma escada**: 12 é o arranque e 20 é o teto de perguntas ativas, que é o número sobre o qual `03-superar.md` monta as contas de cobertura. Subir de 12 para 20 é decisão de leitura do painel, não de código, e só faz sentido depois que a cobertura das 12 primeiras estiver medida.
   - [ ] De **2 a 4 perguntas em foco** por mês, editáveis pelo proprietário em uma tela, sem deploy.
   - [ ] Nenhuma pergunta do banco usa teclado, e nenhuma pede nota de 1 a 5.
   - [ ] Nenhuma pergunta do banco cita garçom por nome.
@@ -342,7 +345,7 @@ São duas plataformas, e não mais que duas, porque cada plataforma a mais é um
   - [ ] Comparação padrão: **este sábado contra a média dos últimos 4 sábados**, com os dois `n`.
   - [ ] Segunda-feira não aparece na grade, porque a casa fecha.
   - [ ] **Nenhum** corte por Manhã, Tarde ou Noite existe no sistema.
-  - [ ] O corte por turno, quando existir, é **faixa horária sobre `dia_operacional`** (até 20h30, depois de 20h30), é opcional, não tem tela nova e só mostra proporção com `n` de **20 por faixa no trimestre**. Abaixo disso escreve `amostra insuficiente, n=x`. Esta definição é a mesma em F39 e F41, e nenhuma outra definição de turno existe no repositório.
+  - [ ] O corte por turno, quando existir, é **faixa horária sobre `dia_operacional`** (até 20h30, depois de 20h30). É **corte opcional de leitura, não dimensão de junção**, não tem tela nova e só mostra proporção com `n` de **20 por faixa no trimestre**. Abaixo disso escreve `amostra insuficiente, n=x`. Esta definição é a mesma em F39 e F41, e nenhuma outra definição de turno existe no repositório.
   - [ ] O dia da semana vem do dia operacional (F15), não da data civil.
 - **Como falha.** Quatro sábados com 8 respostas cada não sustentam comparação de proporção. Então a tela compara **contagem** e escreve o `n`, e a leitura em proporção só aparece na janela trimestral.
 
@@ -485,7 +488,7 @@ São duas plataformas, e não mais que duas, porque cada plataforma a mais é um
   - [ ] O e-mail de "nada a relatar" tem no máximo **10 linhas**.
   - [ ] Um dia com zero respostas **não** é "nada a relatar": é "nenhuma resposta coletada", e isso é um problema de coleta que precisa aparecer.
   - [ ] O **calendário de operação é dado do sistema**. Dia operacional em que a casa não abriu sai como **`casa fechada`** e não entra na contagem de dias sem resposta nem dispara alerta. Só dia de operação com zero respostas vira `nenhuma resposta coletada`. É o que resolve a contradição com F28, porque a casa fecha toda segunda.
-- **Como falha.** Limiar mal calibrado, e o e-mail dizendo "nada a relatar" numa noite ruim. Verificação prevista no aceite: rodar o gerador sobre os dados da ponte e conferir que **todo dia com pelo menos 1 detrator, 1 falha de importação ou 1 alerta de heartbeat saiu fora de "nada a relatar"**. É contagem, não julgamento.
+- **Como falha.** Limiar mal calibrado, e o e-mail dizendo "nada a relatar" numa noite ruim. Verificação prevista no aceite: rodar o gerador sobre os dados já coletados pelo próprio sistema e conferir que **todo dia com pelo menos 1 detrator, 1 falha de importação ou 1 alerta de heartbeat saiu fora de "nada a relatar"**. É contagem, não julgamento.
 
 #### F33. Log de execução no próprio banco (L45)
 
@@ -567,7 +570,7 @@ São duas plataformas, e não mais que duas, porque cada plataforma a mais é um
 
 #### F39. Import do R3 por pasta sincronizada, com watcher na nuvem (L80)
 
-- **Por que existe.** É um dos quatro obrigatórios da primeira versão e é o único caminho que não depende de nada da Altec nem do PC do caixa (que desliga no fim do dia). O caminho depende de alguém exportar o R3 com regularidade. Se esse hábito já existe hoje nas análises de CMV é **NÃO VERIFICADO**, e é a pergunta 5 da seção 5 de [`05-critica.md`](05-critica.md). Se não existir, o hábito precisa ser criado antes da posição 32 do backlog, e o botão de importar planilha (F40) passa de rede de segurança a caminho principal.
+- **Por que existe.** É um dos quatro obrigatórios da primeira versão e é o único caminho que não depende de nada da Altec nem do PC do caixa (que desliga no fim do dia). O caminho depende de alguém exportar o R3 com regularidade. Se esse hábito já existe hoje nas análises de CMV é **NÃO VERIFICADO**, e é a pergunta 5 da seção 5 de [`05-critica.md`](05-critica.md). Se não existir, o hábito precisa ser criado antes da entrega `import_r3` (o watcher na pasta sincronizada mais o botão de importar planilha), na M2, e o botão de importar planilha (F40) passa de rede de segurança a caminho principal.
 - **Onde vive.** `watcher_drive`, a cada 30 minutos, sobre uma pasta do Google Drive.
 - **Dado que precisa.** `venda_produto_dia` (`dia_operacional`, `produto_id_pdv`, `produto_nome_norm`, `grupo`, `unidades`, `valor_liquido`, `arquivo_origem`, `importado_em`) e `import_execucao` (`arquivo`, `hash`, `linhas`, `status`, `erro`).
 - **Critério de aceite.**
@@ -613,7 +616,7 @@ São duas plataformas, e não mais que duas, porque cada plataforma a mais é um
 - **Dado que precisa.** `item_cardapio` (`id`, `nome_pt`, `nome_en`, `grupo`, `ativo`, `produto_id_pdv`, `produto_nome_norm`, `prato_id`).
 - **Critério de aceite.**
   - [ ] Toda pizza, entrada e sobremesa do cardápio atual cadastrada, com `grupo` e `ativo`.
-  - [ ] `produto_nome_norm` preenchido no formato do R3 (maiúsculas, sem acento), e conferido contra um R3 real: **100% dos itens do cardápio ativo casam** com alguma linha do relatório.
+  - [ ] `produto_nome_norm` preenchido no formato do R3 (maiúsculas, sem acento) e **conferido contra um arquivo R3 exportado à mão**, de um mês qualquer, antes de existir qualquer import automático. Item ativo que não aparece no R3 do período fica como `sem venda no período`, e **isso não reprova o aceite**.
   - [ ] `prato_id` aceita nulo, e fica nulo enquanto `pratos` não estiver preenchida. O MVP **não** depende dele.
   - [ ] A `T3C2` lista só itens `ativo = true`, em 6 a 7 alvos por tela.
   - [ ] O MVP **não** calcula CMV e **não** escreve nada em `pratos`, `prato_ingredientes`, `insumos_master` ou `historico_precos`. Só leitura, e só na Fase 2.
@@ -640,7 +643,7 @@ São duas plataformas, e não mais que duas, porque cada plataforma a mais é um
 - **Onde vive.** Rodapé da `T1` e da `T6`, com link para a página completa em `/privacidade`.
 - **Dado que precisa.** `consentimento_texto` (`versao`, `texto`, `vigente_de`).
 - **Critério de aceite.**
-  - [ ] O rodapé nomeia: controlador (razão social e CNPJ), finalidade, quais dados, **categorias de compartilhamento** (hospedagem, banco de dados, provedor de e-mail, serviço de IA), prazo de retenção e canal de direitos.
+  - [ ] O rodapé nomeia: controlador (razão social e CNPJ), finalidade, quais dados, **categorias de compartilhamento** (hospedagem, banco de dados, provedor de e-mail, serviço de IA e **o bucket privado de destino do `pg_dump` semanal**, F53), prazo de retenção e canal de direitos.
   - [ ] Cabe em **3 linhas** na tela, com link para o texto completo.
   - [ ] O texto registra que em mesa com comanda individual a resposta pode ser associável ao atendimento (F25).
   - [ ] Os números de artigo da LGPD citados na página completa são conferidos contra o texto da lei **antes de publicar**: a apuração não conseguiu ler o texto integral da Lei 13.709 (Planalto devolveu HTTP 503) e os artigos 7, 11 e 16 estão apoiados em guias da ANPD.
@@ -689,9 +692,10 @@ São duas plataformas, e não mais que duas, porque cada plataforma a mais é um
 - **Onde vive.** `cron_retencao`, mensal, dia 1.
 - **Dado que precisa.** `cliente.ultima_visita_em`, e o prazo em configuração.
 - **Critério de aceite.**
-  - [ ] O prazo é **decisão explícita do proprietário, 12 ou 24 meses**, escrito em `/privacidade` e igual ao valor da configuração. Decisão por omissão reprova o aceite.
+  - [ ] O prazo é **12 meses contados da última visita** (decisão D4, em [`01-decisoes.md`](../../01-decisoes.md)), escrito em `/privacidade` e igual ao valor da configuração. O prazo está decidido, então o aceite cobra o valor, não a escolha.
   - [ ] A contagem é da **última visita**, e é renovada a cada nova visita.
-  - [ ] O job apaga nome, e-mail, WhatsApp e nascimento, e **preserva** a resposta, a nota e os agregados históricos.
+  - [ ] O job apaga nome, WhatsApp, e-mail e data de nascimento. A **resposta da pesquisa** (nota, comentário, prato, garçom, `dia_operacional`) é **mantida indefinidamente, desvinculada do contato**, porque é a série histórica que o projeto existe para preservar.
+  - [ ] Antes de tratar o **comentário aberto** como dado não pessoal, o texto passa por **varredura de padrão** (telefone, e-mail, CPF), porque é campo livre e o cliente pode escrever o próprio contato dentro dele. Sem essa varredura, os 12 meses são contornados pelo texto que se pretende preservar. Achado o padrão, o trecho é mascarado na desvinculação e a contagem de mascaramentos entra em `execucao_rotina`.
   - [ ] O job grava em `execucao_rotina` quantas linhas foram anonimizadas, e o número aparece em `/painel/saude`.
   - [ ] Teste de aceite: criar um cliente com `ultima_visita_em` antiga, rodar o job, e conferir que os campos pessoais sumiram e a resposta continua.
 - **Como falha.** Job apagando o que não devia. Por isso ele nunca faz `DELETE` na resposta, só `UPDATE` de campos pessoais para nulo, e o dump semanal (F53) é a rede embaixo.
@@ -733,8 +737,8 @@ São duas plataformas, e não mais que duas, porque cada plataforma a mais é um
   - [ ] Dois links, um para o perfil do Google e um para o Portal do Parceiro do iFood, abrindo em aba nova.
   - [ ] **Nenhuma** avaliação pública é lida, guardada ou respondida pelo sistema no MVP.
   - [ ] **Nenhum** convite ao Google em nenhuma tela, e menos ainda condicionado à nota: a política de conteúdo do Google proíbe `selectively solicit positive reviews from customers` e proíbe pressionar avaliação no estabelecimento ([política oficial](https://support.google.com/contributionpolicy/answer/7400114)), e o perfil penalizado seria o do QT, não o do fornecedor.
-  - [ ] Substituto humano escrito no README: ler o Portal do Parceiro do iFood **1 vez por semana**, e anotar a nota de 4 pizzarias comparáveis no Google **1 vez por trimestre**, em cerca de 20 minutos.
-  - [ ] Ação de custo zero recomendada agora, fora do código: pedir o Basic API Access da Google Business Profile, que é formulário gratuito com prazo oficial de até 14 dias, para manter a Fase 2 aberta.
+  - [ ] Substituto humano escrito no README: anotar a nota de 4 pizzarias comparáveis no Google **1 vez por trimestre**, em cerca de 20 minutos. Ler o Portal do Parceiro do iFood **não** é dever recorrente deste MVP: a decisão D3 tirou essa tarefa da lista de deveres, e a leitura do Portal fica sendo o que o proprietário já faz por conta própria, quando faz.
+  - [ ] **Nada de API do Google Business Profile e nada de API do iFood, nem no MVP nem na Fase 2** (decisão D3). Nenhum pedido de acesso a API entra no caminho, porque a decisão não é de prazo, é de escopo.
 - **Como falha.** Não tem como falhar, é um link. O risco é de escopo: alguém querer trazer review para dentro. A matriz corta isso nas linhas 65 a 71, e o motivo está escrito.
 
 ### Bloco L. Sobrevivência do dado
@@ -755,10 +759,10 @@ São duas plataformas, e não mais que duas, porque cada plataforma a mais é um
 #### F53. Dump semanal do banco para fora do Supabase (L108)
 
 - **Por que existe.** **O plano gratuito do Supabase não tem backup nenhum.** Sem esse dump, "anos de histórico" é promessa sem piso. Backup gerenciado existe só no Pro, a US$ 25/mês (oficial).
-- **Onde vive.** `backup_semanal`, GitHub Actions, domingo.
+- **Onde vive.** `backup_semanal`, GitHub Actions, **domingo e quarta**.
 - **Dado que precisa.** Todo o schema `experiencia`.
 - **Critério de aceite.**
-  - [ ] Roda **1 vez por semana** em regime permanente e guarda as últimas **8 semanas**.
+  - [ ] Roda **duas vezes por semana, domingo e quarta**, em regime permanente, e guarda as últimas **8 semanas**. As duas execuções são o que garante que nunca se passe uma semana inteira sem escrita no banco, que é a janela de pausa por inatividade do plano gratuito.
   - [ ] O dump é **restaurado num banco vazio** ao menos uma vez, antes de declarar o MVP no ar. Backup não testado não é backup.
   - [ ] Falha de execução avisa por e-mail, e a ausência de dump por **2 semanas** aparece em `/painel/saude`.
   - [ ] Consumo de cerca de **1,5%** da cota gratuita do GitHub Actions.
@@ -766,8 +770,8 @@ São duas plataformas, e não mais que duas, porque cada plataforma a mais é um
   - [ ] O dump é **cifrado com chave simétrica** antes de sair do runner, e a chave não vive no repositório.
   - [ ] O destino é **um bucket privado nomeado no README**, com retenção de **8 semanas** e acesso restrito aos dois administradores (F57). Qual bucket, e sob qual conta, é decisão do proprietário e é a segunda metade da pergunta 5 da seção 5 de [`05-critica.md`](05-critica.md): sem ela, o `backup_semanal` não pode entrar no ar, porque leva a base de clientes inteira (nome, e-mail, WhatsApp, nascimento) para fora do Supabase.
   - [ ] O dump conta como **compartilhamento de dado pessoal**: o destino entra nas categorias de compartilhamento do aviso de privacidade (F44) e no registro de operações (F59).
-  - [ ] Enquanto o digest das 16h não existir, este workflow carrega o **keep-alive provisório** do banco (F54), com uma escrita própria em `execucao_rotina`, e roda **duas vezes por semana** (domingo e quarta) só nessa janela, porque a pausa do plano gratuito acontece com uma semana de inatividade e uma execução semanal não deixa margem. O dump guardado continua sendo o de domingo. Nenhuma rotina nova permanente é criada para isso.
-- **Como falha.** Repositório privado com cota estourada, ou credencial expirada. Detecção pelo terceiro critério, e a mitigação é que o dump anterior continua válido: perder um domingo não perde dado, perder oito seguidos sim.
+  - [ ] **Entre a criação do schema e a entrada do digest das 16h, é este workflow que segura o banco acordado** (F54), com uma escrita própria em `execucao_rotina` nas duas execuções da semana. **Depois que o digest das 16h existe, ele passa a ser o keep-alive e o backup segue sendo backup.** Nenhuma rotina é criada só para manter o banco acordado, e **não existe rotina `cron_keepalive`**: a entrega chama-se `backup_semanal`.
+- **Como falha.** Repositório privado com cota estourada, ou credencial expirada. Detecção pelo terceiro critério, e a mitigação é que o dump anterior continua válido: perder uma execução não perde dado, perder oito semanas seguidas sim.
 
 #### F54. Cron diário que toca o banco, keep-alive (L109)
 
@@ -778,8 +782,8 @@ São duas plataformas, e não mais que duas, porque cada plataforma a mais é um
   - [ ] O digest **consulta o banco e grava a execução** todos os dias, inclusive segunda e inclusive em dia sem resposta.
   - [ ] A consulta ao banco e o envio do e-mail são passos **separados**: falha de e-mail não impede o keep-alive.
   - [ ] `/painel/saude` mostra a data da última escrita bem-sucedida, e ela nunca passa de **2 dias**.
-  - [ ] Nenhuma segunda rotina permanente existe só para isso. **Entre a criação do schema e a entrada do digest, o keep-alive é uma escrita do workflow de backup** (`backup_semanal`, F53), e não uma rotina nova. Depois que o digest das 16h entra, essa escrita é aposentada. É isso que fecha a divergência com a posição 25 do backlog, que chamava a entrega de `cron_keepalive`: não existe sexta rotina.
-- **Como falha.** No arranjo provisório, o keep-alive semanal encosta no limite: a pausa acontece após uma semana de inatividade e a escrita é semanal, então um domingo perdido já é risco de pausa. Enquanto durar essa janela, o backup roda **duas vezes por semana** (domingo e quarta), o que é a mesma peça e nenhuma rotina nova. O outro modo de falha é o projeto ser pausado de qualquer forma (mudança de política, cota da organização). Sintoma: HTTP 402 em toda a API. Como a inspeção mostrou que a restrição de uso é aplicada a **todos** os projetos da organização, e o schema vai viver junto do fiscal (F55), este é o risco mais sério do arranjo e está registrado como tal.
+  - [ ] **Não existe rotina `cron_keepalive`**, e nenhuma rotina é criada só para manter o banco acordado. **Entre a criação do schema e a entrada do digest, quem segura o banco acordado é a escrita do próprio workflow de backup** (`backup_semanal`, F53), que roda duas vezes por semana, domingo e quarta. **Depois que o digest das 16h existe, ele passa a ser o keep-alive**, e o backup segue sendo backup. A entrega no backlog chama-se `backup_semanal`, na M1, e não tem sexta rotina dentro dela.
+- **Como falha.** Uma execução semanal única encostaria no limite, porque a pausa acontece após uma semana de inatividade e um domingo perdido já seria risco de pausa. É exatamente por isso que o backup roda **duas vezes por semana** (domingo e quarta): é a mesma peça, sem rotina nova, e nunca deixa passar uma semana inteira sem escrita. O outro modo de falha é o projeto ser pausado de qualquer forma (mudança de política, cota da organização). Sintoma: HTTP 402 em toda a API. Como a inspeção mostrou que a restrição de uso é aplicada a **todos** os projetos da organização, e o schema vai viver junto do fiscal (F55), este é o risco mais sério do arranjo e está registrado como tal.
 
 #### F55. Schema dedicado dentro de projeto existente (L110, reescrita pela inspeção)
 
@@ -789,10 +793,11 @@ São duas plataformas, e não mais que duas, porque cada plataforma a mais é um
 - **Critério de aceite.**
   - [ ] Todas as tabelas do sistema nascem no schema `experiencia`, e **nenhuma** no `public`.
   - [ ] O papel da aplicação tem permissão de escrita **só** no schema `experiencia`, e no máximo `SELECT` nas tabelas de custo (`pratos`, `prato_ingredientes`, `insumos_master`, `historico_precos`). Verificação: tentar `INSERT` numa tabela fiscal com a credencial da aplicação tem que falhar.
-  - [ ] `pg_dump` do projeto **antes** da primeira migration, guardado fora do Supabase.
-  - [ ] Toda criação por **migration versionada** no repositório. Zero DDL ad hoc pelo painel do Supabase.
+  - [ ] **`pg_dump` antes de qualquer migração que toque o projeto, sem exceção**, guardado fora do Supabase, e isso inclui a primeira migration.
+  - [ ] Toda criação e alteração de estrutura por **migration versionada** no repositório. Zero DDL ad hoc pelo painel do Supabase.
+  - [ ] **`qt-avaliacoes` só é pausado depois de conferida a integridade das 74 linhas migradas** de `cliques_avaliacao`, e a migração acontece depois do dump.
   - [ ] Região `sa-east-1`, que é onde o projeto já está, porque dado pessoal de cliente brasileiro em São Paulo tem menos latência e menos superfície de conformidade, e **região não se troca depois de criado**.
-  - [ ] Decisão registrada por escrito pelo proprietário, porque conviver no mesmo projeto do sistema fiscal é escolha dele, não do implementador. Confiança da recomendação: **média**, e o caminho alternativo (viver em `qt-avaliacoes` mais rotina diária copiando custo) está descrito na inspeção com o custo de uma peça móvel a mais e a região errada.
+  - [ ] A decisão está tomada e registrada: é a **decisão D2** de [`01-decisoes.md`](../../01-decisoes.md), de 13/08/2026, do proprietário. Os quatro itens acima são as **condições inegociáveis** que vieram com ela e valem como regra do projeto. Não existe ramo alternativo: a pergunta `P2` está respondida, e o caminho de viver em `qt-avaliacoes` com rotina diária copiando custo deixou de existir.
 - **Como falha.** Consulta mal escrita da pesquisa competindo com o sistema fiscal, ou restrição de uso da organização derrubando os dois de uma vez. Mitigações: RLS ligado (F58), papel sem escrita fora do schema, e o dump semanal de F53 valendo para o schema inteiro.
 
 #### F56. Exportação e eliminação comprovada dos dados no fornecedor atual (L112)
@@ -942,7 +947,7 @@ O que é, de fato: um rastreador de clique por garçom, com `id`, `garcom` (text
 | **Descartar** | `user_agent` e `referrer` das linhas novas: no tablet próprio eles não informam nada e são superfície de dado sem uso | Nenhum campo de `user_agent` na tabela de resposta nova |
 | **Descartar** | O texto livre em `garcom` como identidade permanente: ele não normaliza e não sobrevive a homônimo | `resposta.garcom_id` é chave, e o texto digitado fica só em `garcom_pin_digitado` (F50) |
 | **Não migrar** | `pizzapp_receitas` (8 linhas). É de outro produto, contexto de curso, e não tem relação com experiência do cliente | Nenhuma referência a `pizzapp_receitas` no schema novo |
-| **Depois de migrar** | Pausar `qt-avaliacoes`, o que libera o segundo slot ativo da organização e permite trazer `Fichas Sensoriais` de volta | Projeto pausado só **depois** do dump conferido e da restauração testada |
+| **Depois de migrar** | Pausar `qt-avaliacoes`, o que libera o segundo slot ativo da organização e permite trazer `Fichas Sensoriais` de volta | Projeto pausado só **depois** do dump conferido, da restauração testada e de **conferida a integridade das 74 linhas migradas**, que é a quarta condição inegociável de D2 |
 
 **Pendência que precede a migração:** para onde esses QR apontam hoje. Se apontam para o Google e o convite é condicionado à nota, isso é review gating operando no perfil do QT, e precisa ser desligado antes de qualquer coisa (F51). A pergunta é do proprietário e não é opcional.
 
@@ -971,34 +976,7 @@ Isto não é dado, é hábito operacional, e é a parte mais difícil de constru
 | **Não construir** | Nenhuma tabela nova de custo, nenhum cálculo de CMV, nenhuma cópia de preço de insumo. O diferencial nº 1 depende de **preencher** `pratos` e `prato_ingredientes`, o que é trabalho de ficha técnica nas skills, não de software de pesquisa |
 | **Manter separado** | As skills seguem sendo a ferramenta de formular e revisar receita, conforme instrução do briefing. O sistema de experiência apenas consome custo por prato, e só na Fase 2 |
 
-### 4.4 As respostas da ponte, e o mapeamento campo a campo para o schema definitivo
-
-O terceiro ativo é o que a **ponte da M0** coletar antes do schema existir: nota, comentário aberto e a atribuição por QR. Elas são respostas reais de clientes reais e não podem ser descartadas, mas nascem sem quatro coisas que o schema definitivo exige: `dia_operacional` calculado pela função de F15, PIN validado, `versao_texto` de consentimento e idioma. A migração é a posição 15 do backlog, e ela é escrita aqui campo a campo para não virar improviso na hora.
-
-| Campo na ponte | Campo no schema definitivo | Regra de migração |
-|---|---|---|
-| `id` sequencial | `resposta.origem_id`, mais `resposta_uuid` novo (v4 gerado na migração) | O id antigo é preservado para a contagem ser reconferível. Aceite: `n` na origem igual a `n` no destino, com o `criado_em` mínimo e máximo iguais |
-| `nota` | `resposta.nota` | Direto, sem transformação. É o único campo que não precisa de tratamento |
-| **ausente** | `resposta.faixa` | Derivada da nota na migração (0 a 6 detrator, 7 e 8 neutro, 9 e 10 promotor), nunca digitada |
-| `criado_em` | `resposta.criado_em` | Preservado com fuso `America/Sao_Paulo`. Nada de recarimbar com a hora da migração |
-| **ausente** | `resposta.dia_operacional` | **Recalculado** pela função de F15 sobre `criado_em`, corte às 6h. É derivação pura, então a ponte não precisa ter calculado nada. Consequência a declarar, não a esconder: resposta da madrugada muda de dia em relação ao que o e-mail da ponte mostrou, e a migração grava quantas linhas mudaram de dia |
-| comentário aberto | `resposta_texto.texto_cru` | Íntegro, sem truncar e sem limpar. `resposta_texto.idioma` recebe `pt` como **valor imputado**, marcado como imputado, porque a ponte não tem seletor de idioma |
-| `?g=<pin>` da URL | `resposta.garcom_pin_digitado`, `resposta.garcom_id`, `resposta.garcom_reconhecido` | O PIN nunca foi validado na ponte, então **nenhuma** resposta migrada entra como PIN validado. O `garcom_id` é resolvido na migração contra a tabela `garcom` (F49) e, quando não casa, `garcom_reconhecido = false`: a resposta entra nos indicadores gerais e fica fora do corte por garçom (F50) |
-| `?m=<mesa>` da URL | `resposta.mesa` | Quando existir. Quando não existir, fica nulo e a linha não é chutada |
-| **ausente** | `resposta.canal` | `qr` fixo, porque na M0 não existe tablet |
-| **ausente** | `resposta.suspeita` | A regra dos 20 minutos de F04 é aplicada **retroativamente** na migração onde houver `mesa` e `criado_em`. Sem `mesa`, a linha fica com `suspeita = false` e `suspeita_nao_avaliavel = true`, para ninguém ler o zero como ausência de duplicata |
-| **ausente** | `resposta.dispositivo_id`, `versao_app`, `versao_questionario` | `dispositivo_id` fica nulo (é o celular do cliente, e F03 não vale para ele). `versao_questionario` recebe o literal `ponte` |
-| **ausente** | `tela_evento`, `resposta.duracao_ms` | Ficam sem linha. As respostas da ponte **saem** do cálculo de mediana e p90 de F07, e a série de tempo começa no go-live. A contagem de respostas excluídas aparece no painel de coleta |
-| **ausente** | `resposta_opcao`, `resposta_item` | Não existem: a ponte não tem ramificação nem prato a prato. Os cortes por fator (F19) e por item (F22) começam do zero no go-live, e a tela escreve **início de série**, nunca queda |
-| **ausente** | `consentimento.versao_texto` | É o único campo sem saída automática. Ver a divergência abaixo |
-| (nova) | `resposta.origem` | `ponte` gravado em toda linha migrada, para qualquer contagem poder ser refeita com e sem elas |
-
-**A divergência que a migração não resolve sozinha: o consentimento.** F44 exige que nenhuma resposta seja aceita sem uma versão vigente de texto, e a ponte, como está descrita na posição 6 do backlog, não grava `versao_texto`. Duas opções, e a escolha é do proprietário:
-
-- **Opção A, corrigir a ponte antes de coletar:** a ponte carrega duas linhas de aviso (finalidade, controlador e canal de direitos) e grava `versao_texto` desde a primeira resposta. Custo: algumas horas na M0, antes da coleta começar. Resultado: a migração é direta e o schema definitivo nasce limpo.
-- **Opção B, migrar o que já foi coletado sem versão:** as linhas entram com `versao_texto` nulo e `consentimento_ausente = true`, contam nos agregados e **nunca** são usadas para contato. Custo: o schema definitivo nasce com um lote de linhas que não satisfaz o critério de F44, e isso precisa aparecer no registro de operações (F59) em vez de ficar implícito.
-
-Descartar o comentário aberto do período da ponte é a terceira saída, e ela custa perder justamente o texto dos primeiros clientes. Nenhuma das três é decisão de implementador. Esta escolha é vizinha da pergunta 5 da seção 5 de [`05-critica.md`](05-critica.md), que trata de dado pessoal, e precisa ser respondida junto com ela.
+**Não existe quarto ativo a migrar.** A ponte de coleta saiu do escopo com a decisão D1 ([`01-decisoes.md`](../../01-decisoes.md)): os tablets são comprados antes do cancelamento, e a ponte existia unicamente para permitir cancelar na semana 1. Sem essa finalidade ela é complexidade sem propósito, o marco M0 deixou de existir, e **não há dado de ponte para migrar**. O único dado histórico a migrar são as **74 linhas de `cliques_avaliacao`** da seção 4.1.
 
 ---
 
@@ -1037,7 +1015,7 @@ Lista fechada. Cumprida inteira, autoriza declarar o MVP no ar e pedir o cancela
 
 - [ ] `watcher_drive` importando o R3 e o botão de importar planilha funcionando no celular, com o mesmo parser.
 - [ ] Reimportar o mesmo arquivo 5 vezes sem duplicar faturamento.
-- [ ] `item_cardapio` com 100% dos itens ativos casando com um R3 real.
+- [ ] `item_cardapio` conferido contra **um arquivo R3 exportado à mão**, de um mês qualquer, antes de existir qualquer import automático. Item ativo que não aparece no R3 do período fica como `sem venda no período`, e **isso não reprova o aceite**.
 - [ ] Bloco 7 do e-mail com faturamento, ticket médio e dois pratos mais vendidos, sem gráfico que insinue causalidade.
 - [ ] Exportação em CSV e Excel de tudo, abrindo no Excel em português sem quebrar acento.
 
@@ -1045,8 +1023,8 @@ Lista fechada. Cumprida inteira, autoriza declarar o MVP no ar e pedir o cancela
 
 - [ ] Aviso de três linhas nas telas, `/privacidade` publicada, e artigos da LGPD conferidos contra o texto da lei antes de publicar.
 - [ ] Duas caixas de consentimento, nenhuma pré-marcada, com data, hora e versão gravadas.
-- [ ] Prazo de retenção **escolhido explicitamente pelo proprietário** (12 ou 24 meses), escrito na página e igual ao da configuração.
-- [ ] `cron_retencao` testado: cliente antigo anonimizado, resposta preservada.
+- [ ] Prazo de retenção de dado pessoal fixado em **12 meses contados da última visita** (decisão D4), escrito na página e igual ao da configuração, com a **resposta da pesquisa mantida indefinidamente, desvinculada do contato**.
+- [ ] `cron_retencao` testado: cliente antigo anonimizado, resposta preservada, e a **varredura de padrão** (telefone, e-mail, CPF) rodando sobre o comentário aberto antes de ele ser tratado como dado não pessoal.
 - [ ] Link de exclusão publicado, e pedido aberto há mais de 7 dias aparecendo no e-mail.
 - [ ] Teste do payload da IA reprovando telefone e e-mail.
 
@@ -1055,11 +1033,11 @@ Lista fechada. Cumprida inteira, autoriza declarar o MVP no ar e pedir o cancela
 - [ ] Schema `experiencia` criado por migration versionada, dentro de `NFe e Financeiro`, em `sa-east-1`, com `pg_dump` anterior guardado fora do Supabase.
 - [ ] Papel da aplicação sem escrita fora do schema, confirmado por tentativa de `INSERT` que falha.
 - [ ] RLS habilitado em todas as tabelas, `get_advisors` sem alerta em aberto, chave de serviço ausente do bundle publicado.
-- [ ] Dump semanal rodando e **restaurado com sucesso num banco vazio pelo menos uma vez**.
+- [ ] `backup_semanal` rodando **duas vezes por semana, domingo e quarta**, e **restaurado com sucesso num banco vazio pelo menos uma vez**. Nenhuma rotina `cron_keepalive` existe.
 - [ ] Keep-alive gravando todos os dias, inclusive segunda, com a consulta separada do envio de e-mail.
 - [ ] Duas contas de administrador com 2FA, e o registro de uma página das operações de tratamento em `docs/`.
 - [ ] README com a única regra de operação do sistema: **se o e-mail das 16h não chegar dois dias seguidos, algo quebrou.**
-- [ ] Os **sete deveres humanos recorrentes** da tabela abaixo escritos no README, cada um com dono nomeado pelo proprietário (pergunta 4 da seção 5 de [`05-critica.md`](05-critica.md)). Dever sem dono nomeado no go-live é dever cortado, e o corte fica escrito ao lado do indicador que ele deixa de sustentar.
+- [ ] Os **seis deveres humanos recorrentes** da tabela abaixo escritos no README, cada um com dono nomeado pelo proprietário (pergunta 4 da seção 5 de [`05-critica.md`](05-critica.md)). Dever sem dono nomeado no go-live é dever cortado, e o corte fica escrito ao lado do indicador que ele deixa de sustentar.
 - [ ] Destino do dump semanal nomeado no README, com cifra, retenção de 8 semanas e acesso restrito aos dois administradores (F53).
 
 ### Migração e transição
@@ -1071,11 +1049,19 @@ Lista fechada. Cumprida inteira, autoriza declarar o MVP no ar e pedir o cancela
 - [ ] Decisão registrada sobre histórico: migrar os últimos meses ou nenhum.
 - [ ] **Ensaio de aceite de três noites de serviço real** com o sistema novo, coletando de verdade, com o e-mail das 16h saindo nos três dias seguintes. Não é operação em paralelo de dois fornecedores, que o briefing descarta: é teste de aceite, e ele acontece **antes** do e-mail de cancelamento.
 - [ ] Dois tablets em operação, não um, porque o hardware passa a ser custo direto da casa e aparelho de entrada é consumível.
-- [ ] Respostas da ponte migradas pelo mapeamento campo a campo da seção 4.4, com a contagem conferida na origem e no destino e com o número de linhas que mudaram de dia operacional escrito no log da migração.
+- [ ] Decisão do proprietário sobre os pontos físicos de coleta registrada **antes da viagem ao Paraguai**, conforme a divergência declarada logo abaixo.
 
-### Os sete deveres humanos recorrentes que este MVP cria
+### A divergência dos pontos físicos de coleta, declarada
 
-A restrição mais dura do briefing é **"ninguém vai manter o sistema depois de pronto"**. O MVP como está especificado não cumpre isso literalmente: ele cria sete tarefas humanas recorrentes, espalhadas por quatro documentos. Consolidá-las numa tabela é o que permite auditar a restrição em vez de acreditar nela.
+O briefing pede **4 ou mais pontos físicos** de coleta. O plano deste documento prevê **1 tablet em uso mais 1 de reserva**. A redução nunca foi declarada, e com a decisão D1 ela virou urgente, porque a compra dos tablets acontece na viagem ao Paraguai, que é a única janela prevista. As duas opções, com o custo de cada uma:
+
+- **Plano atual: 1 tablet em uso, 1 de reserva.** Justificativa: com até 20 mesas por dia e coleta na entrega da conta, o tablet circula com o garçom e não fica parado em ponto fixo. O QR por garçom (F02) é o segundo canal, permanente e ilimitado.
+- **Se o proprietário mantiver os 4 pontos:** mais 2 a 3 tablets, mais 2 a 3 licenças de quiosque a **8,90 EUR** cada, e mais 2 a 3 suportes. Preço dos tablets em BRL segue **NÃO VERIFICADO**.
+- **A decisão precisa sair antes da viagem, não depois.** Depois da viagem, acrescentar ponto físico significa outra compra de hardware fora da janela, e é isso que torna esta a única divergência do briefing com prazo próprio.
+
+### Os seis deveres humanos recorrentes que este MVP cria
+
+A restrição mais dura do briefing é **"ninguém vai manter o sistema depois de pronto"**. O MVP como está especificado não cumpre isso literalmente: ele cria seis tarefas humanas recorrentes, espalhadas por quatro documentos. Consolidá-las numa tabela é o que permite auditar a restrição em vez de acreditar nela. Eram sete até a decisão D3, que tirou daqui a tarefa semanal de abrir o Portal do Parceiro do iFood.
 
 **A coluna de dono é proposta, não decidida.** Quem executa cada uma, com nome, é a pergunta 4 da seção 5 de [`05-critica.md`](05-critica.md), e ela precede a primeira linha de código. Tarefa sem dono nomeado é tarefa cortada, e cortá-la muda o que o painel consegue mostrar, o que está escrito na última coluna.
 
@@ -1084,12 +1070,11 @@ A restrição mais dura do briefing é **"ninguém vai manter o sistema depois d
 | Exportar o R3 para a pasta do Drive (F39) | Diária | Proprietário, na mesma rotina de análise de CMV. O hábito já existir é **NÃO VERIFICADO** | O bloco 7 do e-mail não aparece e o cruzamento satisfação x faturamento some, que é o terceiro obrigatório do MVP. Ausência de arquivo novo por 2 dias operacionais vira linha de cobrança no e-mail das 16h |
 | Informar `mesas_atendidas_dia` (F05) | Diária | Gerente de turno, no fechamento do caixa | O painel escreve `denominador ausente` e não mostra percentual. Sem denominador não existe taxa de conversão, e "coletar mais que hoje" deixa de ser mensurável, que é o critério de sucesso nº 2. Campo vazio por 3 dias vira linha de cobrança no e-mail das 16h |
 | Trocar as 2 a 4 perguntas em foco (F11) | Mensal | Proprietário, na tela de administração, sem deploy | O banco rotacionado congela nas mesmas perguntas, as impressões deixam de se concentrar onde interessa e a pesquisa para de se renovar. Não quebra nada, e é a mais fácil de deixar cair |
-| Abrir o Portal do Parceiro do iFood e ler as avaliações (F51) | Semanal | Proprietário ou gerência, cerca de 20 minutos | O sistema não lê avaliação pública por decisão do briefing, então nenhum software cobre essa lacuna: a casa fica cega para o iFood. Não existe alerta possível, porque o sistema não sabe que a tarefa não foi feita |
 | Anotar a nota de 4 pizzarias comparáveis no Google (F51) | Trimestral | Proprietário ou gerência | O substituto do benchmark, que é irreplicável em software, desaparece. Como não existe benchmark de NPS de pizzaria verificável, essa anotação manual é a única referência externa do projeto |
 | Testar a restauração do dump em banco vazio (F53) | **Divergência**: F53 exige ao menos **uma** vez antes do go-live; [`03-superar.md`](03-superar.md) 2.7 pede **trimestral** | Proprietário ou o segundo administrador (F57) | Backup não testado não é backup, e o plano gratuito do Supabase não tem backup nenhum. A divergência entre os dois documentos precisa ser fechada: o piso deste documento é a restauração única antes do go-live, e a trimestral é o que se recomenda por cima dela |
-| Manter a ficha técnica atualizada para o CMV não derivar (posição 36 de [`04-cortar-e-backlog.md`](04-cortar-e-backlog.md)) | Contínua, a cada mudança de receita ou de preço | Proprietário, nas skills, que é onde a ficha técnica vive por instrução do briefing | O diferencial nº 1 (satisfação cruzada com CMV) passa a cruzar com custo velho, o que é pior que não cruzar, porque tem aparência de número certo. Isso é Fase 2, mas a derivação começa no dia em que a ficha for preenchida |
+| Manter a ficha técnica atualizada para o CMV não derivar (entrega **Preencher `pratos` e `prato_ingredientes`**, na M3 de [`04-cortar-e-backlog.md`](04-cortar-e-backlog.md)) | Contínua, a cada mudança de receita ou de preço | Proprietário, nas skills, que é onde a ficha técnica vive por instrução do briefing | O diferencial nº 1 (satisfação cruzada com CMV) passa a cruzar com custo velho, o que é pior que não cruzar, porque tem aparência de número certo. Isso é Fase 2, mas a derivação começa no dia em que a ficha for preenchida |
 
-Duas leituras honestas desta tabela. A primeira: **cinco das sete tarefas não têm nenhum alarme possível** e só as duas diárias entram no e-mail das 16h como cobrança, porque só elas têm um sinal que o sistema consegue observar (arquivo que não chegou, campo que não foi preenchido). A segunda: **o sistema roda sozinho, o painel completo não.** O que sobrevive sem nenhuma das sete é a coleta, o alerta ao gerente, a distribuição de notas, o corte por garçom e o e-mail das 16h. O que morre é a conversão, o cruzamento com faturamento, o iFood e a referência externa.
+Duas leituras honestas desta tabela. A primeira: **quatro das seis tarefas não têm nenhum alarme possível** e só as duas diárias entram no e-mail das 16h como cobrança, porque só elas têm um sinal que o sistema consegue observar (arquivo que não chegou, campo que não foi preenchido). A segunda: **o sistema roda sozinho, o painel completo não.** O que sobrevive sem nenhuma das seis é a coleta, o alerta ao gerente, a distribuição de notas, o corte por garçom e o e-mail das 16h. O que morre é a conversão, o cruzamento com faturamento e a referência externa.
 
 ### O que a definição de pronto deliberadamente não exige, e é bom que não exija
 

@@ -1,15 +1,27 @@
 # 00. Sumário executivo e recomendação final
 
+> ## ERRATA, 13/08/2026
+>
+> **Este documento é da Etapa 2 e foi escrito antes da inspeção do ambiente Supabase e antes das decisões do proprietário (D1 a D4).** Três recomendações dele estão **revogadas**, e o corpo do texto foi mantido como está para que o histórico da recomendação continue legível.
+>
+> **1. "Criar a organização Supabase separada"** (seção 4, tabela de riscos e seção 6). A inspeção do ambiente encontrou **uma única organização** (`QT Pizza Bar`) e o **teto de 2 projetos ativos já atingido**, ou seja, a recomendação não é aplicável sem criar outra conta ou pagar. No lugar dela vale a decisão **D2**: schema dedicado `experiencia` dentro do projeto `NFe e Financeiro`, na região `sa-east-1`, com as quatro condições inegociáveis da decisão.
+>
+> **2. A rota C, com ponte de coleta para cancelar a mensalidade na semana 1** (seções 3.3, 2.4 e 6, mais a linha de tempo de retorno do topo). Por **D1**, os tablets são comprados **antes** do cancelamento. A ponte existia unicamente para permitir cancelar na semana 1 e, sem essa finalidade, sai do escopo.
+>
+> **3. Pedir o Basic API Access da Google Business Profile API para acender a divergência entre pesquisa e avaliação pública na fase 2** (seção 6). Por **D3**, vale **somente link** para Google e iFood, sem API, nem no MVP nem na fase 2, e a detecção de divergência sai da auditoria por IA.
+>
+> **Para onde ir agora, nesta ordem:** [`docs/01-decisoes.md`](../01-decisoes.md) (as decisões do proprietário, que têm precedência sobre tudo), [`docs/pesquisa/dados/10-supabase-inspecao.md`](dados/10-supabase-inspecao.md) (o estado real do ambiente) e [`docs/pesquisa/etapa-3/00-canonico.md`](etapa-3/00-canonico.md) (a folha de valores canônicos da Etapa 3).
+
 **Hoje:** R$ 501 a R$ 1.000/mês, ou **R$ 6.012 a R$ 12.000/ano**, por 50 a 200 respostas/mês. Isso dá **R$ 2,51 a R$ 20,00 por resposta coletada**, contra o único piso que o fornecedor publica (R$ 200/mês com tablet, R$ 150/mês só QR Code): a fatura está entre **2,5 e 5 vezes** o preço público dele.
 **O substituto:** infraestrutura de **R$ 0,00/mês**, verificada camada por camada em página oficial de cada fornecedor, com consumo entre **0,04% e 7,2%** dos limites gratuitos. Dez anos de histórico ocupam 36 MB contra 500 MB grátis.
 **Pior cenário verificável:** Supabase Pro mais Resend Pro, **US$ 45/mês**, ou R$ 2.700 a R$ 3.240/ano (câmbio **NÃO VERIFICADO**, duas pontas declaradas de R$ 5,00 e R$ 6,00 por dólar).
 **Economia anual:** **R$ 6.012 a R$ 12.000 (100%)** no cenário realista, e **46% a 78%** no pessimista. Não existe cenário verificado em que a economia caia abaixo de 46%.
 **Desembolso único:** 2 tablets Android de entrada (preço em BRL **NÃO VERIFICADO**, exige cotação no ato) mais 2 licenças de quiosque a 8,90 EUR cada, pagamento único. **Nenhum Raspberry Pi.**
-**Tempo de retorno:** a mensalidade pode ser cancelada na **primeira semana**, antes de o sistema existir. O hardware se paga com **1 a 4 meses** de mensalidade não paga.
+**Tempo de retorno:** a mensalidade pode ser cancelada na **primeira semana**, antes de o sistema existir. **REVOGADO, ver 01-decisoes.md D1** O hardware se paga com **1 a 4 meses** de mensalidade não paga.
 **O custo real não é dinheiro:** 40 a 80 horas de construção, ou 12 a 20 horas no caminho híbrido, mais dois rituais em código (um cron diário e um backup semanal).
 **O aviso que você pediu para receber:** existe plataforma pronta com preço público a partir de **R$ 47,92/mês equivalente** (16.000 respostas por ano) e existe plano **gratuito** com NPS contínuo. A diferença é discrepante, de 6 a 20 vezes, e por isso **economia não pode ser a tese do projeto**.
 **A tese que sobrevive à pesquisa:** nenhuma dessas plataformas lê o seu PDV, nenhuma sabe o que é ficha técnica, e nenhuma cruza satisfação com CMV. Foi isso que a pesquisa não encontrou em 46 fornecedores brasileiros e 36 globais.
-**Recomendação:** **construir, e cancelar antes de construir.** Nesta ordem, porque a economia começa na semana 1 e a construção não tem prazo.
+**Recomendação:** **construir, e cancelar antes de construir.** Nesta ordem, porque a economia começa na semana 1 e a construção não tem prazo. **REVOGADO, ver 01-decisoes.md D1**
 
 ---
 
@@ -80,7 +92,7 @@ O módulo Risposta Tap vende roteamento condicional (nota alta vai para o Google
 
 ### 2.4 Tempo de retorno
 
-Como a infraestrutura é R$ 0,00 e a mensalidade pode cair na primeira semana, o retorno é o hardware dividido pela mensalidade que deixa de ser paga. Os valores de hardware abaixo são **hipóteses de faixa, não preços apurados**, porque o preço em BRL segue **NÃO VERIFICADO**.
+Como a infraestrutura é R$ 0,00 e a mensalidade pode cair na primeira semana, o retorno é o hardware dividido pela mensalidade que deixa de ser paga. **REVOGADO no prazo, ver 01-decisoes.md D1** Os valores de hardware abaixo são **hipóteses de faixa, não preços apurados**, porque o preço em BRL segue **NÃO VERIFICADO**.
 
 | Hipótese de hardware total | Retorno contra R$ 1.000/mês | Retorno contra R$ 501/mês |
 |---|---|---|
@@ -131,9 +143,9 @@ Ou seja, dos três diferenciais pretendidos, **um se sustenta inteiro** (satisfa
 |---|---|---|---|
 | **A. Trocar por plataforma pronta** | R$ 575 (Avalio) ou R$ 0 (Fidelimax, com limites não publicados) | Economia imediata, zero horas, zero manutenção, zero risco técnico | Cruzamento com PDV, CMV, ficha técnica e reservas. Posse do dado. Digest que gera decisão. Ou seja, os quatro critérios de sucesso do projeto, menos o de cancelar a mensalidade |
 | **B. Construir do zero** | R$ 0 de infra mais hardware, 40 a 80 horas | Tudo o que a rota A não dá | Semanas a meses de convivência com a mensalidade atual, se a coleta só começar quando o sistema estiver pronto |
-| **C. Ponte agora, construção sem pressa** (recomendada) | R$ 0 de infra mais hardware, 12 a 20 horas até a ponte | **Cancela a mensalidade na semana 1** com Tally gravando no seu banco, e a construção segue sem prazo e sem um dia sem coletar dado | A marca Tally na tela do cliente por algumas semanas. É o único custo, e é reversível |
+| **C. Ponte agora, construção sem pressa** (recomendada) | R$ 0 de infra mais hardware, 12 a 20 horas até a ponte | **Cancela a mensalidade na semana 1** com Tally gravando no seu banco, e a construção segue sem prazo e sem um dia sem coletar dado | A marca Tally na tela do cliente por algumas semanas. É o único custo, e é reversível. **REVOGADO, ver 01-decisoes.md D1** |
 
-**Recomendação: rota C.** Ela é a única que separa a decisão financeira (parar de pagar, agora) da decisão de produto (construir o que ninguém vende, sem prazo). A decisão é sua, e as três rotas acima são defensáveis com os números deste dossiê. O que não é defensável é continuar pagando R$ 501 a R$ 1.000 por mês por um produto cujo módulo de reputação você já decidiu não usar, cuja consultoria talvez não esteja sendo usada, e cujo relatório embaralha a série diária todas as noites.
+**Recomendação: rota C. REVOGADO, ver 01-decisoes.md D1** Ela é a única que separa a decisão financeira (parar de pagar, agora) da decisão de produto (construir o que ninguém vende, sem prazo). A decisão é sua, e as três rotas acima são defensáveis com os números deste dossiê. O que não é defensável é continuar pagando R$ 501 a R$ 1.000 por mês por um produto cujo módulo de reputação você já decidiu não usar, cuja consultoria talvez não esteja sendo usada, e cujo relatório embaralha a série diária todas as noites.
 
 ---
 
@@ -143,7 +155,7 @@ Ou seja, dos três diferenciais pretendidos, **um se sustenta inteiro** (satisfa
 |---|---|---|
 | **Plataforma de deploy** | **Cloudflare Pages + Workers + Cron Triggers** | É o único plano gratuito que permite uso comercial e crava 16h00 com precisão de minuto. O Vercel Hobby proíbe uso comercial por texto oficial e o cron dele tem precisão de hora (mais ou menos 59 minutos), o que transforma "leia antes de abrir" em "leia enquanto abre" |
 | **Repositório** | **Repositório próprio, separado do app de reservas.** Manter `risposta-qt` | Dois ciclos de vida diferentes, dois deploys, duas superfícies de falha. A ligação com as reservas é por leitura de dado, nunca por código compartilhado. Confiança **média** até a inspeção do app de reservas, que ainda não foi feita |
-| **Banco: mesmo do app de reservas ou separado** | **Organização Supabase separada, decidida antes de criar a primeira tabela** | O plano gratuito permite 2 projetos por organização, e a restrição da Fair Use Policy, quando dispara, devolve **HTTP 402 em toda a API de todos os projetos da organização**. Um estouro na pesquisa derrubaria o sistema de reservas junto |
+| **Banco: mesmo do app de reservas ou separado** | **Organização Supabase separada, decidida antes de criar a primeira tabela. REVOGADO, ver 01-decisoes.md D2** | O plano gratuito permite 2 projetos por organização, e a restrição da Fair Use Policy, quando dispara, devolve **HTTP 402 em toda a API de todos os projetos da organização**. Um estouro na pesquisa derrubaria o sistema de reservas junto |
 | **O sistema calcula CMV ou apenas consome** | **Apenas consome.** Tabela própria de itens, custo e margem de contribuição, com data de vigência, alimentada por importação | Ficha técnica muda por fornecedor, gramagem e preço, e duas implementações da mesma regra é a garantia de dois números diferentes. O briefing manda manter as fichas separadas, e consumir o resultado respeita isso sem acoplar nada |
 | **Nível de segurança proporcional** | RLS ligado no Supabase, 2FA nas contas de administrador, chave de serviço **fora** do front-end, PIN do garçom tratado como **dado da resposta e não como autenticação**, dois administradores nomeados | Segurança proporcional é o que protege o dado sem criar tarefa recorrente. Fora do escopo, por desproporção: DPO externo, RIPD completo, ISO 27001, criptografia de campo e contrato de operador de dezenas de páginas |
 | **Reconhecimento de cliente recorrente sob LGPD** | **Recorrência pelo lado do pedido, sempre ligada** (mesa, turno, itens, ticket), mais **código voluntário de 6 caracteres** como camada opcional | Hash de telefone **não anonimiza nada**, é pseudonimização e continua sob a LGPD. Proibido em qualquer hipótese: biometria, fingerprinting e cruzar telefone de delivery com salão sem consentimento. Retenção contada da **última visita**, não da coleta, com prazo escrito e apagamento em código. Confiança **baixa** nesta subseção: é desenho defensável, não parecer |
@@ -162,7 +174,7 @@ Ou seja, dos três diferenciais pretendidos, **um se sustenta inteiro** (satisfa
 | **Falha silenciosa: o sistema para e ninguém percebe** | **Alta**, porque ninguém monitora | **Máximo.** Dias sem dado, e a confiança no sistema não volta | Fazer do e-mail das 16h o batimento cardíaco: ele é entregável, keep-alive do banco e alarme ao mesmo tempo. **Duas ausências seguidas do e-mail significam que algo quebrou.** Essa é a única regra de operação que precisa existir, e ela vai no README |
 | **Pausa do Supabase Free por 1 semana de inatividade** | **Alta**, é comportamento documentado | Alto: coleta e painel fora do ar, restauração manual | Cron diário que toca o banco, com o **envio do e-mail separado da consulta ao banco** no código, para pausar um sem pausar o outro em férias |
 | **Ausência de backup no plano gratuito** | **Alta**, é ausência declarada | Alto: "anos de histórico" sem ponto de restauração | `pg_dump` semanal via GitHub Actions para fora do Supabase, desde o primeiro mês de dado real |
-| **Restrição em cascata na organização Supabase (402 em todos os projetos)** | Média | Alto: derrubaria o app de reservas junto | Organização separada, decidida antes da primeira tabela |
+| **Restrição em cascata na organização Supabase (402 em todos os projetos)** | Média | Alto: derrubaria o app de reservas junto | Organização separada, decidida antes da primeira tabela. **REVOGADO, ver 01-decisoes.md D2** |
 | **Mudança de política de free tier de LLM** | **Alta.** Já aconteceu: a Google retirou os números de cota da doc pública | Médio: o diagnóstico escrito para de sair | Um único módulo com prompt, chamada e parser, desde o primeiro dia, mais quatro camadas de contingência que terminam em **classificação por regra sem IA**, ainda a R$ 0. O produto precisa continuar entregando valor sem IA |
 | **Alguém subir o projeto no Vercel Hobby "só para testar"** | Média, é o erro mais fácil de cometer | Médio: violação de termos, com risco de conta e deploy pausados | Uma linha no README dizendo que Vercel Hobby é proibido neste projeto, e por quê |
 | **Taxa de resposta cair porque o garçom não pede** | **Alta.** É a fragilidade que não desaparece com a troca de fornecedor | Alto: derruba o critério de sucesso de coletar mais que hoje | Medir o denominador (respostas contra comandas fechadas, por garçom e por turno), meta de **processo** e não de nota, tablet como canal principal e QR impresso funcionando como caminho paralelo desde o primeiro dia |
@@ -190,12 +202,12 @@ Ou seja, dos três diferenciais pretendidos, **um se sustenta inteiro** (satisfa
 6. **Informar o nome do repositório e do app de reservas**, mais o endereço do Retaguarda Cloud, para a inspeção que precede a primeira tabela.
 7. **Decidir duas coisas que são de dono e não de engenharia:** o prazo de retenção (12 ou 24 meses contados da última visita) e a decisão de manter metas de equipe fora da nota.
 8. **Comprar 2 tablets na viagem**, com o checklist de loja de `05-integracoes.md` (versão do Android na tela, RAM real, certificação do Play, fixação de app no menu, fonte 100 a 240 V). **Não comprar Raspberry Pi.**
-9. **Pedir o Basic API Access da Google Business Profile API** agora. É um formulário gratuito com prazo de até 14 dias, não obriga a construir nada, e compra a opção de acender o item de divergência entre pesquisa e avaliação pública na fase 2.
+9. **Pedir o Basic API Access da Google Business Profile API** agora. É um formulário gratuito com prazo de até 14 dias, não obriga a construir nada, e compra a opção de acender o item de divergência entre pesquisa e avaliação pública na fase 2. **REVOGADO, ver 01-decisoes.md D3**
 
 ### Depende de desenvolvimento (nesta ordem)
 
-1. **Inspecionar o Supabase e o app de reservas** antes de criar qualquer tabela, e **criar a organização Supabase separada**.
-2. **Subir a ponte de coleta** (formulário no Tally gravando por webhook no banco próprio), para que a mensalidade possa cair na semana 1 sem um único dia sem dado.
+1. **Inspecionar o Supabase e o app de reservas** antes de criar qualquer tabela, e **criar a organização Supabase separada**. **REVOGADO, ver 01-decisoes.md D2**
+2. **Subir a ponte de coleta** (formulário no Tally gravando por webhook no banco próprio), para que a mensalidade possa cair na semana 1 sem um único dia sem dado. **REVOGADO, ver 01-decisoes.md D1**
 3. **Modelar o schema com os dois grãos** (resposta da pesquisa e venda por dia), com UUID gerado no cliente, idempotência por chave e **corte do dia operacional no fechamento real**, não à meia-noite.
 4. **Construir a tela de coleta própria:** uma pergunta por tela, sem rolagem, alvos de 44 pixels ou mais, NPS na abertura, ramificação por nota, aberta e contato opcionais, agradecimento com auto-reset, e cronometragem de cada tela.
 5. **Cron das 16h no Cloudflare** com o digest por área, comparando sempre contra o período anterior, e gravando uma linha de log de execução no próprio banco (o log do fornecedor expira, o seu não).

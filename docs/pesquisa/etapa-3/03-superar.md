@@ -181,10 +181,10 @@ A coluna `dia_operacional` é gerada na própria tabela de resposta e **indexada
 **Como funciona no QT, em desenho concreto.** A conta é explícita e fica escrita no painel, não escondida no código. Erro padrão do NPS:
 
 ```
-EP = raiz( (p_promotores + p_detratores − NPS²) / n )
+EP = raiz( (p_promotores + p_detratores - NPS²) / n )
 ```
 
-Com a distribuição plausível de 60% promotores, 25% neutros e 15% detratores, que dá NPS 45 (`p_prom + p_det = 0,75`, `NPS² = 0,2025`, numerador `0,5475`):
+A **faixa de 95% é 1,96 vezes o erro padrão**, e é essa a fórmula única do projeto (F17 de `02-replicar.md`). Com a distribuição plausível de 60% promotores, 25% neutros e 15% detratores, que dá NPS 45 (`p_prom + p_det = 0,75`, `NPS² = 0,2025`, numerador `0,5475`):
 
 | n (respostas no período) | Erro padrão | Intervalo de 95% em torno do valor | Diferença mínima detectável entre dois períodos |
 |---|---|---|---|
@@ -324,12 +324,13 @@ Na tela e no e-mail, isso alimenta duas decisões já tomadas no briefing: comen
 
 **Quem no mundo mais chega perto, e onde para.** A **ReviewTrackers**, com o tier Data Only, que vende review bruto para o cliente processar na plataforma dele. É a postura certa e é exceção: treze dos fornecedores mapeados no dossiê não têm nenhuma API pública. O incumbente tem sete endpoints, todos POST e todos de leitura, com **janela de 4 dias por requisição e 50 registros por página**, sem endpoint de escrita, sem webhook e sem push, e com a credencial pedida por e-mail a pessoa nomeada, sem portal de developer e sem sandbox ([api.risposta.app](https://api.risposta.app/)). A conta de saída: cerca de **92 requisições só para varrer as datas de um ano**, mais a paginação. Isso não é bug, é modelo: série histórica presa na casa do fornecedor é o que garante a renovação do contrato. Confiança **alta**, a limitação está na documentação pública deles.
 
-**Como funciona no QT, em desenho concreto.** Quatro decisões, todas tomadas antes da primeira tabela, e todas de custo zero se tomadas agora e caras se lembradas depois:
+**Como funciona no QT, em desenho concreto.** Cinco decisões, todas tomadas antes da primeira tabela, e todas de custo zero se tomadas agora e caras se lembradas depois:
 
 1. **Nenhum identificador de PDV como chave primária.** O `prato_id` é do QT, e o nome do produto no R3 do Altec é atributo de uma tabela de equivalência. Trocar de PDV vira trocar de adaptador, e não reescrever histórico.
 2. **A API de leitura já existe e não será escrita.** O Supabase entrega REST autenticada de graça. Nenhum endpoint próprio é construído.
 3. **Botão de exportar CSV e Excel no painel**, que é pedido explícito do briefing e também a garantia de que o dado não fica preso no sistema novo.
 4. **`pg_dump` semanal para fora do Supabase**, via GitHub Actions (30 minutos/mês contra 2.000, 1,5% da cota). **O plano gratuito do Supabase não tem backup nenhum**: backup gerenciado com retenção de 7 dias só existe no Pro, a US$ 25/mês, que é oficial. Sem esse dump, "anos de histórico" é promessa sem piso.
+5. **Retenção decidida antes do primeiro registro** (D4), porque ela define o que exatamente sobrevive nos "anos de histórico" prometidos acima. **Dado pessoal** (nome, WhatsApp, e-mail, data de nascimento) é apagado por rotina automática **12 meses contados da última visita**. A **resposta da pesquisa** (nota, comentário, prato, garçom, `dia_operacional`) é mantida **indefinidamente, desvinculada do contato**, e é ela, e só ela, que sustenta a série histórica que este bloco existe para proteger. Antes de o comentário aberto ser tratado como dado não pessoal, ele passa por **varredura de padrão** (telefone, e-mail, CPF), porque é campo livre e o cliente pode escrever o próprio contato dentro dele: sem essa varredura, os 12 meses são contornados pelo próprio texto que se pretende preservar. A rotina é a `cron_retencao`, que com D4 tem prazo definido e pode ser escrita.
 
 Sobre a migração do histórico do incumbente, a decisão honesta: o critério do briefing é migrar só se for fácil, e com aquela API não é. O caminho defensável é migrar os últimos meses ou nenhum, e assumir que a linha de base começa do zero. O que **não** é opcional é pedir por escrito, antes de cancelar, a exportação e a eliminação comprovada dos dados no fornecedor, porque depois do cancelamento a alavanca desaparece e, na relação com o titular, quem responde é o restaurante.
 
@@ -358,7 +359,7 @@ Sobre a migração do histórico do incumbente, a decisão honesta: o critério 
 
 | Trava | Desenho | Custo |
 |---|---|---|
-| Uma resposta por mesa por janela: **marcação, não bloqueio** | Segunda resposta da mesma mesa no mesmo dia operacional dentro de 20 minutos grava `suspeita = true` e sai dos indicadores, sem ser rejeitada, porque mesas juntadas com comandas individuais produzem respostas legítimas em sequência (F04 de `02-replicar.md`). O UUID gerado no cliente continua garantindo idempotência do **mesmo** envio, que é outra coisa: reenvio da mesma resposta não cria segunda linha | Baixo |
+| Uma resposta por mesa por janela: **marcação, não bloqueio** | A segunda resposta da mesma mesa, no mesmo dia operacional, dentro de 20 minutos, é **aceita, agradecida e gravada com `suspeita = true`**, e não entra nos indicadores. Não é rejeitada, porque mesas juntadas com comandas individuais produzem respostas legítimas em sequência (F04 de `02-replicar.md`, e P15 do piso de aceite em `01-grid-comparativo.md`). O UUID gerado no cliente continua garantindo idempotência do **mesmo** envio, que é outra coisa: reenvio da mesma resposta não cria segunda linha | Baixo |
 | Janela de tempo válida | Resposta só é aceita dentro do horário de operação do `dia_operacional` corrente | Baixo |
 | PIN do garçom | Digitado antes de entregar o tablet, e tratado como **dado da resposta, não como autenticação**. Com fila offline não há como validar na hora, e guardar hash de credencial num tablet que circula pelo salão é pior que não validar | Baixo |
 | Identificação do aparelho **da casa** | O tablet é equipamento do restaurante, então identificá-lo não é rastrear cliente. Repetição anômala no mesmo aparelho gera contagem no digest | Baixo |

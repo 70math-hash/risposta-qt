@@ -481,6 +481,20 @@ Risposta:
 | Sinalização ou restrição do perfil no Google | Restaurante |
 | Nota média artificialmente alta que não representa a operação | Restaurante, que perde a capacidade de se enxergar |
 
+As punições da tabela acima **não são inferência de blog de fornecedor**: estão escritas em página
+oficial do Google, que lista como restrições possíveis `Business Profile will not be able to receive
+new reviews or ratings for set period of time`, `Business Profile's existing reviews or ratings will
+be unpublished for set period of time` e `Business Profile will display a warning to let consumers
+know that fake reviews were removed`
+([support.google.com/business/answer/14114287](https://support.google.com/business/answer/14114287?hl=en)).
+Em caso de padrão de violação, a punição sobe para suspensão de todos os perfis vinculados à conta.
+
+Uma ressalva de honestidade, verificada de forma dirigida: **penalidade de ranqueamento ou de posição
+no Maps é NÃO VERIFICADO**. A página oficial de punições foi percorrida de ponta a ponta e não
+menciona ranking em nenhum ponto. A ideia de queda de posicionamento por review gating aparece apenas
+em material de fornecedor de software. Não repetir essa afirmação como se fosse do Google. Ver
+[`dados/11-backup-e-politica-google.md`](dados/11-backup-e-politica-google.md).
+
 Há ainda o efeito silencioso, que talvez seja o pior: uma nota pública inflada por filtragem
 esconde o problema em vez de resolver. O restaurante fica com um perfil bonito e uma operação sem
 diagnóstico.

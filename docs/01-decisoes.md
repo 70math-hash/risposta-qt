@@ -172,13 +172,126 @@ elas medem um gesto diferente, e que a conversão do gesto reaproveitado é **DE
 
 ---
 
+## D7. O `pg_dump` semanal vai para o Backblaze B2, cifrado com chave que o runner não possui
+
+**Data:** 14/08/2026 · **Delegado a mim, com o pedido de sugerir**
+**Resolve:** o achado A9 da crítica, que era a maior lacuna de LGPD do desenho: o backup semanal leva a
+base de clientes inteira para fora do Supabase, e nenhum documento dizia para onde, cifrado como, com
+que acesso e por quanto tempo.
+
+### A escolha, e por que ela inverteu no meio do caminho
+
+Minha primeira inclinação era **artefato do GitHub Actions**, por ser a opção com menos peças móveis:
+zero credencial externa, uma linha de configuração, e o backup vivendo onde o workflow já roda. A
+verificação adversarial derrubou isso por um motivo que eu não tinha checado, que não é técnico:
+
+> `"Any other activity unrelated to the production, testing, deployment, or publication of the software project associated with the repository"`
+
+É uso vedado dos runners hospedados nos Termos Adicionais do GitHub, listado ao lado de mineração de
+criptomoeda. E a punição está na mesma página:
+
+> `"Misuse of GitHub Actions may result in termination of jobs, restrictions in your ability to use GitHub Actions, disabling of repositories created to run Actions in a way that violates these Terms, or in some cases, suspension or termination of your GitHub account."`
+
+Duas honestidades: não existe pronunciamento do GitHub dizendo que backup do banco do próprio app viola
+isso, então a interpretação é **NÃO VERIFICADO**; e é defensável argumentar que o backup do app, no repo
+do app, é "related to the production" dele. Mas o critério que manda neste projeto é **sobreviver dez
+anos sem ninguém olhando**, e apostar cláusula ambígua contra punição que inclui suspensão de conta é
+péssima aposta nesse horizonte. Pior: essa punição levaria **o repositório e os backups no mesmo
+evento**, que é exatamente o modo de falha de fornecedor único pelo qual o Supabase Storage foi
+corretamente reprovado.
+
+### O destino escolhido, contra os três critérios duros
+
+| Critério | Backblaze B2 | Prova |
+|---|---|---|
+| **Custo zero de verdade** | Sim | `"First 10GB storage is always free."` O caso usa 8 objetos simultâneos, fração pequena dos 10 GB mesmo no ano 10. `"Class A, B, and C API calls are free for pay-as-you-go customers."` |
+| **Sem cadastrar cartão** | Sim | `"No credit card required."` na própria página de cadastro. Sem meio de pagamento na conta, o pior caso de estouro é o job falhar, nunca uma fatura |
+| **Apaga sozinho em 8 semanas** | Sim | Lifecycle nativa no bucket, sem plano pago: `daysFromUploadingToHiding = 56` e `daysFromHidingToDeleting = 1` |
+
+O Cloudflare R2 é tecnicamente o melhor produto dos três e **está fora por exigir forma de pagamento**:
+`"Ensure that you are using a valid payment method before changing your plan type or enabling subscriptions."`
+Volta à disputa no dia em que o proprietário aceitar PayPal, Google Pay ou Apple Pay. O que o R2 nunca
+resolve é a consequência de ter meio de pagamento na conta: estouro de cota vira cobrança, não vira
+falha.
+
+### O desenho que faz o backup ser seguro, e não só existir
+
+Duas escolhas fazem o trabalho, e as duas são gratuitas:
+
+**1. Cifragem assimétrica com `age`, chave pública no runner e privada fora dele.** Com `gpg` simétrico
+a mesma senha cifra e decifra, então o GitHub guardaria o pacote cifrado e a chave que o abre no mesmo
+lugar, e quem tivesse admin do repositório leria nome, WhatsApp, e-mail e nascimento dos clientes. Com
+`age` assimétrico o runner **escreve backup e não consegue ler nenhum, nem os que ele mesmo escreveu**.
+
+**2. Chave de aplicação do B2 presa a um bucket, com `writeFiles` e `listBuckets`, sem `readFiles`,
+sem `deleteFiles` e sem expiração.** Se o segredo do repositório vazar, o atacante escreve lixo e não lê
+nem apaga nenhum backup. A ausência de expiração é obrigatória: o B2 aceita `validDurationSeconds` de
+até 1000 dias, e chave com prazo faria o backup morrer calado em menos de três anos.
+
+| Item | Onde fica | Por quê |
+|---|---|---|
+| Chave **pública** `age` | Variable do repositório, `AGE_PUBLIC_KEY` | Chave pública não é segredo |
+| Chave **privada** `age` | **Nunca no GitHub, em nenhuma forma.** Gerenciador de senhas do proprietário e uma cópia impressa em papel no cofre do restaurante | Sem ela nenhum backup é recuperável. É o único ponto do sistema que depende de disciplina humana, e é por isso que tem cópia em papel |
+| `B2_KEY_ID` e `B2_APP_KEY` | Secrets do repositório | Escopo mínimo, sem expiração |
+| String de conexão do Postgres | Secret separado | Separar limita o estrago de um vazamento isolado |
+
+O comando completo de dump, cifragem, envio e restauração está em
+[`pesquisa/dados/11-backup-e-politica-google.md`](pesquisa/dados/11-backup-e-politica-google.md),
+seção 3, pronto para colar no workflow.
+
+### Vigilância sem manutenção
+
+`set -euo pipefail` derruba o job em qualquer falha, e o GitHub manda e-mail automático de workflow
+falho para o dono do repositório. Isso cobre os três modos de morte silenciosa mais prováveis: senha do
+banco rotacionada, chave do B2 revogada, e incompatibilidade de versão do `pg_dump`. A versão do cliente
+Postgres precisa ser **fixada no workflow**, não herdada da imagem do runner, porque essa
+incompatibilidade é um dos dois modos de falha mais prováveis e a versão que a imagem traz hoje é
+**NÃO VERIFICADO**.
+
+---
+
+## D8. Nenhuma meta, ranking ou bônus ligado a volume de avaliações, agora por dois motivos
+
+**Data:** 14/08/2026 · **Reforço de decisão já tomada**
+
+A decisão de não amarrar meta de equipe à nota já existia, e a razão era higiene de dado: meta
+contamina o número. A verificação da política do Google acrescentou uma **segunda razão, independente
+da primeira**, que é conformidade. O Google proíbe literalmente:
+
+> `"Merchants requesting that staff solicit a certain number of reviews"`
+>
+> `"Merchants requesting that staff solicit reviews that include specific content, including content that identifies a staff member."`
+
+Portanto: rastrear internamente qual garçom entregou o QR é **permitido** (nenhuma cláusula proibindo
+atribuição interna foi encontrada). Transformar isso em meta, ranking, semáforo, competição, bônus,
+comissão, prêmio ou folga é **proibido por texto oficial**.
+
+O painel pode contar cliques por garçom para reconhecimento qualitativo. Não pode exibir meta, semáforo
+de desempenho por volume, nem comparação competitiva, porque isso é meta com outro nome. **É o item que
+mais provavelmente vai ser proposto no futuro, e o que deve ser barrado com mais firmeza**, porque é o
+único que transformaria um sistema conforme em violação nomeada.
+
+### A regra de operação que precisa estar escrita e treinada
+
+O risco real do caso não está no software: está na boca do garçom. Um garçom que entrega o QR do Google
+só a quem pareceu satisfeito reconstrói o gating na mão, e cai direto em
+`"selectively solicit positive reviews from customers"`, mesmo com o QR sendo tecnicamente
+incondicional. **É a armadilha mais grave de todo o desenho.**
+
+Script único de entrega, igual para toda mesa e todo cliente: *"Se quiser deixar sua avaliação no
+Google, o QR está aqui."* Entregar sempre, para todos, independente de o cliente parecer satisfeito.
+Entregar e sair. A lista completa das quinze práticas a evitar está na seção 6 de
+[`pesquisa/dados/11-backup-e-politica-google.md`](pesquisa/dados/11-backup-e-politica-google.md).
+
+---
+
 ## Pendências que continuam abertas
 
 | Pendência | O que trava | Quem responde |
 |---|---|---|
 | ~~Para onde apontam hoje os QR por garçom~~ | **RESPONDIDA em 13/08/2026: apontam direto para o Google, sem pergunta de nota no caminho.** Ver D6 | — |
 | **Quem executa as seis tarefas recorrentes, com nome, e quem conserta quando o alarme soa** | Decide se a restrição "ninguém vai manter" é premissa ou ficção. Tarefa sem dono é tarefa cortada, e cortá-la muda o que o painel mostra | Proprietário |
-| **Onde fica guardado o `pg_dump` semanal** | É pré-requisito do backup, e sem destino definido o backup obrigatório vira a maior exposição de dado pessoal do desenho | Proprietário |
+| ~~Onde fica guardado o `pg_dump` semanal~~ | **RESOLVIDA por D7:** Backblaze B2, bucket privado, cifrado com `age` assimétrico, lifecycle de 56 dias. Falta apenas o proprietário criar a conta e gerar o par de chaves | — |
 | **Onde vive o app de reservas** | Integração com o CRM de reservas fica fora do MVP até essa resposta | Proprietário |
 | **As 8 perguntas ao suporte da Altec** | A pergunta 3 (agendamento de e-mail do R3) e a 4 (o R3 tem mesa e comanda?) decidem se a importação é automática e se o cruzamento por comanda existe | Suporte da Altec |
 | **Prints das perguntas do Risposta e capacidade das mesas** | Calibragem, não bloqueio | Proprietário |

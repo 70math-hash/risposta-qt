@@ -98,11 +98,85 @@ retenção de 12 meses é contornada pelo próprio texto que se pretende preserv
 
 ---
 
+## D5. Cinco tablets: quatro em uso, um de reserva
+
+**Data:** 13/08/2026 · **Decidido por:** proprietário
+**Resolve:** o achado A4 da crítica e o item C15 da folha canônica, a divergência entre os 4 ou mais
+pontos físicos que o briefing pede e os 2 tablets que a Etapa 3 havia planejado. **Fechou em favor do
+briefing.**
+
+### Lista de compra fechada
+
+| Item | Quantidade | Valor |
+|---|---|---|
+| Tablet Android, 11", 4 GB de RAM, 64 GB, Android 13 ou superior | **5** | **NÃO VERIFICADO em BRL.** Cotar no ato. Única referência independente: cerca de 180 EUR por unidade |
+| Licença Fully Kiosk PLUS, pagamento único por aparelho | **5** | **8,90 EUR** cada, ou seja 44,50 EUR no total. É o único valor de hardware 100% auditável do projeto |
+| Suporte de mesa com chave e cabo de segurança | 4 | NÃO PESQUISADO |
+| Estação de carregamento de cinco portas | 1 | NÃO PESQUISADO |
+
+### Consequências, e a mais importante não é o dinheiro
+
+| Consequência | Detalhe |
+|---|---|
+| **O heartbeat deixa de ser um alarme e passa a ser quatro** | Com um tablet só, o aparelho mudo é óbvio, porque a coleta para inteira. Com quatro, o aparelho mudo é **invisível no agregado**: os outros três seguem coletando e o total do dia parece normal. O e-mail das 16h passa a listar **cada aparelho pelo nome, com a hora do último sinal**. Sem isso, um tablet morto passa semanas sem ser notado |
+| **A conversão precisa de corte por aparelho** | É a única forma de distinguir "a equipe ignora este ponto" de "este ponto está quebrado". Mesmo sintoma, diagnósticos opostos |
+| **A licença paga de quiosque virou necessidade** | Reabertura automática após reboot deixa de ser conveniência. Sem ela, alguém reabre o app em cinco aparelhos a cada atualização do sistema, e é o tipo exato de tarefa que ninguém faz |
+| **Cinco superfícies de perda física** | Suporte com chave nos pontos fixos e regra escrita de guarda dos que circulam. O suporte do fornecedor atual tem página dedicada a tablet furtado e tela quebrada, o que diz o quanto isso acontece |
+| **Mais fricção com a restrição de manutenção zero** | Cinco aparelhos para carregar, atualizar e guardar. Carregar entra na rotina de fechamento de caixa, e não conta como dever novo de sistema, mas aparelho descarregado é indistinguível de aparelho quebrado sem heartbeat por dispositivo |
+| **Ganho real** | Quatro pontos sobrevivem a garçom ocupado e a noite cheia, o que ataca direto o critério de sucesso nº 2, coletar mais que hoje. É a razão da decisão e ela é boa |
+
+---
+
+## D6. Os QR por garçom apontam direto para o Google, e vão continuar existindo em separado
+
+**Data:** 13/08/2026 · **Informado por:** proprietário
+**Resolve:** o bloqueio `P1`, que era a pendência mais urgente do projeto porque podia estar causando
+dano em curso.
+
+**O fato:** o QR por garçom que já circula na casa aponta **direto para a página de avaliação do
+Google, sem nenhuma pergunta de nota no caminho**.
+
+### Consequência principal: não há review gating
+
+Review gating exige um **filtro por nota**, ou seja mandar quem deu nota alta para o Google e retermer
+quem deu nota baixa. Sem nota no fluxo, não existe filtro. Pedir avaliação a todos os clientes é
+prática permitida. **O risco agudo que o dossiê levantou não se materializou.**
+
+O documento [`pesquisa/01-risposta.md`](pesquisa/01-risposta.md) descreve o gating como feature do
+fornecedor atual, e isso continua verdadeiro sobre o produto dele. O que muda é que **o QT não está
+usando essa feature**.
+
+### Dois riscos residuais, menores e reais
+
+1. **O garçom escolhe a quem entrega o QR.** Ninguém entrega com entusiasmo para a mesa que reclamou. O mecanismo é humano e não software, mas o efeito é solicitação seletiva. A tabela `cliques_avaliacao` mede cliques por garçom, o que amplificaria isso se algum dia virasse meta ou bônus. **A decisão de não amarrar meta à nota, já registrada, protege esse flanco por consequência.** Ela passa a ter uma segunda razão de existir.
+2. **A cláusula sobre pedir avaliação dentro do estabelecimento.** Foi afirmada em documento anterior deste projeto com base em fonte de fornecedor, não em página do Google, e está **em verificação dirigida**. O resultado entra em `pesquisa/dados/11-backup-e-politica-google.md`. Se a cláusula não existir, os documentos que a citam precisam de correção.
+
+### A decisão de produto: dois QR fisicamente separados
+
+O QR atual manda o cliente para fora sem capturar nada internamente: 74 cliques, zero dado próprio. Mas
+apontá-lo para a pesquisa custaria o fluxo de avaliações no Google, porque a tela final da pesquisa só
+agradece, sem convite. Em vez de escolher, o desenho mantém os dois:
+
+| QR | Destino | Regra |
+|---|---|---|
+| **QR da pesquisa** | Pesquisa interna própria | Termina em agradecimento. Nenhum convite ao Google em nenhuma tela, em nenhuma condição |
+| **QR do Google** | Direto para a página de avaliação | **Incondicional**, entregue a todos, sem nota no caminho. É o que o mantém limpo de gating |
+
+A separação **física** entre os dois é o que garante a conformidade: como não existe nota no caminho do
+segundo, não existe filtro possível. Juntar os dois num fluxo só é o que criaria a violação, e por isso
+não se faz.
+
+**Pendência menor que nasce daqui:** as 74 linhas de `cliques_avaliacao` medem cliques em direção ao
+Google, não respostas de pesquisa. Ao usá-las como linha de base da conversão, é preciso lembrar que
+elas medem um gesto diferente, e que a conversão do gesto reaproveitado é **DESCONHECIDA**.
+
+---
+
 ## Pendências que continuam abertas
 
 | Pendência | O que trava | Quem responde |
 |---|---|---|
-| **Para onde apontam hoje os QR por garçom, e o convite depende da nota?** | Pode haver review gating operando no perfil do restaurante agora. É a única pendência que pode estar impedindo dano em curso | Proprietário, olhando a configuração |
+| ~~Para onde apontam hoje os QR por garçom~~ | **RESPONDIDA em 13/08/2026: apontam direto para o Google, sem pergunta de nota no caminho.** Ver D6 | — |
 | **Quem executa as seis tarefas recorrentes, com nome, e quem conserta quando o alarme soa** | Decide se a restrição "ninguém vai manter" é premissa ou ficção. Tarefa sem dono é tarefa cortada, e cortá-la muda o que o painel mostra | Proprietário |
 | **Onde fica guardado o `pg_dump` semanal** | É pré-requisito do backup, e sem destino definido o backup obrigatório vira a maior exposição de dado pessoal do desenho | Proprietário |
 | **Onde vive o app de reservas** | Integração com o CRM de reservas fica fora do MVP até essa resposta | Proprietário |

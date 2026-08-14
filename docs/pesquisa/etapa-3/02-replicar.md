@@ -1049,15 +1049,19 @@ Lista fechada. Cumprida inteira, autoriza declarar o MVP no ar e pedir o cancela
 - [ ] Decisão registrada sobre histórico: migrar os últimos meses ou nenhum.
 - [ ] **Ensaio de aceite de três noites de serviço real** com o sistema novo, coletando de verdade, com o e-mail das 16h saindo nos três dias seguintes. Não é operação em paralelo de dois fornecedores, que o briefing descarta: é teste de aceite, e ele acontece **antes** do e-mail de cancelamento.
 - [ ] Dois tablets em operação, não um, porque o hardware passa a ser custo direto da casa e aparelho de entrada é consumível.
-- [ ] Decisão do proprietário sobre os pontos físicos de coleta registrada **antes da viagem ao Paraguai**, conforme a divergência declarada logo abaixo.
+- [ ] Os **5 tablets** provisionados, com os 4 de uso registrados em `dispositivo` e o de reserva carregado e provisionado, conforme a decisão **D5**.
 
-### A divergência dos pontos físicos de coleta, declarada
+### Os pontos físicos de coleta: divergência resolvida por D5
 
-O briefing pede **4 ou mais pontos físicos** de coleta. O plano deste documento prevê **1 tablet em uso mais 1 de reserva**. A redução nunca foi declarada, e com a decisão D1 ela virou urgente, porque a compra dos tablets acontece na viagem ao Paraguai, que é a única janela prevista. As duas opções, com o custo de cada uma:
+**RESOLVIDA.** A decisão **D5** de [`../../01-decisoes.md`](../../01-decisoes.md) fechou em favor do briefing: **4 tablets em uso mais 1 de reserva**, ou seja 5 aparelhos e 5 licenças de quiosque a **8,90 EUR** cada, pagamento único. Preço dos tablets em BRL segue **NÃO VERIFICADO**, e é para cotar no ato da compra.
 
-- **Plano atual: 1 tablet em uso, 1 de reserva.** Justificativa: com até 20 mesas por dia e coleta na entrega da conta, o tablet circula com o garçom e não fica parado em ponto fixo. O QR por garçom (F02) é o segundo canal, permanente e ilimitado.
-- **Se o proprietário mantiver os 4 pontos:** mais 2 a 3 tablets, mais 2 a 3 licenças de quiosque a **8,90 EUR** cada, e mais 2 a 3 suportes. Preço dos tablets em BRL segue **NÃO VERIFICADO**.
-- **A decisão precisa sair antes da viagem, não depois.** Depois da viagem, acrescentar ponto físico significa outra compra de hardware fora da janela, e é isso que torna esta a única divergência do briefing com prazo próprio.
+O que isso muda neste documento, e que precisa ser tratado como requisito e não como detalhe:
+
+- **O heartbeat (F09) deixa de ser um alarme e passa a ser quatro.** Com um tablet só, o aparelho mudo é obvio, porque a coleta para inteira. Com quatro, um aparelho mudo é invisível no agregado: os outros três continuam coletando e o total do dia parece normal. Portanto o e-mail das 16h precisa listar **cada aparelho pelo nome, com a hora do último sinal**, e não apenas o total de respostas. Sem isso, um tablet morto passa semanas sem ser notado, e o dado que ele deixou de coletar não volta.
+- **A conversão sobre mesas atendidas (F05) precisa de corte por aparelho.** É a única forma de descobrir que um ponto está sendo ignorado pela equipe em vez de estar quebrado. São diagnósticos diferentes com o mesmo sintoma.
+- **Carregar cinco aparelhos entra na rotina de fechamento.** Não é dever recorrente novo na tabela abaixo, porque é gesto de fechamento de caixa e não tarefa de sistema, mas exige **estação de carregamento com cinco portas** na lista de compras, e um aparelho descarregado é indistinguível de um aparelho quebrado se não houver heartbeat por dispositivo.
+- **A licença paga de quiosque passa de conveniência a necessidade.** Com cinco aparelhos, a reabertura automática após reboot deixa de ser luxo: sem ela, alguém precisa reabrir o app em cinco aparelhos a cada atualização de sistema, e é exatamente o tipo de tarefa que ninguém faz.
+- **Cinco aparelhos são cinco superfícies de perda física.** Suporte com chave nos pontos fixos, e regra escrita de guarda dos que circulam.
 
 ### Os seis deveres humanos recorrentes que este MVP cria
 

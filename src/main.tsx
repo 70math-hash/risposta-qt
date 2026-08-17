@@ -12,6 +12,7 @@ import './comum/marca.css'
 import { App as Coleta, VERSAO_APP } from './coleta/App.js'
 import { ligaHeartbeat, ligaSincronizador } from './comum/api.js'
 import { pedePersistencia } from './coleta/fila.js'
+import { Painel } from './painel/Painel.jsx'
 
 const raiz = document.getElementById('raiz')
 if (raiz === null) throw new Error('elemento #raiz nao encontrado')
@@ -28,12 +29,11 @@ function dispositivoLocal(): string | undefined {
 }
 
 if (ehPainel) {
-  // O painel entra na M1, depois da coleta. Ate la, uma tela honesta em vez de erro.
-  raiz.innerHTML =
-    '<div class="tela"><div class="tela__corpo">' +
-    '<h1 class="pergunta">Painel</h1>' +
-    '<p class="ajuda">Em construção. A coleta é a primeira entrega da M1.</p>' +
-    '</div></div>'
+  createRoot(raiz).render(
+    <StrictMode>
+      <Painel />
+    </StrictMode>,
+  )
 } else {
   const dispositivoId = dispositivoLocal()
   const canal = dispositivoId === undefined ? 'qr' : 'tablet'

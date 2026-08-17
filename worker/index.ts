@@ -64,14 +64,10 @@ async function postResposta(req: Request, env: Ambiente): Promise<Response> {
   if (erros.length > 0) return erro(erros.join('; '), 422)
 
   try {
-    const id = await rpc<string>(env, 'fn_grava_resposta', { p_carga: carga })
-    // O alerta de detrator nao e rotina: dispara na gravacao, para chegar em menos de 30
-    // segundos (N30), enquanto o cliente pode ainda estar na mesa.
-    if (carga.nota <= 6) {
-      await rpc(env, 'fn_registra_alerta_detrator', { p_resposta_id: id }).catch(() => {
-        // Falha no alerta nao pode desfazer a gravacao. A resposta valida mais que o aviso.
-      })
-    }
+    // Uma chamada, uma transacao. A funcao grava a resposta, as filhas, a tentativa de par,
+    // o contato, o consentimento E o alerta de detrator. Nao existe chamada separada para o
+    // alerta de proposito: com duas chamadas, uma resposta poderia existir sem o aviso dela.
+    const id = await rpc<string>(env, 'fn_grava_resposta', { p: carga })
     return ok({ id })
   } catch (e) {
     if (e instanceof ErroBanco) {
@@ -85,7 +81,17 @@ async function postResposta(req: Request, env: Ambiente): Promise<Response> {
   }
 }
 
-/** Registro da abordagem da T0, inclusive a recusa, que e o denominador da conversao. */
+/**
+ * A recusa registrada na T0.
+ *
+ * Vai pela MESMA funcao de gravacao, com `desfecho = 'recusou'`: ela grava so a tentativa e
+ * devolve o id dela. Nao existe funcao separada, e isso mantem verdadeira a regra de que duas
+ * funcoes, e so duas, escrevem por conta do PWA.
+ *
+ * A tentativa do caminho `respondeu` NAO passa por aqui: `fn_grava_resposta` grava a tentativa
+ * de par com o mesmo id da resposta. Enviar as duas duplicaria o denominador da conversao por
+ * garcom, o que inflaria a taxa sem ninguem notar.
+ */
 async function postTentativa(req: Request, env: Ambiente): Promise<Response> {
   let carga: TentativaEnviada
   try {
@@ -93,11 +99,14 @@ async function postTentativa(req: Request, env: Ambiente): Promise<Response> {
   } catch {
     return erro('corpo nao e JSON valido', 400)
   }
-  if (carga.desfecho !== 'respondeu' && carga.desfecho !== 'recusou') {
-    return erro(`desfecho invalido: ${String(carga.desfecho)}`, 422)
+  if (carga.desfecho !== 'recusou') {
+    return erro(
+      'esta rota aceita apenas desfecho `recusou`. A tentativa de quem respondeu e gravada por fn_grava_resposta, com o mesmo id da resposta',
+      422,
+    )
   }
   try {
-    await rpc(env, 'fn_grava_tentativa', { p_carga: carga })
+    await rpc(env, 'fn_grava_resposta', { p: { ...carga, desfecho: 'recusou' } })
     return ok({ id: carga.id })
   } catch (e) {
     if (e instanceof ErroBanco && (e.status === 409 || e.detalhe.includes('duplicate key'))) {
@@ -122,7 +131,7 @@ async function postSinal(req: Request, env: Ambiente): Promise<Response> {
     return erro('corpo nao e JSON valido', 400)
   }
   try {
-    await rpc(env, 'fn_registra_sinal', { p_carga: carga })
+    await rpc(env, 'fn_registra_sinal', { p: carga })
     return ok()
   } catch (e) {
     return erro(e instanceof Error ? e.message : 'erro desconhecido', 502)
@@ -144,10 +153,12 @@ async function getCatalogo(env: Ambiente): Promise<Response> {
         'item_cardapio',
         'select=id,nome,grupo&removido_em=is.null&order=nome',
       ),
-      seleciona<{ numero: number }>(
+      // O `id` vem junto do `numero` porque o payload guarda o id, e nao o numero: numero e
+      // rotulo de leitura e pode migrar numa reescrita, id nao.
+      seleciona<{ id: string; numero: number }>(
         env,
         'pergunta_banco',
-        'select=numero&ativa=is.true&order=numero',
+        'select=id,numero&ativa=is.true&order=numero',
       ),
       seleciona<{ versao: string; texto_curto: string }>(
         env,
@@ -163,7 +174,7 @@ async function getCatalogo(env: Ambiente): Promise<Response> {
     return json({
       ok: true,
       itens,
-      perguntas_ativas: perguntas.map((p) => p.numero),
+      perguntas_ativas: perguntas,
       consentimento: textos[0] ?? null,
       mesas,
     })

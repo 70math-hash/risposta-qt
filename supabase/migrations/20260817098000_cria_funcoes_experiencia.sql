@@ -214,8 +214,11 @@ begin
   if v_id is null then
     raise exception 'fn_grava_resposta: payload sem `id`. A idempotencia depende do uuid v4 gerado no cliente';
   end if;
-  if v_pin = '' then
-    raise exception 'fn_grava_resposta: payload sem `garcom_pin_digitado`. A T0 nao deixa passar campo vazio (F04)';
+  -- O PIN vem da T0, e a T0 so existe no tablet. Resposta por QR no celular do cliente nao
+  -- passa pela T0 e nao tem PIN, e exigir um aqui rejeitaria o canal `qr` inteiro, que a folha
+  -- canonica define na secao 3.3. Portanto a exigencia vale so para `tablet`.
+  if v_canal = 'tablet' and v_pin = '' then
+    raise exception 'fn_grava_resposta: resposta de tablet sem `garcom_pin_digitado`. A T0 nao deixa passar campo vazio (F04)';
   end if;
 
   -- respondido_em: o instante do toque quando ele e plausivel, o do servidor quando

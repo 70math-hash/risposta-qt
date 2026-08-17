@@ -74,8 +74,14 @@ export interface PropsColeta {
   dispositivoId?: string
   /** Catalogo ativo, vindo da API. Vazio faz a T3C2 ser pulada, em vez de travar. */
   itens?: readonly ItemCardapio[]
-  /** Numeros das perguntas ativas do banco. Padrao: o arranque de 12 (N19). */
-  perguntasAtivasNumeros?: readonly number[]
+  /**
+   * Perguntas ativas do banco, vindas do catalogo, com o `id` do banco e o `numero`.
+   *
+   * O payload guarda o `id` e nao o numero, porque numero e rotulo de leitura e pode migrar
+   * numa reescrita. Sem o catalogo carregado, as rotacionadas ainda APARECEM (o texto esta no
+   * bundle) mas nao sao gravadas, porque gravar com id inventado corromperia a contagem.
+   */
+  perguntasAtivasDoBanco?: readonly { id: string; numero: number }[]
   /** A versao vigente do texto de consentimento, vinda da API. */
   versaoTextoConsentimento?: string
 }
@@ -93,7 +99,7 @@ export function App(props: PropsColeta): React.ReactElement {
     canal,
     dispositivoId,
     itens = [],
-    perguntasAtivasNumeros = ARRANQUE_SUGERIDO,
+    perguntasAtivasDoBanco = [],
     versaoTextoConsentimento = 'nao-verificada',
   } = props
 
@@ -122,10 +128,21 @@ export function App(props: PropsColeta): React.ReactElement {
 
   const [restante, setRestante] = useState(TIMEOUT_INATIVIDADE_S)
 
-  const banco = useMemo(
-    () => perguntasAtivas(perguntasAtivasNumeros),
-    [perguntasAtivasNumeros],
-  )
+  /** Quando o catalogo nao chegou, cai no arranque sugerido, que ao menos exibe pergunta. */
+  const banco = useMemo(() => {
+    const numeros =
+      perguntasAtivasDoBanco.length > 0
+        ? perguntasAtivasDoBanco.map((p) => p.numero)
+        : ARRANQUE_SUGERIDO
+    return perguntasAtivas(numeros)
+  }, [perguntasAtivasDoBanco])
+
+  /** numero da pergunta -> id do banco. Vazio significa rotacionada nao gravavel. */
+  const idPorNumero = useMemo(() => {
+    const m = new Map<number, string>()
+    for (const p of perguntasAtivasDoBanco) m.set(p.numero, p.id)
+    return m
+  }, [perguntasAtivasDoBanco])
 
   /** Zera tudo e volta ao inicio. Nunca exibe nada da resposta anterior. */
   const reinicia = useCallback(() => {
@@ -165,12 +182,17 @@ export function App(props: PropsColeta): React.ReactElement {
   /** Grava a resposta na fila local e dispara a sincronia. Nunca bloqueia a tela. */
   const grava = useCallback(
     (notaFinal: number, telasFinais: readonly TelaEvento[]) => {
+      const aceiteEm = agora()
       const consentimentos: ConsentimentoDado[] = [
-        { finalidade: 'pesquisa', versao_texto: versaoTextoConsentimento },
+        { finalidade: 'pesquisa', versao_texto: versaoTextoConsentimento, aceito_em: aceiteEm },
       ]
       const temContato = contatoWhats.trim() !== '' || contatoEmail.trim() !== ''
       if (temContato && aceitouContato) {
-        consentimentos.push({ finalidade: 'contato', versao_texto: versaoTextoConsentimento })
+        consentimentos.push({
+          finalidade: 'contato',
+          versao_texto: versaoTextoConsentimento,
+          aceito_em: aceiteEm,
+        })
       }
 
       const carga: RespostaEnviada = {
@@ -182,14 +204,14 @@ export function App(props: PropsColeta): React.ReactElement {
         versao_app: VERSAO_APP,
         versao_questionario: VERSAO_QUESTIONARIO,
         opcoes,
-        perguntas_sorteadas: respondidasRot,
+        itens: item === null ? [] : [item],
+        sorteadas: respondidasRot,
         telas: telasFinais,
         consentimentos,
         ...(mesa.trim() !== '' ? { mesa_digitada: mesa.trim() } : {}),
         ...(pin.trim() !== '' ? { garcom_pin_digitado: pin.trim() } : {}),
         ...(dispositivoId !== undefined ? { dispositivo_id: dispositivoId } : {}),
-        ...(item !== null ? { item } : {}),
-        ...(texto.trim() !== '' ? { texto: texto.trim() } : {}),
+        ...(texto.trim() !== '' ? { texto: { texto_cru: texto.trim() } } : {}),
         ...(temContato && aceitouContato
           ? {
               contato: {
@@ -200,22 +222,10 @@ export function App(props: PropsColeta): React.ReactElement {
           : {}),
       }
 
+      // A tentativa de par NAO e enfileirada aqui: `fn_grava_resposta` grava ela na mesma
+      // transacao, com o MESMO id da resposta. Enviar as duas duplicaria o denominador da
+      // conversao por garcom, inflando a taxa sem ninguem notar.
       void enfileiraResposta(carga)
-        .then(() => {
-          if (canal === 'tablet' && dispositivoId !== undefined) {
-            return enfileiraTentativa({
-              id: novoId(),
-              criado_em_cliente: agora(),
-              desfecho: 'respondeu',
-              canal,
-              dispositivo_id: dispositivoId,
-              resposta_id: carga.id,
-              ...(mesa.trim() !== '' ? { mesa_digitada: mesa.trim() } : {}),
-              ...(pin.trim() !== '' ? { garcom_pin_digitado: pin.trim() } : {}),
-            })
-          }
-          return undefined
-        })
         .then(() => sincroniza())
         .catch(() => {
           // A resposta ja esta na fila. Falha de rede aqui e invisivel para o cliente, e a
@@ -319,7 +329,7 @@ export function App(props: PropsColeta): React.ReactElement {
       ...marcadas.map((o) => ({
         tela,
         dimensao: o.dimensao,
-        codigo: o.codigo,
+        opcao_codigo: o.codigo,
         ...(o.fator !== undefined ? { fator: o.fator } : {}),
       })),
     ])
@@ -334,7 +344,7 @@ export function App(props: PropsColeta): React.ReactElement {
       {
         tela: 'T2C',
         dimensao: op.dimensao,
-        codigo: op.codigo,
+        opcao_codigo: op.codigo,
         ...(op.fator !== undefined ? { fator: op.fator } : {}),
       },
     ])
@@ -349,22 +359,36 @@ export function App(props: PropsColeta): React.ReactElement {
     )
   }
 
-  const respondeRotacionada = (indice: 0 | 1, opcao: string | null) => {
+  const respondeRotacionada = (indice: 0 | 1, opcaoIndice: number | null) => {
     const p = sorteadas[indice]
     if (p !== undefined) {
-      setRespondidasRot((prev) => [
-        ...prev,
-        { numero: p.numero, respondida: opcao !== null, ...(opcao !== null ? { opcao } : {}) },
-      ])
-      if (opcao !== null && p.fator !== undefined) {
+      const idDoBanco = idPorNumero.get(p.numero)
+      // Sem id do catalogo, a rotacionada nao e gravada: id inventado corromperia a contagem
+      // por pergunta, que e justamente o que o banco rotacionado existe para medir.
+      if (idDoBanco !== undefined) {
+        setRespondidasRot((prev) => [
+          ...prev,
+          {
+            pergunta_banco_id: idDoBanco,
+            respondida: opcaoIndice !== null,
+            ...(opcaoIndice !== null ? { opcao_indice: opcaoIndice } : {}),
+          },
+        ])
+      }
+      if (opcaoIndice !== null && p.fator !== undefined) {
         setOpcoes((prev) => [
           ...prev,
-          { tela: `ROT${indice + 1}`, dimensao: p.dimensao, fator: p.fator!, codigo: opcao },
+          {
+            tela: `ROT${indice + 1}`,
+            dimensao: p.dimensao,
+            fator: p.fator!,
+            opcao_codigo: String(opcaoIndice),
+          },
         ])
       }
     }
     const de: Passo = indice === 0 ? 'ROT1' : 'ROT2'
-    registraTela(de, opcao === null)
+    registraTela(de, opcaoIndice === null)
     setPasso(proximoPasso(de, { nota: nota ?? 10, rotacionadas: sorteadas.length }))
   }
 
@@ -596,7 +620,7 @@ export function App(props: PropsColeta): React.ReactElement {
                       {
                         tela: 'T3C',
                         dimensao: op.dimensao,
-                        codigo: op.codigo,
+                        opcao_codigo: op.codigo,
                         ...(op.fator !== undefined ? { fator: op.fator } : {}),
                       },
                     ])
@@ -725,7 +749,7 @@ export function App(props: PropsColeta): React.ReactElement {
                       {
                         tela: 'T3C3',
                         dimensao: op.dimensao,
-                        codigo: op.codigo,
+                        opcao_codigo: op.codigo,
                         ...(op.fator !== undefined ? { fator: op.fator } : {}),
                       },
                     ])
@@ -768,12 +792,12 @@ export function App(props: PropsColeta): React.ReactElement {
                 <span className="rotulo">{t(CABECALHO_ROTACIONADA, idioma)}</span>
                 <h1 className="pergunta">{t(p.texto, idioma)}</h1>
                 <div className="opcoes">
-                  {p.opcoes.map((op) => (
+                  {p.opcoes.map((op, i) => (
                     <button
                       key={op.pt}
                       type="button"
                       className="opcao"
-                      onClick={() => respondeRotacionada(indice as 0 | 1, op.pt)}
+                      onClick={() => respondeRotacionada(indice as 0 | 1, i)}
                     >
                       {t(op, idioma)}
                     </button>

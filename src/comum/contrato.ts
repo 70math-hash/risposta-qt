@@ -29,8 +29,8 @@ export interface OpcaoMarcada {
   dimensao: Dimensao
   /** Ausente quando a opcao e de dimensao e nao de fator (caso da T2A e T2B). */
   fator?: string
-  /** O codigo da opcao como aparece no questionario, para auditoria da tela. */
-  codigo: string
+  /** O codigo da opcao como aparece no questionario. Nome igual ao da coluna no banco. */
+  opcao_codigo: string
 }
 
 /** O item apontado por detrator com causa comida. Vira uma linha de `resposta_item`. */
@@ -42,14 +42,21 @@ export interface ItemApontado {
   fator?: string
 }
 
-/** Uma pergunta do banco que foi sorteada. Vira uma linha de `resposta_pergunta_sorteada`. */
+/**
+ * Uma pergunta do banco que foi sorteada. Vira uma linha de `resposta_pergunta_sorteada`.
+ *
+ * Guarda o `id` da pergunta e nao o numero dela: numero e rotulo de leitura, e se uma pergunta
+ * for reescrita o numero pode migrar. O `id` vem do catalogo, junto das perguntas ativas.
+ *
+ * `opcao_indice` e nao o rotulo da opcao: rotulo muda com reescrita e com idioma, indice nao.
+ * Guardar o rotulo faria a contagem de um mes deixar de ser comparavel com a de outro.
+ */
 export interface PerguntaSorteada {
-  /** O numero da pergunta no banco, de 1 a 20. */
-  numero: number
+  pergunta_banco_id: string
   /** Falso quando a pessoa pulou. Sorteada e nao respondida tambem e dado. */
   respondida: boolean
-  /** O rotulo em portugues da opcao escolhida, para virar contagem. */
-  opcao?: string
+  /** Indice da opcao escolhida, base zero. Ausente quando pulou. */
+  opcao_indice?: number
 }
 
 /**
@@ -78,6 +85,8 @@ export interface ContatoOferecido {
 export interface ConsentimentoDado {
   finalidade: FinalidadeConsentimento
   versao_texto: string
+  /** Instante do aceite, pelo relogio do aparelho. E o que se prova numa fiscalizacao. */
+  aceito_em: string
 }
 
 /**
@@ -105,11 +114,19 @@ export interface RespostaEnviada {
   /** `dispositivo.id`. Nulo quando a resposta vem de QR no celular do cliente. */
   dispositivo_id?: string
 
+  /**
+   * `respondeu` por omissao. Com `recusou`, a funcao grava SO a tentativa e devolve o id
+   * dela: a recusa registrada na T0 e o denominador da conversao por garcom, e nao tem para
+   * onde ir se nao for por aqui.
+   */
+  desfecho?: 'respondeu' | 'recusou'
+
   opcoes: readonly OpcaoMarcada[]
-  item?: ItemApontado
+  /** Plural: o grupo `mais_de_um` pode render mais de uma linha. */
+  itens: readonly ItemApontado[]
   /** Texto cru, como a pessoa escreveu. Nunca reescrito, nunca corrigido. */
-  texto?: string
-  perguntas_sorteadas: readonly PerguntaSorteada[]
+  texto?: { texto_cru: string }
+  sorteadas: readonly PerguntaSorteada[]
   telas: readonly TelaEvento[]
   contato?: ContatoOferecido
   consentimentos: readonly ConsentimentoDado[]
@@ -173,11 +190,16 @@ export function validaResposta(r: RespostaEnviada): readonly string[] {
   if (r.canal === 'tablet' && r.dispositivo_id === undefined) {
     erros.push('resposta de tablet sem dispositivo_id')
   }
+  // O PIN vem da T0, que so existe no tablet. Resposta por QR no celular do cliente nao tem
+  // T0 e portanto nao tem PIN, e exigir um rejeitaria o canal `qr` inteiro.
+  if (r.canal === 'tablet' && (r.garcom_pin_digitado ?? '') === '') {
+    erros.push('resposta de tablet sem garcom_pin_digitado: a T0 nao deixa passar campo vazio')
+  }
   // Contato exige consentimento com finalidade `contato`. Sem isso, a LGPD nao fecha, e
   // gravar contato sem aceite e o tipo de coisa que ninguem descobre ate a fiscalizacao.
   const temContato =
     r.contato !== undefined &&
-    (r.contato.whatsapp !== undefined || r.contato.email !== undefined)
+    ((r.contato.whatsapp ?? '') !== '' || (r.contato.email ?? '') !== '')
   const aceitouContato = r.consentimentos.some((c) => c.finalidade === 'contato')
   if (temContato && !aceitouContato) {
     erros.push('contato oferecido sem consentimento de finalidade contato')

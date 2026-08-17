@@ -247,6 +247,22 @@ export function perguntaAberta(nota: number): Texto {
 // T6, contato. O rodape e deliberado e nao e juridico por acaso.
 // ---------------------------------------------------------------------------
 
+/**
+ * A versao do texto de consentimento que ESTE bundle mostra.
+ *
+ * Existe porque `consentimento.versao_texto` tem chave estrangeira para
+ * `consentimento_texto.versao`, e o valor padrao anterior, `'nao-verificada'`, nao existe no
+ * banco: a chave recusava a insercao e, como ela acontece dentro de `fn_grava_resposta`, a
+ * RESPOSTA INTEIRA era recusada. Como o consentimento de finalidade `pesquisa` vai em toda
+ * resposta, o efeito era nenhuma resposta gravada num projeto novo.
+ *
+ * O valor tem de casar com a versao semeada em
+ * `supabase/migrations/20260817107000_semeia_consentimento_texto.sql`, e
+ * `tests/contrato-consentimento.test.ts` confere isso. Trocar o texto da T6 sem inserir uma
+ * versao nova no banco e o que essa conferencia impede.
+ */
+export const VERSAO_TEXTO_EMBUTIDO = '1'
+
 export const T6 = {
   pergunta: { pt: 'Quer que a gente te responda?', en: 'Want us to get back to you?' },
   ajuda: {

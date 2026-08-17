@@ -263,3 +263,94 @@ describe('os outros dominios fechados que a gravacao atravessa', () => {
     expect(doCheck.has('backup_semanal')).toBe(true)
   })
 })
+
+describe('a versao do texto de consentimento existe no banco', () => {
+  /**
+   * `consentimento.versao_texto` tem chave estrangeira para `consentimento_texto.versao`, e a
+   * insercao acontece DENTRO de `fn_grava_resposta`. Uma versao que nao existe no banco nao perde
+   * o consentimento: derruba a RESPOSTA INTEIRA, com 23503.
+   *
+   * E o consentimento de finalidade `pesquisa` vai em TODA resposta. O valor padrao anterior era
+   * `'nao-verificada'`, e nenhuma migration semeava `consentimento_texto`: num projeto novo, a
+   * tabela nascia vazia, o catalogo devolvia `consentimento: null`, o PWA caia no padrao, e
+   * nenhuma resposta era gravada. Nunca. Com a fila do tablet tentando de novo para sempre.
+   */
+  const questionario = readFileSync(join(process.cwd(), 'src', 'coleta', 'questionario.ts'), 'utf8')
+
+  /** A versao que o bundle usa por omissao. */
+  function versaoEmbutida(): string {
+    const m = /const VERSAO_TEXTO_EMBUTIDO = '([^']+)'/.exec(questionario)
+    expect(m, 'VERSAO_TEXTO_EMBUTIDO nao esta declarada em questionario.ts').not.toBeNull()
+    return m![1]!
+  }
+
+  it('a versao embutida no bundle e semeada por uma migration', () => {
+    const versao = versaoEmbutida()
+    const re = new RegExp(
+      `insert into experiencia\\.consentimento_texto[\\s\\S]{0,400}?'${versao}'`,
+    )
+    expect(
+      re.test(SQL),
+      `nenhuma migration semeia consentimento_texto com a versao '${versao}'. ` +
+        'Sem ela, a chave estrangeira recusa TODA resposta que carregue consentimento.',
+    ).toBe(true)
+  })
+
+  it('o padrao do PWA e a versao embutida, e nunca um rotulo de desconhecido', () => {
+    const app = readFileSync(join(process.cwd(), 'src', 'coleta', 'App.tsx'), 'utf8')
+    expect(app).toContain('versaoTextoConsentimento = VERSAO_TEXTO_EMBUTIDO')
+    // O valor que quebrava, e SO como valor: o nome dele aparece de proposito num comentario que
+    // explica por que ele saiu, e apagar essa explicacao e como o erro volta.
+    const semComentarios = app
+      .split('\n')
+      .filter((l) => !l.trimStart().startsWith('//') && !l.trimStart().startsWith('*'))
+      .join('\n')
+    expect(semComentarios).not.toContain("'nao-verificada'")
+  })
+
+  it('o texto semeado e o mesmo que a T6 mostra', () => {
+    // Texto duplicado em dois lugares divergindo em silencio e justamente o que uma fiscalizacao
+    // encontraria: o aceite citaria uma versao cujo texto nao e o que estava na tela.
+    // Ancorado em `export const T6`: o primeiro `rodape` do arquivo e o da T1 ("Sua resposta e
+    // anonima"), e a primeira versao deste teste comparava o texto errado.
+    const t6 = questionario.slice(questionario.indexOf('export const T6'))
+    const m = /rodape: \{\s*pt: '([^']+)'/.exec(t6)
+    expect(m, 'nao achei o rodape da T6').not.toBeNull()
+    const daTela = m![1]!
+    expect(
+      SQL.includes(daTela),
+      `o texto semeado em consentimento_texto nao contem o rodape da T6: "${daTela}"`,
+    ).toBe(true)
+  })
+})
+
+describe('nenhum dado gravado fica sem leitura', () => {
+  /**
+   * `resposta_pergunta_sorteada.opcao_indice` era gravada e NUNCA lida: nenhuma das views a
+   * tocava, nenhuma tela a mostrava, nenhuma exportacao a levava. Uma pergunta era feita a cada
+   * cliente promotor, todas as noites, e a resposta nao podia ser vista por ninguem.
+   *
+   * O caso e generalizavel, e por isso o teste tambem e: coluna de dado coletado que nenhuma view
+   * le e trabalho pedido ao cliente sem retorno nenhum.
+   */
+  const retrato = JSON.parse(
+    readFileSync(join(process.cwd(), 'supabase', 'formas-das-views.json'), 'utf8'),
+  ) as Record<string, string[]>
+  const colunasDeViews = new Set(Object.values(retrato).flat())
+
+  it.each([
+    ['opcao_indice', 'a opcao escolhida na pergunta rotacionada'],
+    ['texto_cru', 'o texto que a pessoa escreveu'],
+    ['garcom_pin_digitado', 'o PIN cru, que e dado da resposta e nao autenticacao'],
+    ['mesa_digitada', 'a mesa crua, preservada mesmo sem casar com o cadastro'],
+    ['suspeita_motivo', 'por que a resposta foi marcada'],
+    ['fila_pendente', 'quantas respostas estao presas no aparelho'],
+    ['dias_lidos', 'os dias que o arquivo de venda cobre'],
+    ['importado_por', 'quem subiu a planilha a mao'],
+  ])('%s e lida por alguma view (%s)', (coluna) => {
+    expect(
+      colunasDeViews.has(coluna),
+      `\`${coluna}\` e gravada e nenhuma das views a devolve: dado coletado que ninguem pode ler`,
+    ).toBe(true)
+  })
+})

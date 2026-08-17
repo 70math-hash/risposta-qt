@@ -41,6 +41,7 @@ import {
   T6,
   T7,
   VERSAO_QUESTIONARIO,
+  VERSAO_TEXTO_EMBUTIDO,
   type Opcao,
   type PerguntaBanco,
   type Passo,
@@ -109,7 +110,11 @@ export function App(props: PropsColeta): React.ReactElement {
     dispositivoId,
     itens = [],
     perguntasAtivasDoBanco = [],
-    versaoTextoConsentimento = 'nao-verificada',
+    // O padrao e a versao EMBUTIDA no bundle, e nao um rotulo de desconhecido: o catalogo pode
+    // nao chegar (a coleta segue sem ele de proposito), e nesse caso o texto na tela e o do
+    // bundle, cuja versao existe no banco. `'nao-verificada'` fazia a chave estrangeira de
+    // `consentimento.versao_texto` recusar a resposta inteira.
+    versaoTextoConsentimento = VERSAO_TEXTO_EMBUTIDO,
   } = props
 
   const [idioma, setIdioma] = useState<Idioma>('pt')
@@ -384,17 +389,24 @@ export function App(props: PropsColeta): React.ReactElement {
           },
         ])
       }
-      if (opcaoIndice !== null && p.fator !== undefined) {
-        setOpcoes((prev) => [
-          ...prev,
-          {
-            tela: `ROT${indice + 1}`,
-            dimensao: p.dimensao,
-            fator: p.fator!,
-            opcao_codigo: String(opcaoIndice),
-          },
-        ])
-      }
+      // A resposta da rotacionada NAO vira linha em `resposta_opcao`, e isso e deliberado.
+      //
+      // Ela ja esta gravada acima, em `resposta_pergunta_sorteada`, com `pergunta_banco_id` e
+      // `opcao_indice`, que e a forma completa e sem perda: identifica a pergunta e a opcao
+      // escolhida. Escrever de novo em `resposta_opcao` fazia duas coisas erradas de uma vez:
+      //
+      //   1. Violava `resposta_opcao_tela_dominio`, que aceita so as telas de toque
+      //      (`T2A`, `T2B`, `T2C`, `T3C`, `T3C3`). Como a insercao acontece dentro de
+      //      `fn_grava_resposta`, a RESPOSTA INTEIRA era recusada com 23514.
+      //
+      //   2. Poluia a contagem por fator. `vw_fator_contagem` conta linha de `resposta_opcao`
+      //      por (dimensao, fator) e le isso como MENCAO A UM PROBLEMA. A rotacionada nao e
+      //      queixa: "O tempo de espera foi aceitavel?" respondida com `sim` (indice 0) entraria
+      //      como uma mencao a `tempo/espera_mesa` igual a de quem reclamou. O grafico ficaria
+      //      mais alto justamente onde a casa vai bem, e ninguem teria como perceber.
+      //
+      // A distribuicao de respostas das rotacionadas se le em `vw_pergunta_resposta`, que agrega
+      // `opcao_indice` com o rotulo da opcao ao lado.
     }
     const de: Passo = indice === 0 ? 'ROT1' : 'ROT2'
     registraTela(de, opcaoIndice === null)

@@ -28,9 +28,11 @@ import {
   type VwFatorContagem,
   type VwGarcomTrimestre,
   type VwHoje,
+  type VwImportacao,
   type VwItemTrimestre,
   type VwNpsJanela,
   type VwPerguntaDesempenho,
+  type VwPerguntaResposta,
   type VwSatisfacaoVendaDia,
   type VwSaudeRotina,
   type VwSemanaDetrator,
@@ -905,6 +907,8 @@ function AbaColeta(): React.ReactElement {
   const { dados: pulos } = useView<VwTelaPulo>('vw_tela_pulo')
   const { dados: duracoes } = useView<VwDuracaoSemana>('vw_duracao_semana')
   const { dados: perguntas } = useView<VwPerguntaDesempenho>('vw_pergunta_desempenho')
+  const { dados: respostasPergunta } = useView<VwPerguntaResposta>('vw_pergunta_resposta')
+  const { dados: importacoes } = useView<VwImportacao>('vw_importacao')
   const estado = <Estado carregando={carregando} erro={erro} />
   if (estado !== null) return estado
 
@@ -917,6 +921,15 @@ function AbaColeta(): React.ReactElement {
   const doMes = pulos
     .filter((p) => p.mes === mesPulo)
     .sort((a, b) => num(b.pulo_pct) - num(a.pulo_pct))
+
+  // O trimestre mais recente que a view de respostas devolve. Ela e trimestral, e nao por janela
+  // como `vw_pergunta_desempenho`: com 2 rotacionadas por promotor, mes nenhum junta amostra que
+  // sustente uma distribuicao.
+  const trimestrePergunta = [
+    ...new Set(respostasPergunta.map((p) => p.trimestre).filter((t) => t !== null)),
+  ]
+    .sort()
+    .pop()
 
   const janelaPergunta = [...new Set(perguntas.map((p) => p.janela))].includes('trimestre')
     ? 'trimestre'
@@ -1003,6 +1016,39 @@ function AbaColeta(): React.ReactElement {
         />
       </Cartao>
 
+      <Cartao
+        titulo="Importações do R3"
+        acao={<Exportar nome="importacoes" linhas={importacoes} />}
+      >
+        <Tabela
+          colunas={['Início', 'Origem', 'Arquivo', 'Dias cobertos', 'Linhas', 'Vigentes', 'Quem', 'Estado']}
+          linhas={importacoes.slice(0, 20).map((i) => [
+            (i.iniciado_em ?? '—').replace('T', ' ').slice(0, 16),
+            i.origem ?? '—',
+            i.arquivo ?? '—',
+            i.primeiro_dia === null
+              ? '—'
+              : i.primeiro_dia === i.ultimo_dia
+                ? i.primeiro_dia
+                : `${i.primeiro_dia} a ${i.ultimo_dia}`,
+            num(i.linhas),
+            // Menor que `linhas` significa que outro arquivo reimportou algum daqueles dias
+            // depois: o UNIQUE por (dia, produto) faz a linha passar a pertencer a execucao nova.
+            num(i.linhas_vigentes),
+            i.importado_por ?? 'automático',
+            <Marca
+              key="m"
+              estado={i.status === 'sucesso' ? (num(i.linhas_sem_item) > 0 ? 'meio' : 'cheio') : 'vazio'}
+              texto={i.status ?? '—'}
+            />,
+          ])}
+          rodape="`Vigentes` menor que `Linhas` significa que um arquivo posterior reimportou algum daqueles dias: a linha passa a pertencer à importação mais nova. O arquivo bruto de cada uma fica guardado, e é dele que se reprocessa quando o leitor do R3 precisa ser corrigido."
+        />
+        {importacoes.some((i) => i.aviso !== null) ? (
+          <AvisoDaView aviso={importacoes.find((i) => i.aviso !== null)?.aviso} />
+        ) : null}
+      </Cartao>
+
       <Cartao titulo="Duração do caminho, por semana" acao={<Exportar nome="duracao" linhas={duracoes} />}>
         <Tabela
           colunas={['Semana', 'Caminho', 'n', 'Descartadas', 'Mediana', 'p90']}
@@ -1019,6 +1065,29 @@ function AbaColeta(): React.ReactElement {
               </span>,
             ])}
           rodape="Mediana e p90, nunca média: uma pesquisa esquecida aberta na mesa por vinte minutos move a média e não move a mediana. As esquecidas entram na coluna de descartadas."
+        />
+      </Cartao>
+
+      <Cartao
+        titulo="O que responderam nas perguntas rotacionadas"
+        acao={<Exportar nome="pergunta-resposta" linhas={respostasPergunta} />}
+      >
+        <Tabela
+          colunas={['Nº', 'Pergunta', 'Resposta', 'Contagem', '% de quem respondeu', 'Pulo']}
+          linhas={respostasPergunta
+            .filter((p) => p.trimestre === trimestrePergunta)
+            .map((p) => [
+              num(p.numero),
+              p.texto_pt ?? '—',
+              // Rotulo nulo e indice que nao existe mais na lista de opcoes, o que acontece quando
+              // a pergunta e reescrita com menos opcoes. Aparece como o indice cru, e nao
+              // desaparece: a contagem antiga continua sendo verdade sobre o texto antigo.
+              p.rotulo ?? (p.opcao_indice === null ? '—' : `opção ${num(p.opcao_indice)}`),
+              num(p.respostas),
+              p.aviso === null ? pct(p.respostas_pct) : (p.aviso ?? ''),
+              pct(p.pulo_pct),
+            ])}
+          rodape="O índice da opção é gravado, e não o rótulo: rótulo muda com reescrita e com idioma, índice não. Esta tela é onde os dois se encontram. Sem ela, a resposta da rotacionada era gravada e nunca lida por ninguém."
         />
       </Cartao>
 

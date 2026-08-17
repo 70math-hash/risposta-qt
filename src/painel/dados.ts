@@ -342,6 +342,29 @@ export interface VwHoje {
   aviso: string | null
 }
 
+/** `experiencia.vw_importacao`. Forma lida do banco, nao escrita a mao. */
+export interface VwImportacao {
+  id: string | null
+  origem: string | null
+  arquivo: string | null
+  hash: string | null
+  dias_lidos: string[] | null
+  primeiro_dia: string | null
+  ultimo_dia: string | null
+  dias_cobertos: number | null
+  linhas: number | null
+  status: string | null
+  erro: string | null
+  importado_por: string | null
+  iniciado_em: string | null
+  terminado_em: string | null
+  duracao_s: number | null
+  bruto_bytes: number | null
+  linhas_vigentes: number | null
+  linhas_sem_item: number | null
+  aviso: string | null
+}
+
 /** `experiencia.vw_item_trimestre`. Forma lida do banco, nao escrita a mao. */
 export interface VwItemTrimestre {
   item_cardapio_id: string | null
@@ -387,6 +410,27 @@ export interface VwPerguntaDesempenho {
   sorteadas: number | null
   respondidas: number | null
   respondidas_pct: number | null
+  aviso: string | null
+}
+
+/** `experiencia.vw_pergunta_resposta`. Forma lida do banco, nao escrita a mao. */
+export interface VwPerguntaResposta {
+  pergunta_banco_id: string | null
+  numero: number | null
+  texto_pt: string | null
+  dimensao: string | null
+  fator: string | null
+  ativa: boolean | null
+  em_foco: boolean | null
+  trimestre: string | null
+  opcao_indice: number | null
+  rotulo: string | null
+  respostas: number | null
+  respondidas: number | null
+  puladas: number | null
+  sorteadas: number | null
+  respostas_pct: number | null
+  pulo_pct: number | null
   aviso: string | null
 }
 

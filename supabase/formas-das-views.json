@@ -240,6 +240,27 @@
     "conversao_pct",
     "aviso"
   ],
+  "vw_importacao": [
+    "id",
+    "origem",
+    "arquivo",
+    "hash",
+    "dias_lidos",
+    "primeiro_dia",
+    "ultimo_dia",
+    "dias_cobertos",
+    "linhas",
+    "status",
+    "erro",
+    "importado_por",
+    "iniciado_em",
+    "terminado_em",
+    "duracao_s",
+    "bruto_bytes",
+    "linhas_vigentes",
+    "linhas_sem_item",
+    "aviso"
+  ],
   "vw_item_trimestre": [
     "item_cardapio_id",
     "nome_pt",
@@ -280,6 +301,25 @@
     "sorteadas",
     "respondidas",
     "respondidas_pct",
+    "aviso"
+  ],
+  "vw_pergunta_resposta": [
+    "pergunta_banco_id",
+    "numero",
+    "texto_pt",
+    "dimensao",
+    "fator",
+    "ativa",
+    "em_foco",
+    "trimestre",
+    "opcao_indice",
+    "rotulo",
+    "respostas",
+    "respondidas",
+    "puladas",
+    "sorteadas",
+    "respostas_pct",
+    "pulo_pct",
     "aviso"
   ],
   "vw_satisfacao_venda_dia": [

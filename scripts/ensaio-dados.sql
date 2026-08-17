@@ -164,8 +164,18 @@ insert into experiencia.dispositivo (id, apelido, uso) values
   ('cccccccc-0000-4000-8000-000000000002', 'tablet 2', 'em_uso'),
   ('cccccccc-0000-4000-8000-000000000005', 'tablet 5', 'reserva');
 
-insert into experiencia.consentimento_texto (versao, texto, vigente_de) values
-  ('1', 'Texto de consentimento de ensaio.', '2026-01-01');
+-- `consentimento_texto` NAO e semeada aqui: a migration 20260817107000 ja semeia a versao `1`,
+-- que e a mesma que o bundle do PWA usa por omissao. Semear de novo aqui esconderia a ausencia da
+-- migration, e a ausencia dela e o que recusava toda resposta com consentimento (A04).
+do $$
+begin
+  if not exists (select 1 from experiencia.consentimento_texto where versao = '1') then
+    raise exception
+      'consentimento_texto nao tem a versao 1. A migration que a semeia nao rodou, e sem ela a '
+      'chave estrangeira de consentimento.versao_texto recusa TODA resposta com consentimento.';
+  end if;
+end
+$$;
 
 insert into experiencia.item_cardapio (id, nome_pt, nome_en, grupo, produto_id_pdv, produto_nome_norm) values
   ('dddddddd-0000-4000-8000-000000000001', 'Margherita',  'Margherita',  'pizza',    'ALT-100', 'MARGHERITA'),
@@ -847,10 +857,10 @@ begin
   -- Vinte e cinco de leitura mais `vw_texto_a_classificar`, que e view de trabalho da rotina do
   -- classificador. Numero fixo de proposito: view que deixa de ser criada tem de derrubar isto,
   -- e nao passar como "contei as que existem".
-  if v_total <> 26 then
-    raise exception 'esperava 26 views executaveis e contei %', v_total;
+  if v_total <> 28 then
+    raise exception 'esperava 28 views executaveis e contei %', v_total;
   end if;
-  raise notice 'ok  as 26 views executam contra dado, e nenhuma levanta erro';
+  raise notice 'ok  as 28 views executam contra dado, e nenhuma levanta erro';
 end
 $$;
 
@@ -922,6 +932,155 @@ begin
   if v_n <> 2 then raise exception 'anonimizar apagou o consentimento, que e a prova do aceite'; end if;
 
   raise notice 'ok  anonimizacao: dado pessoal sai, resposta e consentimento ficam';
+end
+$$;
+
+-- =============================================================================
+-- PARTE 15B. As tres recusas que a critica adversarial da Etapa 4 encontrou (A01, A02, A04).
+--
+-- As tres tinham a mesma forma: um valor que o codigo escreve e o banco recusa, numa tabela FILHA
+-- inserida DENTRO de `fn_grava_resposta`. Como e a mesma transacao, a filha recusada derruba a
+-- RESPOSTA INTEIRA. Nenhuma delas perde um campo: perde tudo.
+-- =============================================================================
+do $$
+declare
+  v_id  uuid;
+  v_n   integer;
+  v_p   jsonb;
+begin
+  -- A01: as telas que o quiosque grava de verdade, incluindo ROT1 e ROT2. Antes da correcao, o
+  -- CHECK aceitava `T3` e `T4`, nomes que nenhuma ponta escreve, e recusava estes dois.
+  v_p := jsonb_build_object(
+    'id', '99999999-9999-4999-8999-000000000a01',
+    'criado_em_cliente', to_char(now(),'YYYY-MM-DD"T"HH24:MI:SSOF'),
+    'nota', 10, 'canal', 'tablet', 'idioma', 'pt', 'versao_questionario', '1.0.0',
+    'mesa_digitada', '7', 'garcom_pin_digitado', '1234',
+    'dispositivo_id', 'cccccccc-0000-4000-8000-000000000001',
+    'opcoes', '[]'::jsonb, 'itens', '[]'::jsonb, 'sorteadas', '[]'::jsonb,
+    'consentimentos', '[]'::jsonb,
+    'telas', jsonb_build_array(
+      jsonb_build_object('tela','T0','entrou_em', now(), 'saiu_em', now(), 'pulou', false),
+      jsonb_build_object('tela','T1','entrou_em', now(), 'saiu_em', now(), 'pulou', false),
+      jsonb_build_object('tela','T2A','entrou_em', now(), 'saiu_em', now(), 'pulou', false),
+      jsonb_build_object('tela','ROT1','entrou_em', now(), 'saiu_em', now(), 'pulou', false),
+      jsonb_build_object('tela','ROT2','entrou_em', now(), 'saiu_em', now(), 'pulou', false),
+      jsonb_build_object('tela','T5','entrou_em', now(), 'saiu_em', now(), 'pulou', true),
+      jsonb_build_object('tela','T6','entrou_em', now(), 'saiu_em', now(), 'pulou', true),
+      jsonb_build_object('tela','T7','entrou_em', now(), 'saiu_em', now(), 'pulou', false)));
+
+  v_id := experiencia.fn_grava_resposta(v_p);
+  select count(*) into v_n from experiencia.tela_evento where resposta_id = v_id;
+  if v_n <> 8 then
+    raise exception 'A01: das 8 telas do caminho de promotor, % chegaram. ROT1 e ROT2 sao as que o CHECK recusava, e a recusa derrubava a resposta inteira', v_n;
+  end if;
+  raise notice 'ok  A01: as 8 telas do caminho de promotor, com ROT1 e ROT2, sao aceitas';
+
+  -- A04: o consentimento com a versao EMBUTIDA no bundle. Antes da correcao, o padrao do PWA era
+  -- `nao-verificada`, que a chave estrangeira nao encontra, e `consentimento_texto` nascia vazia.
+  v_id := experiencia.fn_grava_resposta(jsonb_build_object(
+    'id', '99999999-9999-4999-8999-000000000a04',
+    'criado_em_cliente', to_char(now(),'YYYY-MM-DD"T"HH24:MI:SSOF'),
+    'nota', 9, 'canal', 'tablet', 'idioma', 'pt', 'versao_questionario', '1.0.0',
+    'mesa_digitada', '7', 'garcom_pin_digitado', '1234',
+    'dispositivo_id', 'cccccccc-0000-4000-8000-000000000001',
+    'opcoes', '[]'::jsonb, 'itens', '[]'::jsonb, 'sorteadas', '[]'::jsonb, 'telas', '[]'::jsonb,
+    'consentimentos', jsonb_build_array(
+      jsonb_build_object('finalidade','pesquisa','versao_texto','1','aceito_em', now()))));
+
+  select count(*) into v_n from experiencia.consentimento
+   where resposta_id = v_id and versao_texto = '1';
+  if v_n <> 1 then
+    raise exception 'A04: o consentimento com a versao embutida no bundle nao foi gravado';
+  end if;
+  raise notice 'ok  A04: consentimento com a versao 1, que a semente garante existir';
+
+  -- A02: a tela `ROT1` NAO e valor valido em `resposta_opcao`, e o quiosque parou de escrever la.
+  -- Este e um teste de NEGACAO: o banco tem de continuar recusando, senao a contagem por fator
+  -- volta a poder ser poluida por resposta de rotacionada.
+  begin
+    perform experiencia.fn_grava_resposta(jsonb_build_object(
+      'id', '99999999-9999-4999-8999-000000000a02',
+      'criado_em_cliente', to_char(now(),'YYYY-MM-DD"T"HH24:MI:SSOF'),
+      'nota', 9, 'canal', 'tablet', 'idioma', 'pt', 'versao_questionario', '1.0.0',
+      'garcom_pin_digitado', '1234',
+      'dispositivo_id', 'cccccccc-0000-4000-8000-000000000001',
+      'itens', '[]'::jsonb, 'sorteadas', '[]'::jsonb, 'telas', '[]'::jsonb,
+      'consentimentos', '[]'::jsonb,
+      'opcoes', jsonb_build_array(
+        jsonb_build_object('tela','ROT1','dimensao','comida','fator','sabor','opcao_codigo','0'))));
+    raise exception 'A02: resposta_opcao aceitou a tela ROT1. A resposta de rotacionada voltaria a contar como mencao a um problema em vw_fator_contagem, inflando o grafico justamente onde a casa vai bem';
+  exception when check_violation then
+    null;
+  end;
+  raise notice 'ok  A02: resposta_opcao continua recusando ROT1, que e onde a poluicao entrava';
+end
+$$;
+
+-- -----------------------------------------------------------------------------
+-- A view que passou a dar leitura ao `opcao_indice`, que era gravado e nunca lido.
+-- -----------------------------------------------------------------------------
+do $$
+declare
+  v_r record;
+  v_n integer;
+begin
+  -- Duas respostas de promotor, respondendo a MESMA pergurta com indices diferentes.
+  perform experiencia.fn_grava_resposta(jsonb_build_object(
+    'id', '99999999-9999-4999-8999-00000000b001',
+    'criado_em_cliente', to_char(now(),'YYYY-MM-DD"T"HH24:MI:SSOF'),
+    'nota', 10, 'canal', 'tablet', 'idioma', 'pt', 'versao_questionario', '1.0.0',
+    'garcom_pin_digitado', '1234', 'dispositivo_id', 'cccccccc-0000-4000-8000-000000000001',
+    'opcoes', '[]'::jsonb, 'itens', '[]'::jsonb, 'telas', '[]'::jsonb, 'consentimentos', '[]'::jsonb,
+    'sorteadas', jsonb_build_array(jsonb_build_object(
+      'pergunta_banco_id','eeeeeeee-0000-4000-8000-000000000001','respondida',true,'opcao_indice',0))));
+
+  perform experiencia.fn_grava_resposta(jsonb_build_object(
+    'id', '99999999-9999-4999-8999-00000000b002',
+    'criado_em_cliente', to_char(now(),'YYYY-MM-DD"T"HH24:MI:SSOF'),
+    'nota', 10, 'canal', 'tablet', 'idioma', 'pt', 'versao_questionario', '1.0.0',
+    'garcom_pin_digitado', '5678', 'dispositivo_id', 'cccccccc-0000-4000-8000-000000000001',
+    'opcoes', '[]'::jsonb, 'itens', '[]'::jsonb, 'telas', '[]'::jsonb, 'consentimentos', '[]'::jsonb,
+    'sorteadas', jsonb_build_array(jsonb_build_object(
+      'pergunta_banco_id','eeeeeeee-0000-4000-8000-000000000001','respondida',true,'opcao_indice',2))));
+
+  -- Uma sorteada e PULADA, que tambem e dado: pulo alto e sinal de pergunta mal escrita.
+  perform experiencia.fn_grava_resposta(jsonb_build_object(
+    'id', '99999999-9999-4999-8999-00000000b003',
+    'criado_em_cliente', to_char(now(),'YYYY-MM-DD"T"HH24:MI:SSOF'),
+    'nota', 9, 'canal', 'tablet', 'idioma', 'pt', 'versao_questionario', '1.0.0',
+    'garcom_pin_digitado', '1234', 'dispositivo_id', 'cccccccc-0000-4000-8000-000000000001',
+    'opcoes', '[]'::jsonb, 'itens', '[]'::jsonb, 'telas', '[]'::jsonb, 'consentimentos', '[]'::jsonb,
+    'sorteadas', jsonb_build_array(jsonb_build_object(
+      'pergunta_banco_id','eeeeeeee-0000-4000-8000-000000000001','respondida',false))));
+
+  -- O ROTULO tem de casar com o indice. `opcoes` da pergunta 1 e ["sim","mais ou menos","nao"],
+  -- entao indice 0 e `sim` e indice 2 e `nao`. Errar por um trocaria `sim` por `mais ou menos` em
+  -- silencio, e o painel diria o contrario do que as pessoas responderam.
+  select * into v_r from experiencia.vw_pergunta_resposta
+   where pergunta_banco_id = 'eeeeeeee-0000-4000-8000-000000000001' and opcao_indice = 0;
+  if v_r.rotulo <> 'sim' then
+    raise exception 'vw_pergunta_resposta: indice 0 deu rotulo "%", esperado "sim". Deslocamento de um em `ordinality - 1` inverteria a leitura de toda pergunta', v_r.rotulo;
+  end if;
+  if v_r.respostas <> 1 then
+    raise exception 'indice 0 deveria ter 1 resposta e tem %', v_r.respostas;
+  end if;
+
+  select * into v_r from experiencia.vw_pergunta_resposta
+   where pergunta_banco_id = 'eeeeeeee-0000-4000-8000-000000000001' and opcao_indice = 2;
+  if v_r.rotulo <> 'nao' then
+    raise exception 'vw_pergunta_resposta: indice 2 deu rotulo "%", esperado "nao"', v_r.rotulo;
+  end if;
+
+  -- O pulo entra no denominador de sorteadas e nao no de respondidas.
+  select respondidas, puladas, sorteadas into v_r
+  from experiencia.vw_pergunta_resposta
+  where pergunta_banco_id = 'eeeeeeee-0000-4000-8000-000000000001' limit 1;
+  if v_r.respondidas <> 2 or v_r.puladas <> 1 or v_r.sorteadas <> 3 then
+    raise exception 'vw_pergunta_resposta: respondidas=% puladas=% sorteadas=%, esperado 2, 1 e 3',
+      v_r.respondidas, v_r.puladas, v_r.sorteadas;
+  end if;
+
+  raise notice 'ok  vw_pergunta_resposta: rotulo casa com o indice, e o pulo conta em sorteadas';
 end
 $$;
 

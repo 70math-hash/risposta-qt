@@ -25,6 +25,11 @@ CORTE_DIA_HORAS = "6"
 # Segredos, definidos com `wrangler secret put`, NUNCA neste arquivo:
 #   SUPABASE_URL
 #   SUPABASE_SERVICE_KEY   (nunca vai para o bundle do PWA)
+#   SUPABASE_ANON_KEY      (a publica; so para /auth/v1/user conferir a sessao do painel na
+#                           rota de importacao manual. Nao escreve nada. Ver worker/lib/sessao.ts)
 #   RESEND_API_KEY
 #   GROQ_API_KEY
 #   DRIVE_SA_JSON          (conta de servico, somente leitura, em UMA pasta)
+#
+# Sem SUPABASE_ANON_KEY, a rota POST /api/importa-r3 responde 401 dizendo exatamente isso, em vez
+# de abrir sem conferir sessao: rota que escreve faturamento nao abre por falta de configuracao.

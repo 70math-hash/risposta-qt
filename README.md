@@ -132,3 +132,46 @@ correção é migration nova. Nada de DDL ad hoc pelo painel do Supabase.
 | [`docs/pesquisa/`](docs/pesquisa/) | A pesquisa competitiva: 82 fornecedores, com verificação adversarial |
 
 Onde dois documentos divergirem, a precedência está na seção 10 da folha canônica.
+
+## Como se verifica este sistema
+
+Quatro camadas, e cada uma existe porque a de cima nao alcanca o que a de baixo erra.
+
+```
+npm run verifica          tsc + 200 testes + build.  Roda em qualquer maquina, sem banco.
+scripts/ensaio.sh         as 16 migrations num Postgres local, do zero.
+scripts/ensaio.sh --dados as migrations + as funcoes exercitadas com dado + o Worker de verdade.
+```
+
+**1. `tsc --noEmit`.** Pega o que e tipo. Nao pega nada que atravesse uma fronteira como texto:
+nome de coluna dentro de `select=...`, nome de argumento de funcao, chave de payload JSON. Foi
+nessa fronteira que moraram quinze dos erros consertados neste projeto.
+
+**2. Os testes de contrato** (`tests/contrato-*.test.ts`). Leem as migrations de verdade e as
+fontes de verdade, e comparam. Nao precisam de banco, entao rodam em `npm test`:
+
+- `contrato-sql`: as chaves que `fn_grava_resposta` le existem no payload que o Worker envia.
+- `contrato-colunas`: toda coluna que o Worker pede e escreve existe em tabela ou em view; os
+  dominios fechados escritos em TypeScript sao o mesmo conjunto que o `check` do banco.
+- `contrato-views`: as 25 interfaces do painel tem exatamente os campos que a view devolve, e o
+  tipo passado a `useView` casa com a view lida.
+
+**3. `scripts/ensaio.sh --dados`.** Aplica as migrations num Postgres local e exercita as funcoes
+com dado, conferindo numero por numero — inclusive o custo recursivo da pizza, que da R$ 8,22 e
+esta calculado a mao dentro do arquivo. Roda tambem o caminho feliz da migracao das 74 linhas, com
+nomes que doem (acento, apostrofo, espaco nas pontas, vazio), duas vezes, para provar que
+reaplicar nao dobra.
+
+**4. `tests/worker-integracao.test.ts`.** O Worker rodando contra aquele Postgres, por HTTP.
+`scripts/postgrest-de-ensaio.mjs` traduz a requisicao para SQL e deixa o Postgres julgar: ele nao
+tem lista de colunas validas, entao nao consegue aprovar um pedido que o PostgREST recusaria.
+
+Se o substituto nao estiver no ar, esses 16 casos sao **pulados com aviso em stderr**, e nao
+aprovados. Pulado nao e verde.
+
+### O que ainda nao e verificado por nada
+
+- **A tela.** Nenhum teste renderiza um componente. O que protege o painel e o contrato de views.
+- **O envio de e-mail e a chamada da Groq.** So a montagem esta coberta; o envio, nao.
+- **A premissa de custo.** `rn`, `rendimento` e `rn_override` sao `NAO VERIFICADO` (N46). A view
+  devolve `premissa_conferida = false` e o painel escreve isso na tela, em toda leitura.

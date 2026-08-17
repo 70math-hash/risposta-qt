@@ -455,3 +455,62 @@ describe('os dominios fechados escritos em TypeScript casam com o CHECK do banco
     expect(classificador).toContain('SEVERIDADES.includes')
   })
 })
+
+describe('a rota de importacao manual escreve faturamento, e por isso exige sessao', () => {
+  const worker = arquivosDoWorker()
+    .map((f) => f.texto)
+    .join('\n')
+  const index = readFileSync(join(process.cwd(), 'worker', 'index.ts'), 'utf8')
+
+  it('a rota existe e esta registrada no switch', () => {
+    expect(index).toContain("case 'POST /api/importa-r3':")
+  })
+
+  it('a rota confere a sessao ANTES de qualquer escrita', () => {
+    // A ordem e o que importa. Conferir depois de gravar o arquivo bruto deixaria qualquer pessoa
+    // com a URL encher `execucao_importacao` de lixo, com a chave de servico por tras.
+    const rota = index.slice(index.indexOf('async function postImportaR3'))
+    const corpo = rota.slice(0, rota.indexOf('\n}\n'))
+    const iSessao = corpo.indexOf('usuarioDaRequisicao')
+    const iEscrita = corpo.indexOf('importaR3(env')
+    expect(iSessao).toBeGreaterThan(-1)
+    expect(iEscrita).toBeGreaterThan(-1)
+    expect(iSessao, 'a sessao tem de ser conferida antes de importar').toBeLessThan(iEscrita)
+  })
+
+  it('a conferencia de sessao usa a chave publica, e nunca a de servico', () => {
+    // Com a chave de servico, `/auth/v1/user` responde sobre o proprio service_role e a
+    // conferencia passaria SEMPRE: a funcao viraria uma que so sabe dizer sim.
+    const sessao = readFileSync(join(process.cwd(), 'worker', 'lib', 'sessao.ts'), 'utf8')
+    expect(sessao).toContain('SUPABASE_ANON_KEY')
+    expect(sessao).not.toContain('SUPABASE_SERVICE_KEY')
+  })
+
+  it('as rotas do quiosque continuam sem exigir sessao', () => {
+    // Exigir sessao no quiosque quebraria a coleta: o tablet nao tem usuario, e a fila dele envia
+    // horas depois. As duas funcoes que ele chama tem escopo minimo, e e isso que o protege.
+    for (const rota of ['postResposta', 'postTentativa', 'postSinal']) {
+      const trecho = index.slice(index.indexOf(`async function ${rota}`))
+      const corpo = trecho.slice(0, trecho.indexOf('\n}\n'))
+      expect(corpo, `${rota} passou a exigir sessao e isso derruba a coleta`).not.toContain(
+        'usuarioDaRequisicao',
+      )
+    }
+  })
+
+  it('existe UMA implementacao da importacao, usada pelos dois gatilhos', () => {
+    // Duas implementacoes divergiriam, e a divergencia cairia no caminho manual, que e o que se
+    // usa quando o automatico ja falhou.
+    const watcher = readFileSync(join(process.cwd(), 'worker', 'rotinas', 'watcher-drive.ts'), 'utf8')
+    expect(watcher).toContain('importaR3')
+    expect(index).toContain('importaR3')
+    // O watcher nao pode ter voltado a montar a linha de venda por conta propria.
+    expect(watcher).not.toContain('execucao_importacao_id')
+    expect(watcher).not.toContain("insere(env, 'venda_produto_dia'")
+  })
+
+  it('a chave publica do Worker esta documentada nos dois lugares que a configuram', () => {
+    expect(readFileSync(join(process.cwd(), 'wrangler.toml'), 'utf8')).toContain('SUPABASE_ANON_KEY')
+    expect(readFileSync(join(process.cwd(), '.env.example'), 'utf8')).toContain('SUPABASE_ANON_KEY')
+  })
+})

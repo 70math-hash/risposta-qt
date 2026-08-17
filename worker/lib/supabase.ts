@@ -13,6 +13,12 @@
 export interface Ambiente {
   SUPABASE_URL: string
   SUPABASE_SERVICE_KEY: string
+  /**
+   * A chave publica. Nao serve para escrever nada: existe so para o endpoint `/auth/v1/user`
+   * aceitar a pergunta "de quem e este token", que e como a rota de importacao manual confere a
+   * sessao do painel. Ver `worker/lib/sessao.ts`.
+   */
+  SUPABASE_ANON_KEY?: string
   RESEND_API_KEY?: string
   GROQ_API_KEY?: string
   DRIVE_SA_JSON?: string

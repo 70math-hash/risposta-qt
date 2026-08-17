@@ -93,6 +93,45 @@ if [[ "${1:-}" == "--dados" ]]; then
   rm -f "$COPIA"
 
   psql_ -f "$RAIZ/scripts/ensaio-semente-confere.sql"
+
+  # ---------------------------------------------------------------------------
+  # O Worker, rodando de verdade contra este banco.
+  #
+  # `scripts/postgrest-de-ensaio.mjs` traduz a requisicao para SQL e deixa o POSTGRES julgar: ele
+  # nao tem lista de colunas validas. Coluna errada volta como o 42703 do proprio banco, que e o
+  # mesmo erro que o PostgREST devolveria.
+  #
+  # `tests/worker-integracao.test.ts` PULA os casos quando o substituto nao esta no ar, e avisa em
+  # stderr que pulou. Este bloco existe para que, aqui, ele nao pule: e o unico lugar onde a camada
+  # HTTP do Worker e executada.
+  # ---------------------------------------------------------------------------
+  if [[ -d "$RAIZ/node_modules/pg" ]]; then
+    echo "== o Worker contra este banco =="
+    PGUSER="${PGUSER_ENSAIO:-root}" node "$RAIZ/scripts/postgrest-de-ensaio.mjs" 8788 &
+    PGREST=$!
+    # Espera o socket abrir, em vez de dormir um tempo fixo: `sleep` curto demais faz o teste pular
+    # em silencio, e pulado nao e aprovado.
+    for _ in $(seq 1 40); do
+      if curl -sS -m 1 -o /dev/null "http://127.0.0.1:8788/rest/v1/mesa?select=numero&limit=1" \
+        -H 'accept-profile: experiencia' 2>/dev/null; then
+        break
+      fi
+      sleep 0.25
+    done
+
+    npx vitest run tests/worker-integracao.test.ts
+    RESULTADO=$?
+    kill "$PGREST" 2>/dev/null || true
+    wait "$PGREST" 2>/dev/null || true
+    if [[ $RESULTADO -ne 0 ]]; then
+      echo "  os testes de integracao do Worker FALHARAM"
+      exit 1
+    fi
+  else
+    # Dito alto, e nao omitido: sem o cliente de Postgres nao ha substituto, e sem substituto a
+    # camada HTTP do Worker nao e exercitada por nada.
+    echo "  pg nao instalado (npm install --no-save pg). A camada HTTP do Worker NAO foi testada."
+  fi
 fi
 
 echo "== fim =="

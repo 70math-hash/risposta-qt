@@ -485,3 +485,70 @@ export function baixaCsv<T extends object>(nome: string, linhas: readonly T[]): 
   a.click()
   URL.revokeObjectURL(url)
 }
+
+/**
+ * O resultado de uma importacao manual do R3, como o Worker o devolve.
+ *
+ * `status: 'erro'` NAO significa que nada aconteceu: o arquivo bruto foi gravado, e e por isso que
+ * se pode reprocessar depois de consertar o parser (ADR-12). Significa que nenhuma VENDA foi
+ * gravada. A tela precisa dizer as duas coisas, porque "deu erro" faria a pessoa reenviar o mesmo
+ * arquivo achando que ele nao chegou.
+ */
+export interface ResultadoImportacao {
+  ok: boolean
+  duplicada?: boolean
+  mensagem?: string
+  execucao_id?: string
+  arquivo?: string
+  status?: 'sucesso' | 'erro'
+  linhas_lidas?: number
+  linhas_gravadas?: number
+  dias?: string[]
+  sem_item_no_cardapio?: number
+  nomes_sem_item?: string[]
+  erros?: string[]
+  erro?: string
+}
+
+/**
+ * Envia um arquivo R3 para o Worker importar.
+ *
+ * Passa pelo Worker, e nao direto para o banco, porque a importacao escreve em duas tabelas numa
+ * ordem que importa (o bruto ANTES da venda) e resolve `item_cardapio_id` em cada linha. Fazer
+ * isso do navegador exigiria dar ao painel permissao de escrita em `venda_produto_dia`, e a regra
+ * do projeto e que o painel nao escreve.
+ *
+ * O token da sessao vai no cabecalho: esta e a unica rota do Worker que exige sessao, porque e a
+ * unica em que uma pessoa escreve faturamento.
+ */
+export async function enviaR3(arquivo: File, dia?: string): Promise<ResultadoImportacao> {
+  const { data } = await supabase().auth.getSession()
+  const token = data.session?.access_token
+  if (token === undefined) {
+    return { ok: false, erro: 'sessão expirada. Entre no painel de novo antes de importar.' }
+  }
+
+  const base = (import.meta.env.VITE_API_BASE as string | undefined) ?? ''
+  // O dia vai como parametro porque o R3 pode nao ter coluna de data: o relatorio e de um dia e a
+  // data fica no cabecalho impresso. Sem ele, um arquivo desses falha, e o caminho manual nao
+  // conseguiria consertar exatamente o caso para o qual existe.
+  const consulta =
+    `arquivo=${encodeURIComponent(arquivo.name)}` +
+    (dia !== undefined && dia !== '' ? `&dia=${encodeURIComponent(dia)}` : '')
+  const resp = await fetch(`${base}/api/importa-r3?${consulta}`, {
+    method: 'POST',
+    headers: {
+      authorization: `Bearer ${token}`,
+      'content-type': 'text/csv',
+    },
+    // O corpo e o arquivo cru, e nao `FormData`: o Worker guarda os BYTES exatos que chegaram, e
+    // multipart acrescentaria fronteira e cabecalho que teriam de ser removidos antes de gravar.
+    body: arquivo,
+  })
+
+  const corpo = (await resp.json().catch(() => ({}))) as ResultadoImportacao
+  if (!resp.ok) {
+    return { ok: false, erro: corpo.erro ?? `o servidor devolveu ${resp.status}` }
+  }
+  return corpo
+}

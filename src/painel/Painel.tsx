@@ -14,8 +14,10 @@ import { SimboloQt } from '../comum/SimboloQt.js'
 import { rotuloDiaOperacional, diaOperacionalAnterior } from '../comum/dia-operacional.js'
 import {
   baixaCsv,
+  enviaR3,
   le,
   supabase,
+  type ResultadoImportacao,
   type VwAlertaIncidente,
   type VwClienteMes,
   type VwColetaDia,
@@ -769,6 +771,133 @@ function AbaPratos(): React.ReactElement {
   )
 }
 
+
+/**
+ * O botao de importar o R3 a mao.
+ *
+ * POR QUE ELE EXISTE, num painel que por regra nao escreve
+ *   O caminho normal e o watcher do Drive, de meia em meia hora. Ele depende de tres coisas fora
+ *   do nosso alcance: a pasta continuar sincronizada, o arquivo continuar sendo exportado, e o
+ *   nome nao mudar. Quando uma das tres falha, o dia fica sem faturamento, o cruzamento de
+ *   satisfacao com venda fica sem denominador, e nao existe outro jeito de consertar sem alguem
+ *   com acesso ao servidor.
+ *
+ *   Este botao e o unico ponto do painel que causa escrita, e a escrita acontece no Worker, atras
+ *   de conferencia de sessao. A tela nao insere linha nenhuma.
+ *
+ * O QUE ELE MOSTRA, E POR QUE
+ *   Nunca so "importado". Mostra linhas lidas, linhas gravadas, os dias que o arquivo cobre e os
+ *   produtos que nao casaram com o cardapio. Os quatro numeros existem porque os quatro podem
+ *   estar errados de formas diferentes, e "importado" esconde todas: arquivo do dia errado, parser
+ *   que leu metade, e produto sem `id_altec` cadastrado, que entra no faturamento e NAO entra no
+ *   cruzamento de reclamacao por 100 unidades.
+ */
+function ImportaR3(): React.ReactElement {
+  const [estado, setEstado] = useState<'parado' | 'enviando'>('parado')
+  const [dia, setDia] = useState('')
+  const [r, setR] = useState<ResultadoImportacao | null>(null)
+
+  const envia = async (arquivo: File | undefined) => {
+    if (arquivo === undefined) return
+    setEstado('enviando')
+    setR(null)
+    try {
+      setR(await enviaR3(arquivo, dia))
+    } catch (e) {
+      setR({ ok: false, erro: e instanceof Error ? e.message : 'erro desconhecido' })
+    } finally {
+      setEstado('parado')
+    }
+  }
+
+  return (
+    <Cartao titulo="Importar o R3 à mão">
+      <p className="ajuda" style={{ margin: 0 }}>
+        O caminho normal é a pasta do Drive, lida de meia em meia hora. Use isto quando um dia
+        ficou sem faturamento: o arquivo é guardado inteiro antes de ser interpretado, e enviar o
+        mesmo arquivo duas vezes não muda o faturamento do dia.
+      </p>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <span className="rotulo">Dia operacional (opcional)</span>
+        <input
+          className="campo"
+          type="date"
+          value={dia}
+          onChange={(e) => setDia(e.target.value)}
+          aria-label="Dia operacional do arquivo"
+          style={{ maxWidth: 220 }}
+        />
+        <span style={{ fontSize: 12, color: 'var(--tinta-3)' }}>
+          Preencha quando o arquivo não tiver coluna de data — o R3 de um dia costuma trazer a data
+          só no cabeçalho impresso. Se preencher, este dia vale para todas as linhas.
+        </span>
+      </div>
+
+      <label
+        className="btn btn--secundario"
+        style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+      >
+        {estado === 'enviando' ? 'Enviando…' : 'Escolher arquivo'}
+        <input
+          type="file"
+          accept=".csv,.txt,text/csv,text/plain"
+          disabled={estado === 'enviando'}
+          style={{ display: 'none' }}
+          onChange={(e) => {
+            void envia(e.target.files?.[0])
+            // Limpa o campo para reenviar o MESMO arquivo ser possivel: sem isto, escolher o
+            // mesmo nome de novo nao dispara `change` e o botao parece travado.
+            e.target.value = ''
+          }}
+        />
+      </label>
+
+      {r === null ? null : r.ok !== true ? (
+        <Aviso>Não importou: {r.erro ?? 'motivo não informado'}</Aviso>
+      ) : r.duplicada === true ? (
+        <Aviso>{r.mensagem ?? 'Este arquivo já havia sido importado.'}</Aviso>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--u2)' }}>
+          <Tabela
+            colunas={['Arquivo', 'Dias', 'Linhas lidas', 'Linhas gravadas', 'Sem item', 'Estado']}
+            linhas={[
+              [
+                r.arquivo ?? '—',
+                (r.dias ?? []).join(', ') || '—',
+                r.linhas_lidas ?? 0,
+                r.linhas_gravadas ?? 0,
+                r.sem_item_no_cardapio ?? 0,
+                <Marca
+                  key="m"
+                  estado={r.status === 'sucesso' ? 'cheio' : 'vazio'}
+                  texto={r.status ?? '—'}
+                />,
+              ],
+            ]}
+          />
+          {r.status === 'erro' ? (
+            <Aviso>
+              <strong>Nenhuma venda foi gravada</strong>, e o arquivo bruto <strong>foi</strong>{' '}
+              guardado. Isso é de propósito: dá para reprocessar depois de corrigir o leitor, sem
+              precisar exportar o R3 de novo. Motivo: {(r.erros ?? []).join(' · ')}
+            </Aviso>
+          ) : null}
+          {(r.nomes_sem_item ?? []).length > 0 ? (
+            <Aviso>
+              {r.sem_item_no_cardapio} produto(s) vendido(s) não existem no cadastro de cardápio.
+              A venda deles <strong>entra</strong> no faturamento do dia, e <strong>não</strong>{' '}
+              entra no cruzamento de reclamações por 100 unidades. Cadastrar o{' '}
+              <code>id_altec</code> deles é o que liga esse cruzamento:{' '}
+              {(r.nomes_sem_item ?? []).join(', ')}
+            </Aviso>
+          ) : null}
+        </div>
+      )}
+    </Cartao>
+  )
+}
+
 // --------------------------------------------------------------------------- Coleta
 
 function AbaColeta(): React.ReactElement {
@@ -802,6 +931,8 @@ function AbaColeta(): React.ReactElement {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--u3)' }}>
+      <ImportaR3 />
+
       <div style={GRADE}>
         <Cartao titulo="Suspeitas">
           <Proporcao parte={totalSusp} total={totalResp} legenda="respostas marcadas em 14 dias" />

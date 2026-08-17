@@ -23,6 +23,8 @@ import { rodaDigest } from './rotinas/digest.js'
 import { rodaClassificador } from './rotinas/classificador.js'
 import { rodaRetencao } from './rotinas/retencao.js'
 import { rodaWatcherDrive } from './rotinas/watcher-drive.js'
+import { importaR3, jaImportado, sha256 } from './rotinas/importa.js'
+import { SemSessao, usuarioDaRequisicao } from './lib/sessao.js'
 
 const CORS: Record<string, string> = {
   'access-control-allow-origin': '*',
@@ -197,6 +199,86 @@ async function getCatalogo(env: Ambiente): Promise<Response> {
   }
 }
 
+/**
+ * Importacao manual do R3, pelo painel.
+ *
+ * O caminho de conserto (F40): quando o watcher do Drive nao pegou um dia — pasta nao
+ * sincronizada, arquivo salvo com outro nome, ou o dia em que alguem esqueceu de exportar —, esta
+ * rota e como o dia entra sem esperar a proxima meia hora nem depender do Drive.
+ *
+ * EXIGE SESSAO, ao contrario das rotas do quiosque. As do quiosque escrevem so por duas funcoes
+ * de escopo minimo; esta escreve faturamento e guarda o arquivo bruto, com a chave de servico por
+ * tras. Ver `worker/lib/sessao.ts` para o porque.
+ *
+ * NAO recusa arquivo repetido: devolve `duplicada` e o resultado da importacao anterior. Reenviar
+ * o mesmo arquivo e um gesto normal de quem nao tem certeza se o primeiro envio funcionou, e a
+ * idempotencia de `venda_produto_dia` ja garante que o faturamento do dia nao muda. Recusar com
+ * erro faria a pessoa procurar um problema que nao existe.
+ */
+async function postImportaR3(req: Request, env: Ambiente): Promise<Response> {
+  let usuario
+  try {
+    usuario = await usuarioDaRequisicao(req, env)
+  } catch (e) {
+    if (e instanceof SemSessao) return erro(e.motivo, 401)
+    return erro(e instanceof Error ? e.message : 'erro desconhecido', 500)
+  }
+
+  const parametros = new URL(req.url).searchParams
+  const nome = parametros.get('arquivo') ?? 'envio-manual.csv'
+
+  // O dia operacional, quando quem importa informa. O R3 pode nao ter coluna de data (o relatorio
+  // e de um dia e a data fica no cabecalho impresso), e sem esta saida o caminho manual nao
+  // conseguiria consertar exatamente o caso para o qual existe.
+  const dia = parametros.get('dia')
+  if (dia !== null && !/^\d{4}-\d{2}-\d{2}$/.test(dia)) {
+    return erro(`dia invalido: ${dia}. Use o formato AAAA-MM-DD`, 422)
+  }
+
+  const bytes = await req.arrayBuffer()
+
+  if (bytes.byteLength === 0) {
+    return erro('arquivo vazio', 422)
+  }
+  // O teto existe porque `arquivo_bruto` vai inteiro para uma coluna `bytea` e o corpo passa pela
+  // memoria do Worker. Um R3 de um dia tem alguns kilobytes; 5 MB e folga de duas ordens de
+  // grandeza e ainda impede que um envio errado (um video, um zip) tente virar linha de banco.
+  if (bytes.byteLength > 5_000_000) {
+    return erro(`arquivo de ${Math.round(bytes.byteLength / 1024)} kB: o teto e 5 MB`, 413)
+  }
+
+  try {
+    const hash = await sha256(bytes)
+    if (await jaImportado(env, hash)) {
+      return json({
+        ok: true,
+        duplicada: true,
+        mensagem:
+          'Este arquivo exato já foi importado antes. Nada foi gravado de novo, e o faturamento do dia não mudou.',
+      })
+    }
+
+    const r = await importaR3(env, {
+      nome,
+      bytes,
+      origem: 'painel',
+      importadoPor: usuario.email,
+      ...(dia !== null ? { dia } : {}),
+    })
+    // Status 200 mesmo quando `r.status` e `erro`: a importacao ACONTECEU e o arquivo bruto esta
+    // gravado, o que e o que permite reprocessar. Devolver 5xx faria a tela dizer que nada
+    // aconteceu, e a proxima pessoa reenviaria o mesmo arquivo achando que nao chegou.
+    return json({ ok: true, ...r })
+  } catch (e) {
+    // `e.detalhe` junto, e nao so `e.message`. `ErroBanco.message` e sempre "PostgREST devolveu
+    // 400", que nao diz nada a quem le: o motivo real (coluna, constraint, chave estrangeira) vem
+    // no detalhe. Sem ele, a tela mostra um numero e quem esta consertando um dia faltante nao tem
+    // por onde comecar.
+    if (e instanceof ErroBanco) return erro(`${e.message}: ${e.detalhe}`, 502)
+    return erro(e instanceof Error ? e.message : 'erro desconhecido', 502)
+  }
+}
+
 export default {
   async fetch(req: Request, env: Ambiente): Promise<Response> {
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS })
@@ -213,6 +295,8 @@ export default {
         return postSinal(req, env)
       case 'GET /api/catalogo':
         return getCatalogo(env)
+      case 'POST /api/importa-r3':
+        return postImportaR3(req, env)
       case 'GET /api/saude':
         // Sonda simples, sem tocar o banco: responde se o Worker esta no ar.
         return ok()

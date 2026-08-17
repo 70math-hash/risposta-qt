@@ -16,7 +16,8 @@
     "test:watch": "vitest",
     "worker:dev": "wrangler dev",
     "worker:deploy": "wrangler deploy",
-    "verifica": "npm run typecheck && npm run test && npm run build"
+    "verifica": "npm run typecheck && npm run test && npm run build",
+    "ensaio": "scripts/ensaio.sh --dados"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.3",

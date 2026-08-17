@@ -24,21 +24,42 @@
 --   conferivel a mao.
 -- =============================================================================
 
--- Os papeis. O Supabase os cria; um Postgres cru nao, e sem eles todo `grant` das
--- migrations falha.
+-- -----------------------------------------------------------------------------
+-- Os tres papeis do Supabase, recriados A CADA EXECUCAO, com os atributos exatos com
+-- que o Supabase os cria:
+--
+--   create role anon           nologin noinherit;
+--   create role authenticated  nologin noinherit;
+--   create role service_role   nologin noinherit bypassrls;
+--
+-- O `noinherit` NAO e detalhe. Papel no Postgres so herda privilegio de um papel do qual e
+-- membro se for `inherit`, e desde o Postgres 16 a opcao e gravada NO MOMENTO DO GRANT, a
+-- partir do `rolinherit` que o membro tinha ali. A consequencia: se
+-- `grant experiencia_leitura to authenticated` rodar contra um `authenticated` que ja e
+-- `noinherit` (que e o caso num projeto Supabase de verdade), o painel entra pelo PostgREST
+-- como `authenticated`, nao herda nada de `experiencia_leitura`, e nao le UMA linha.
+--
+-- Papel e objeto do CLUSTER e nao do banco, entao ele sobrevive ao `drop database` do
+-- ensaio. Sem este `drop role`, o ensaio herda o papel da execucao anterior, com o
+-- `rolinherit` que ele tinha entao, e deixa de reproduzir um projeto novo justamente na
+-- propriedade que decide se o painel funciona.
+-- -----------------------------------------------------------------------------
 do $$
+declare p text;
 begin
-  if not exists (select 1 from pg_roles where rolname = 'anon') then
-    create role anon nologin noinherit;
-  end if;
-  if not exists (select 1 from pg_roles where rolname = 'authenticated') then
-    create role authenticated nologin noinherit;
-  end if;
-  if not exists (select 1 from pg_roles where rolname = 'service_role') then
-    create role service_role nologin noinherit bypassrls;
-  end if;
+  foreach p in array array['anon','authenticated','service_role'] loop
+    if exists (select 1 from pg_roles where rolname = p) then
+      execute format('reassign owned by %I to postgres', p);
+      execute format('drop owned by %I', p);
+      execute format('drop role %I', p);
+    end if;
+  end loop;
 end
 $$;
+
+create role anon          nologin noinherit;
+create role authenticated nologin noinherit;
+create role service_role  nologin noinherit bypassrls;
 
 create extension if not exists pgcrypto;
 

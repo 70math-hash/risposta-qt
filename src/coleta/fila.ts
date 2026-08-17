@@ -21,6 +21,19 @@ const LOJA_RESPOSTA = 'fila_resposta'
 const LOJA_TENTATIVA = 'fila_tentativa'
 const ESPELHO = 'qt_fila_espelho'
 
+/**
+ * `falha_permanente` significa "o servidor NUNCA vai aceitar isto", e nao "ainda nao consegui".
+ *
+ * A distincao e a coisa mais importante deste arquivo. A versao anterior marcava
+ * `falha_permanente` depois de 8 tentativas, e o sincronizador roda a cada 5 minutos: 40 minutos
+ * de rede ruim descartavam a resposta em silencio. E `pendentes()` filtrava so `pendente` e
+ * `enviando`, entao a resposta saia do contador da T0, de `tamanhoFila()` e do
+ * `dispositivo.fila_pendente` — a unica coisa que poderia ter avisado.
+ *
+ * Agora `falha_permanente` sai apenas de erro que retentativa nao conserta: payload que a
+ * validacao local recusa, ou HTTP 4xx (o servidor entendeu e disse nao). Rede, tempo esgotado e
+ * 5xx retentam para sempre, com recuo, porque a promessa escrita e "ao voltar, sobem sozinhas".
+ */
 export type StatusFila = 'pendente' | 'enviando' | 'enviada' | 'falha_permanente'
 
 export interface ItemFila<T> {
@@ -30,6 +43,31 @@ export interface ItemFila<T> {
   tentativas_envio: number
   ultimo_erro?: string
   criado_em_local: string
+  /**
+   * Quando a ultima tentativa aconteceu. Base do recuo exponencial.
+   *
+   * Sem recuo, retentar para sempre a cada 5 minutos gastaria bateria a noite inteira num tablet
+   * sem rede. Com recuo, a espera cresce ate um teto e a fila continua viva.
+   */
+  ultima_tentativa_em?: string
+}
+
+/**
+ * Quanto esperar antes da proxima tentativa, em minutos: 5, 10, 20, 40, e dai em diante 60.
+ *
+ * Teto de 60 minutos, e nao desistencia. O expediente da casa tem cerca de 8 horas, entao com o
+ * teto a fila tenta ao menos 8 vezes na pior noite possivel, e volta a tentar no dia seguinte
+ * quando o tablet for ligado.
+ */
+export function esperaMinutos(tentativas: number): number {
+  return Math.min(5 * 2 ** Math.max(0, tentativas - 1), 60)
+}
+
+/** Ja passou tempo suficiente desde a ultima tentativa deste item? */
+export function estaNaHora(item: ItemFila<unknown>, agora = Date.now()): boolean {
+  if (item.ultima_tentativa_em === undefined) return true
+  const desde = agora - Date.parse(item.ultima_tentativa_em)
+  return desde >= esperaMinutos(item.tentativas_envio) * 60_000
 }
 
 function abre(): Promise<IDBDatabase> {
@@ -120,9 +158,23 @@ export async function enfileiraTentativa(carga: TentativaEnviada): Promise<void>
   await transacao(LOJA_TENTATIVA, 'readwrite', (s) => s.put(item))
 }
 
+/**
+ * O que ainda tem de subir, e cujo recuo ja venceu.
+ *
+ * `enviando` entra porque um envio interrompido no meio (aba fechada, aparelho reiniciado) deixa o
+ * item nesse estado para sempre; sem ele aqui, a resposta ficaria presa sem ninguem retentar.
+ */
 async function pendentes<T>(loja: string): Promise<ItemFila<T>[]> {
   const todos = await transacao<ItemFila<T>[]>(loja, 'readonly', (s) => s.getAll())
-  return todos.filter((i) => i.status === 'pendente' || i.status === 'enviando')
+  return todos.filter(
+    (i) => (i.status === 'pendente' || i.status === 'enviando') && estaNaHora(i),
+  )
+}
+
+/** Tudo que ainda nao foi aceito pelo servidor, inclusive o que o recuo esta segurando. */
+async function naoEnviados<T>(loja: string): Promise<ItemFila<T>[]> {
+  const todos = await transacao<ItemFila<T>[]>(loja, 'readonly', (s) => s.getAll())
+  return todos.filter((i) => i.status !== 'enviada')
 }
 
 export const respostasPendentes = (): Promise<ItemFila<RespostaEnviada>[]> =>
@@ -145,6 +197,7 @@ async function marca(
     ...atual,
     status,
     tentativas_envio: atual.tentativas_envio + (status === 'enviando' ? 1 : 0),
+    ...(status === 'enviando' ? { ultima_tentativa_em: new Date().toISOString() } : {}),
     ...(erro !== undefined ? { ultimo_erro: erro } : {}),
   }
   await transacao(loja, 'readwrite', (s) => s.put(novo))
@@ -163,8 +216,24 @@ export const marcaTentativa = (id: string, status: StatusFila, erro?: string) =>
  * e o que distingue "o tablet esta sem rede" de "o tablet esta desligado".
  */
 export async function tamanhoFila(): Promise<number> {
-  const r = await respostasPendentes()
-  return r.length
+  // TUDO que nao foi aceito, e nao apenas o que esta na hora de tentar. Contar so o vencido faria
+  // o numero cair e subir sozinho conforme o recuo, e o painel de saude leria isso como fila
+  // esvaziando. Inclui `falha_permanente`: resposta que o servidor recusou de vez tem de aparecer
+  // em algum lugar, senao ela desaparece sem ninguem saber que existiu.
+  return (await naoEnviados<RespostaEnviada>(LOJA_RESPOSTA)).length
+}
+
+/**
+ * As que o servidor recusou de vez, separadas do resto.
+ *
+ * Existe para a T0 e o heartbeat poderem dizer "5 na fila, 1 recusada" em vez de um numero so:
+ * fila que nao anda e fila que nao vai andar pedem acoes diferentes.
+ */
+export async function respostasComFalha(): Promise<ItemFila<RespostaEnviada>[]> {
+  const todos = await transacao<ItemFila<RespostaEnviada>[]>(LOJA_RESPOSTA, 'readonly', (s) =>
+    s.getAll(),
+  )
+  return todos.filter((i) => i.status === 'falha_permanente')
 }
 
 /** Remove o que ja foi confirmado pelo servidor. Chamado depois de sincronizar. */

@@ -195,3 +195,78 @@ begin
   end if;
 end
 $$;
+
+-- -----------------------------------------------------------------------------
+-- 7. Invariante de PERMISSAO: o que e append-only nao pode ter UPDATE.
+--
+-- Existe porque as tres garantias abaixo estavam escritas em comentario e eram FALSAS no banco.
+-- `20260817090000` concedia `select, insert, update` por privilegio PADRAO, entao toda tabela
+-- criada depois nascia com UPDATE para a aplicacao, e o grant explicito de cada migration, sendo
+-- um subconjunto, nao revogava nada. `has_table_privilege` devolvia `true` nas tres.
+--
+-- E como o passo 4 deste arquivo gera as politicas LENDO os grants reais, ele criava `app_update`
+-- nas 26 tabelas: as duas trancas abertas, cada uma confiando na outra.
+--
+-- A lista abaixo e nomeada, e nao derivada. Derivar de "tabelas que nao deveriam ter UPDATE" seria
+-- circular; o que se quer e que a intencao esteja escrita num lugar e conferida no banco.
+-- -----------------------------------------------------------------------------
+do $$
+declare
+  t        text;
+  v_erros  text[] := '{}';
+  -- Por que cada uma:
+  --   resposta e as cinco filhas   resposta nasce completa e nao se edita. Correcao e resposta nova.
+  --   tentativa                    o denominador da conversao por garcom nao se ajusta depois.
+  --   consentimento                aceite gravado nao se altera: e o que se prova numa fiscalizacao.
+  --   consentimento_texto          append-only. Texto novo e VERSAO nova, nunca edicao da antiga,
+  --                                senao os aceites ja gravados passam a citar um texto que mudou.
+  --   convite_clique               historico migrado. Depois de `qt-avaliacoes` pausado, e a unica
+  --                                copia daquelas 74 linhas.
+  v_append_only text[] := array[
+    'resposta','resposta_item','resposta_opcao','resposta_pergunta_sorteada','tela_evento',
+    'tentativa','consentimento','consentimento_texto','convite_clique'];
+begin
+  foreach t in array v_append_only loop
+    if has_table_privilege('experiencia_app', 'experiencia.' || quote_ident(t), 'UPDATE') then
+      v_erros := v_erros || format('experiencia_app tem UPDATE em %s', t);
+    end if;
+    if has_table_privilege('experiencia_app', 'experiencia.' || quote_ident(t), 'DELETE') then
+      v_erros := v_erros || format('experiencia_app tem DELETE em %s', t);
+    end if;
+    -- E a politica de RLS nao pode existir para o que o grant nao permite. Se ela existir, o
+    -- espelho ficou permissivo e a proxima linha de conveniencia no grant abre tudo de uma vez.
+    if exists (
+      select 1 from pg_policies p
+      where p.schemaname = 'experiencia' and p.tablename = t and p.policyname = 'app_update'
+    ) then
+      v_erros := v_erros || format('existe politica app_update em %s', t);
+    end if;
+  end loop;
+
+  if array_length(v_erros, 1) > 0 then
+    raise exception
+      'permissao de escrita alem do declarado: %. As tabelas de resposta e de consentimento sao '
+      'append-only por PERMISSAO, e nao apenas por comentario. Se a mudanca for intencional, ela '
+      'muda a garantia escrita e tem de sair desta lista junto com a explicacao.',
+      array_to_string(v_erros, '; ');
+  end if;
+
+  -- E as cinco tabelas de custo em `public`: SELECT e nada mais. Criterio de aceite de F55.
+  -- Conferido girando a maçaneta, e nao lendo o grant: `has_table_privilege` e a mesma pergunta que
+  -- o Postgres se faz na hora de decidir.
+  foreach t in array array['pratos','prato_ingredientes','insumos_master','historico_precos','producao_ingredientes'] loop
+    if to_regclass('public.' || quote_ident(t)) is null then
+      continue;
+    end if;
+    if has_table_privilege('experiencia_app', 'public.' || quote_ident(t), 'INSERT')
+       or has_table_privilege('experiencia_app', 'public.' || quote_ident(t), 'UPDATE')
+       or has_table_privilege('experiencia_app', 'public.' || quote_ident(t), 'DELETE') then
+      raise exception
+        'experiencia_app pode ESCREVER em public.%. O sistema de experiencia CONSOME custo e nunca '
+        'o produz, e o sistema fiscal nao pode ser tocado por ele (F55, ADR-04).', t;
+    end if;
+  end loop;
+
+  raise notice 'ok  append-only conferido em 9 tabelas, e nenhuma escrita em public.';
+end
+$$;

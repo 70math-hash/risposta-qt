@@ -80,10 +80,30 @@ $$;
 -- -----------------------------------------------------------------------------
 -- Privilegios padrao. Cada migration de tabela repete o grant explicito, de
 -- proposito: privilegio padrao depende do papel que executa, e grant explicito nao.
--- DELETE nao entra aqui. Ele e concedido tabela por tabela, e so em duas.
+--
+-- SO `select` PARA `experiencia_app` AQUI. `insert` e `update` saem tabela por tabela.
+--
+-- A versao anterior concedia `select, insert, update` por padrao, e o efeito era que TODA tabela
+-- criada depois nascia com UPDATE para a aplicacao. Os grants explicitos que cada migration repete
+-- sao um SUBCONJUNTO disso, e grant explicito nao revoga nada: portanto tres garantias escritas em
+-- comentario eram falsas no banco de verdade —
+--
+--   `resposta`             "sem UPDATE: resposta nasce completa e nao se edita"
+--   `consentimento_texto`  "append-only POR PERMISSAO"
+--   `convite_clique`       "historico migrado nao se edita"
+--
+-- Conferido com `has_table_privilege`, que devolvia `true` nas tres. E pior: a migration de RLS
+-- gera as politicas LENDO os grants reais, entao ela criava `app_update` nas 26 tabelas e o
+-- espelho de RLS ficava permissivo junto — as duas trancas abertas, cada uma confiando na outra.
+--
+-- Achado pela critica adversarial da Etapa 4 (A06). A invariante no fim de
+-- `20260817102000` agora derruba a migration se alguma das tabelas append-only voltar a ter
+-- UPDATE, para isto nao poder ser reintroduzido por uma linha de conveniencia.
+--
+-- DELETE nunca entra aqui. Ele e concedido tabela por tabela, e so em duas.
 -- -----------------------------------------------------------------------------
 alter default privileges in schema experiencia
-  grant select, insert, update on tables to experiencia_app;
+  grant select on tables to experiencia_app;
 alter default privileges in schema experiencia
   grant select on tables to experiencia_leitura;
 alter default privileges in schema experiencia

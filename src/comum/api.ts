@@ -24,9 +24,40 @@ import {
 
 const BASE = (import.meta.env.VITE_API_BASE as string | undefined) ?? ''
 
-/** Depois de 8 tentativas, a resposta para de consumir bateria e vira linha no painel de saude. */
-const MAX_TENTATIVAS = 8
 const TIMEOUT_MS = 12_000
+
+/**
+ * Erro de envio, com o status HTTP quando existe.
+ *
+ * O status e o que separa "o servidor nunca vai aceitar isto" de "ainda nao consegui falar com
+ * ele", e essa distincao decide se a resposta e descartada ou retentada para sempre. Sem o status
+ * carregado no erro, o sincronizador teria de adivinhar pelo texto da mensagem.
+ */
+export class ErroEnvio extends Error {
+  constructor(
+    mensagem: string,
+    readonly status?: number,
+  ) {
+    super(mensagem)
+    this.name = 'ErroEnvio'
+  }
+}
+
+/**
+ * O servidor RECUSOU, e retentar nao muda nada?
+ *
+ * 4xx e recusa: o servidor entendeu o pedido e disse nao. Duas excecoes, porque sao pedidos de
+ * espera e nao recusas: 408 (tempo esgotado no servidor) e 429 (pedimos demais).
+ *
+ * Tudo o mais — rede, DNS, tempo esgotado no cliente, 5xx, proxy de hotel, Supabase pausado —
+ * retenta. A promessa escrita em `01-arquitetura` secao 6 e "ao voltar, sobem sozinhas", e
+ * desistir por causa de rede quebra exatamente essa promessa.
+ */
+export function ehRecusaDefinitiva(e: unknown): boolean {
+  if (!(e instanceof ErroEnvio) || e.status === undefined) return false
+  if (e.status === 408 || e.status === 429) return false
+  return e.status >= 400 && e.status < 500
+}
 
 async function envia<T>(rota: string, corpo: unknown): Promise<T> {
   const controle = new AbortController()
@@ -40,9 +71,14 @@ async function envia<T>(rota: string, corpo: unknown): Promise<T> {
     })
     if (!resp.ok) {
       const texto = await resp.text().catch(() => '')
-      throw new Error(`HTTP ${resp.status}: ${texto.slice(0, 200)}`)
+      throw new ErroEnvio(`HTTP ${resp.status}: ${texto.slice(0, 200)}`, resp.status)
     }
     return (await resp.json()) as T
+  } catch (e) {
+    // `fetch` rejeita com TypeError em falha de rede e com AbortError no tempo esgotado. Os dois
+    // viram `ErroEnvio` SEM status, que e o que os marca como retentaveis.
+    if (e instanceof ErroEnvio) throw e
+    throw new ErroEnvio(e instanceof Error ? e.message : String(e))
   } finally {
     clearTimeout(relogio)
   }
@@ -81,8 +117,7 @@ export async function sincroniza(): Promise<ResultadoSincronia> {
       await marcaTentativa(item.id, 'enviada')
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e)
-      const esgotou = item.tentativas_envio + 1 >= MAX_TENTATIVAS
-      await marcaTentativa(item.id, esgotou ? 'falha_permanente' : 'pendente', msg)
+      await marcaTentativa(item.id, ehRecusaDefinitiva(e) ? 'falha_permanente' : 'pendente', msg)
     }
   }
 
@@ -102,8 +137,9 @@ export async function sincroniza(): Promise<ResultadoSincronia> {
       enviadas++
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e)
-      const esgotou = item.tentativas_envio + 1 >= MAX_TENTATIVAS
-      await marcaResposta(item.id, esgotou ? 'falha_permanente' : 'pendente', msg)
+      // Contagem de tentativas NAO desiste mais. So 4xx marca falha permanente; rede e 5xx voltam
+      // para `pendente` e o recuo exponencial de `fila.ts` decide quando tentar de novo.
+      await marcaResposta(item.id, ehRecusaDefinitiva(e) ? 'falha_permanente' : 'pendente', msg)
       falhas++
     }
   }

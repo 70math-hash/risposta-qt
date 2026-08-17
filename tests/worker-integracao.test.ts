@@ -29,6 +29,7 @@
 
 import { describe, expect, it } from 'vitest'
 import trabalhador from '../worker/index.js'
+import { caminhoCompleto } from '../src/coleta/questionario.js'
 import type { Ambiente } from '../worker/lib/supabase.js'
 
 const BASE = process.env.PGREST_ENSAIO ?? 'http://127.0.0.1:8788'
@@ -100,7 +101,21 @@ function respostaBase(): Record<string, unknown> & { id: string } {
     opcoes: [],
     itens: [],
     sorteadas: [],
-    telas: [],
+    // As telas do caminho de PROMOTOR, com os nomes que a maquina de estados produz de verdade.
+    //
+    // A primeira versao deste arquivo mandava `telas: []`, e por isso passou ao lado do pior erro
+    // do projeto: o CHECK de `tela_evento` aceitava `T3` e `T4` e recusava `ROT1` e `ROT2`. Como a
+    // insercao acontece DENTRO de `fn_grava_resposta`, na mesma transacao, a resposta inteira era
+    // rejeitada — cerca de 85% de tudo, porque promotor recebe 2 rotacionadas e neutro 1.
+    //
+    // Payload minimo passa por qualquer coisa. E por isso que o payload padrao daqui e o do caminho
+    // mais longo, e nao o mais curto.
+    telas: caminhoCompleto({ nota: 9, rotacionadas: 2 }).map((tela, i) => ({
+      tela,
+      entrou_em: new Date(Date.UTC(2026, 7, 5, 1, i)).toISOString(),
+      saiu_em: new Date(Date.UTC(2026, 7, 5, 1, i, 8)).toISOString(),
+      pulou: false,
+    })),
     consentimentos: [],
   }
 }
@@ -156,6 +171,29 @@ describe('POST /api/resposta', () => {
       { headers: { 'accept-profile': 'experiencia' } },
     )
     expect(((await conta.json()) as unknown[]).length).toBe(1)
+  })
+
+  it.skipIf(!noAr)('as telas do caminho de promotor sao gravadas, e nao recusadas', async () => {
+    const carga = respostaBase()
+    const telas = (carga.telas as { tela: string }[]).map((t) => t.tela)
+    // O caminho de promotor com 2 rotacionadas passa por ROT1 e ROT2. Se este teste voltar a passar
+    // com uma lista que nao contem as duas, ele deixou de cobrir o caso que importa.
+    expect(telas, 'o payload padrao deveria passar por ROT1 e ROT2').toContain('ROT1')
+    expect(telas).toContain('ROT2')
+
+    const r = await trabalhador.fetch(pede('/api/resposta', carga), env)
+    const corpo = (await r.json()) as { ok: boolean; erro?: string }
+    expect(
+      corpo.erro ?? null,
+      `a resposta INTEIRA foi recusada por causa de um nome de tela: ${String(corpo.erro)}`,
+    ).toBeNull()
+
+    const gravadas = await fetch(
+      `${BASE}/rest/v1/tela_evento?select=tela&resposta_id=eq.${carga.id}`,
+      { headers: { 'accept-profile': 'experiencia' } },
+    )
+    const nomes = ((await gravadas.json()) as { tela: string }[]).map((t) => t.tela)
+    expect(nomes.sort()).toEqual([...telas].sort())
   })
 
   it.skipIf(!noAr)('nota fora de 0 a 10 e recusada antes de tocar o banco', async () => {

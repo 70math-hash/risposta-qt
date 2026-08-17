@@ -262,8 +262,22 @@ create table if not exists experiencia.tela_evento (
   saiu_em     timestamptz null,
   pulou       boolean     not null default false,
   criado_em   timestamptz not null default now(),
+  -- A lista e EXATAMENTE o tipo `Passo` de src/coleta/questionario.ts, e
+  -- `tests/contrato-telas.test.ts` confere as duas contra este CHECK.
+  --
+  -- `ROT1` e `ROT2`, e nao `T3` e `T4`. A versao anterior deste CHECK aceitava `T3` e `T4`,
+  -- nomes que NENHUMA ponta do codigo escreve, e recusava `ROT1` e `ROT2`, que sao os que o
+  -- quiosque grava. Como `tela_evento` e inserida DENTRO de `fn_grava_resposta`, na mesma
+  -- transacao da resposta, a violacao de CHECK derrubava a RESPOSTA INTEIRA: promotor recebe 2
+  -- perguntas rotacionadas e neutro 1, entao cerca de 85% de tudo que fosse coletado na primeira
+  -- noite seria recusado, e a fila do tablet tentaria de novo para sempre.
+  --
+  -- A folha canonica nao fixa o dominio de `tela` (secao 3.3), entao a escolha e aqui, e fica
+  -- registrada: `ROT1`/`ROT2` porque a tela E a primeira e a segunda pergunta rotacionada, e nao
+  -- uma tela fixa. `T3` fixo seria mentira: o conteudo dele muda a cada resposta, por sorteio.
+  -- Alem disso `vw_tela_pulo` mostra a taxa de pulo por nome de tela, e `ROT1` diz o que e.
   constraint tela_evento_tela_dominio check (tela in (
-    'T0','T1','T2A','T2B','T2C','T3','T4','T3C','T3C1','T3C2','T3C3','T5','T6','T7')),
+    'T0','T1','T2A','T2B','T2C','T3C','T3C1','T3C2','T3C3','ROT1','ROT2','T5','T6','T7')),
   constraint tela_evento_saida_depois_da_entrada
     check (saiu_em is null or saiu_em >= entrou_em)
 );

@@ -1,0 +1,137 @@
+# Backup do banco: pg_dump, cifrado com age, enviado ao Backblaze B2.
+#
+# Decisao D7. Duas escolhas fazem o trabalho, e as duas sao gratuitas:
+#
+# 1. Backblaze B2 e nao artefato do GitHub Actions. Os Termos Adicionais do GitHub vedam
+#    "any other activity unrelated to the production, testing, deployment, or publication of
+#    the software project", com punicao que inclui suspensao de conta. Essa punicao levaria o
+#    repositorio E os backups no mesmo evento, que e o modo de falha de fornecedor unico pelo
+#    qual o Supabase Storage foi corretamente reprovado.
+#
+# 2. age ASSIMETRICO, com a chave publica aqui e a privada fora. Com chave simetrica, o
+#    GitHub guardaria o pacote cifrado e a chave que o abre no mesmo lugar, e quem tivesse
+#    admin do repositorio leria nome, WhatsApp, e-mail e nascimento dos clientes. Com
+#    assimetrica, este runner ESCREVE backup e nao consegue ler nenhum, nem os que ele mesmo
+#    escreveu.
+#
+# A chave do B2 e presa a um bucket, com writeFiles e listBuckets, SEM readFiles, SEM
+# deleteFiles e SEM expiracao. Se o segredo vazar, o atacante escreve lixo e nao le nem apaga
+# nenhum backup. Ausencia de expiracao e obrigatoria: chave com prazo faria o backup morrer
+# calado em menos de tres anos.
+#
+# A retencao de 8 semanas NAO esta aqui: e lifecycle rule do bucket
+# (daysFromUploadingToHiding = 56, daysFromHidingToDeleting = 1), configurada uma vez no
+# painel do B2 e nunca mais tocada.
+
+name: backup_semanal
+
+on:
+  schedule:
+    # Domingo e quarta, 04h em America/Sao_Paulo (UTC-3, sem horario de verao em 2026).
+    # Duas vezes por semana e nao uma, porque este job tambem e o keep-alive do banco
+    # enquanto o digest das 16h nao existir: projeto gratuito do Supabase e pausado depois
+    # de 1 semana de inatividade, e a casa fecha segunda.
+    # SE O HORARIO DE VERAO VOLTAR, esta expressao muda.
+    - cron: '0 7 * * 0,3'
+  workflow_dispatch:
+
+# Sem permissao de escrita: este job nao mexe no repositorio.
+permissions:
+  contents: read
+
+concurrency:
+  group: backup_semanal
+  cancel-in-progress: false
+
+jobs:
+  dump:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Instalar age e rclone
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends age rclone
+
+      - name: Instalar cliente Postgres na versao certa
+        # Versao FIXADA, e nao herdada da imagem do runner: incompatibilidade entre pg_dump e
+        # a versao do servidor e um dos dois modos de morte mais provaveis deste job, e a
+        # versao que a imagem traz muda sem aviso.
+        env:
+          PG_MAJOR: '17'
+        run: |
+          set -euo pipefail
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc \
+            https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] \
+            https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
+            | sudo tee /etc/apt/sources.list.d/pgdg.list > /dev/null
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends "postgresql-client-${PG_MAJOR}"
+          pg_dump --version
+
+      - name: Dump, cifrar e enviar
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          AGE_PUB: ${{ vars.AGE_PUBLIC_KEY }}
+          B2_KEY_ID: ${{ secrets.B2_KEY_ID }}
+          B2_APP_KEY: ${{ secrets.B2_APP_KEY }}
+          B2_BUCKET: ${{ vars.B2_BUCKET }}
+        run: |
+          set -euo pipefail
+
+          for v in DB_URL AGE_PUB B2_KEY_ID B2_APP_KEY B2_BUCKET; do
+            if [ -z "${!v:-}" ]; then
+              echo "::error::$v ausente. Configure segredos e variaveis do repositorio."
+              exit 1
+            fi
+          done
+
+          STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
+          mkdir -p /tmp/bkp
+          cd /tmp/bkp
+
+          # --no-owner e --no-privileges para o dump restaurar em qualquer projeto, e nao
+          # depender dos papeis do projeto de origem existirem no destino.
+          pg_dump --no-owner --no-privileges --format=custom --compress=9 \
+            "$DB_URL" > "qt-$STAMP.dump"
+
+          BYTES="$(stat -c%s "qt-$STAMP.dump")"
+          echo "dump com $BYTES bytes"
+          # Dump minusculo quase sempre significa conexao que abriu e nao trouxe nada, o que e
+          # pior que falhar: passaria por sucesso e o backup do proximo domingo sobrescreveria
+          # a lembranca de que existiu um bom.
+          if [ "$BYTES" -lt 4096 ]; then
+            echo "::error::dump suspeito de vazio ($BYTES bytes). Nada foi enviado."
+            exit 1
+          fi
+
+          age -r "$AGE_PUB" -o "qt-$STAMP.dump.age" "qt-$STAMP.dump"
+          # O dump em claro sai do disco antes de qualquer passo seguinte.
+          shred -u "qt-$STAMP.dump" 2>/dev/null || rm -f "qt-$STAMP.dump"
+
+          rclone --config /dev/null \
+            --b2-account "$B2_KEY_ID" --b2-key "$B2_APP_KEY" \
+            copy "qt-$STAMP.dump.age" ":b2:$B2_BUCKET/"
+
+          echo "enviado: qt-$STAMP.dump.age"
+
+      - name: Tocar o banco, que e o keep-alive
+        # Passo SEPARADO do dump de proposito: se o envio ao B2 falhar, o banco ainda foi
+        # tocado e nao entra em pausa por inatividade. Sao dois objetivos diferentes no mesmo
+        # job, e um nao pode derrubar o outro.
+        if: always()
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          set -euo pipefail
+          if [ -n "${DB_URL:-}" ]; then
+            psql "$DB_URL" -c "select 1" > /dev/null && echo "banco tocado"
+          fi
+# Vigilancia sem manutencao: `set -euo pipefail` derruba o job em qualquer falha, e o GitHub
+# manda e-mail automatico de workflow falho para o dono do repositorio. Isso cobre os tres
+# modos de morte silenciosa mais provaveis: senha do banco rotacionada, chave do B2 revogada e
+# incompatibilidade de versao do pg_dump.

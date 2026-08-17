@@ -23,18 +23,43 @@ import {
 } from '../../src/comum/dia-operacional.js'
 import { calculaNps, textoNps, textoProporcao } from '../../src/comum/nps.js'
 import type { Ambiente } from '../lib/supabase.js'
-import { seleciona } from '../lib/supabase.js'
+import { seleciona, type ContagensRotina } from '../lib/supabase.js'
 import { montaHtml, type BlocoDigest } from './digest-html.js'
 import { enviaEmail } from './email.js'
 
 interface LinhaHoje {
   dia_operacional: string
-  respostas: number
-  detratores: number
-  neutros: number
-  promotores: number
-  suspeitas: number
-  pin_nao_reconhecido: number
+  casa_abre: boolean | null
+  respostas: number | null
+  detratores: number | null
+  neutros: number | null
+  promotores: number | null
+  suspeitas: number | null
+  mesas_atendidas: number | null
+  aviso: string | null
+}
+
+/**
+ * `vw_coleta_dia`, e nao `vw_hoje`.
+ *
+ * `pin_nao_reconhecido` vive AQUI, e nao em `vw_hoje`, que nem tem essa coluna. Enquanto o
+ * digest a lia de `vw_hoje`, o valor chegava `undefined`, virava zero pelo `??`, e a cobranca
+ * de PIN nao reconhecido nunca disparava: uma cobranca que nunca dispara e indistinguivel de
+ * uma casa onde o problema nao acontece.
+ *
+ * A view tambem traz `casa_abre`, que sai de `fn_casa_abre` e portanto respeita
+ * `calendario_operacao`. O espelho em TypeScript (`casaAbrePadrao`) implementa SO o padrao
+ * semanal, e por isso nao pode decidir isto: num feriado em que a casa abriu numa segunda, o
+ * e-mail escreveria "casa fechada, nada a relatar" sobre um dia de servico cheio.
+ */
+interface LinhaColeta {
+  dia_operacional: string
+  casa_abre: boolean | null
+  respostas: number | null
+  suspeitas: number | null
+  pin_nao_reconhecido: number | null
+  pin_acima_do_limiar: boolean | null
+  mesas_atendidas: number | null
 }
 
 interface LinhaFator {
@@ -47,7 +72,10 @@ interface LinhaDispositivo {
   apelido: string
   uso: string
   ultimo_sinal_em: string | null
+  horas_sem_sinal: number | null
+  mudo: boolean | null
   fila_pendente: number | null
+  fila_alta: boolean | null
 }
 
 interface LinhaComentario {
@@ -77,17 +105,33 @@ const DIMENSOES_COZINHA = ['comida', 'bebida', 'tempo', 'item_consumido']
 /** Dimensoes que o salao precisa ver. */
 const DIMENSOES_SALAO = ['atendimento', 'precisao_pedido', 'ambiente', 'limpeza']
 
-export async function rodaDigest(env: Ambiente): Promise<Record<string, number>> {
+export async function rodaDigest(env: Ambiente): Promise<ContagensRotina> {
   const dia = diaOperacionalAnterior()
 
   // --- Passo 1: consulta. Roda sempre, e e ela que mantem o banco acordado. ---
-  const [hoje, fatores, dispositivos, comentarios, destinatarios, mesas, vendas] =
+  const [hoje, coleta, fatores, dispositivos, comentarios, destinatarios, mesas, vendas] =
     await Promise.all([
       seleciona<LinhaHoje>(env, 'vw_hoje', `dia_operacional=eq.${dia}`),
+      // Tres dias, porque a cobranca de mesas atendidas olha para tras e precisa saber quais
+      // desses dias a casa abriu. `casa_abre` da view respeita o calendario; o espelho em
+      // TypeScript nao.
+      seleciona<LinhaColeta>(
+        env,
+        'vw_coleta_dia',
+        `dia_operacional=gte.${somaDias(dia, -2)}&order=dia_operacional.desc`,
+      ),
+      // `vw_fator_contagem` nao tem coluna `dia_operacional`: ela e uma serie por JANELA, com
+      // `janela`, `inicio`, `fim` e `origem`. Filtrar pelo nome errado devolvia 400, e como as
+      // consultas correm todas num `Promise.all`, esse 400 derrubava o digest INTEIRO, que e o
+      // unico alarme do sistema. A regra de operacao "se o e-mail nao chegar dois dias
+      // seguidos, algo quebrou" ficaria permanentemente disparada, sem ninguem saber por que.
+      //
+      // `origem=eq.opcao` porque somar opcao marcada com classificacao de texto contaria a
+      // mesma reclamacao duas vezes: uma pelo toque, outra pela frase que a descreve.
       seleciona<LinhaFator>(
         env,
         'vw_fator_contagem',
-        `dia_operacional=eq.${dia}&order=mencoes.desc`,
+        `janela=eq.dia&inicio=eq.${dia}&origem=eq.opcao&order=mencoes.desc`,
       ),
       seleciona<LinhaDispositivo>(env, 'vw_dispositivo_sinal', 'select=*'),
       seleciona<LinhaComentario>(
@@ -105,7 +149,10 @@ export async function rodaDigest(env: Ambiente): Promise<Record<string, number>>
     ])
 
   const d = hoje[0]
-  const abriu = casaAbrePadrao(dia)
+  const c = coleta.find((x) => x.dia_operacional === dia)
+  // A view manda, e o espelho em TypeScript so entra quando nao existe linha nenhuma para o
+  // dia, que e o caso de um dia sem resposta e sem venda. Ai o padrao semanal e tudo que ha.
+  const abriu = c?.casa_abre ?? casaAbrePadrao(dia)
   const contagem = {
     detratores: d?.detratores ?? 0,
     neutros: d?.neutros ?? 0,
@@ -211,12 +258,14 @@ export async function rodaDigest(env: Ambiente): Promise<Record<string, number>>
 
   // Bloco 7: saude dos aparelhos. Com quatro tablets, aparelho mudo e invisivel no
   // agregado, e por isso cada um aparece pelo apelido com a hora do ultimo sinal (D5).
-  const agora = Date.now()
+  // `mudo`, `fila_alta` e `horas_sem_sinal` vem da view, e nao de uma conta com `Date.now()`
+  // aqui: o Worker roda em UTC e a view resolve o fuso da casa, entao a conta local erraria a
+  // fronteira do dia. E o limiar de aparelho mudo passa a existir num lugar so.
   const linhasDispositivo = dispositivos.map((disp) => {
     if (disp.ultimo_sinal_em === null) return `${disp.apelido}: nunca deu sinal`
-    const horas = Math.floor((agora - Date.parse(disp.ultimo_sinal_em)) / 3_600_000)
+    const horas = Math.floor(disp.horas_sem_sinal ?? 0)
     const fila = disp.fila_pendente ?? 0
-    const alerta = horas > 24 ? '  ATENÇÃO' : ''
+    const alerta = disp.mudo === true ? '  ATENÇÃO' : disp.fila_alta === true ? '  fila alta' : ''
     return `${disp.apelido} (${disp.uso}): último sinal há ${horas}h · fila ${fila}${alerta}`
   })
   if (linhasDispositivo.length > 0) {
@@ -229,18 +278,27 @@ export async function rodaDigest(env: Ambiente): Promise<Record<string, number>>
 
   // Bloco 8: cobrancas (N43). Sao as unicas coisas que o sistema pede a um humano.
   const cobrancas: string[] = []
+  // Dia aberto pelo CALENDARIO, e nao pelo padrao semanal: cobrar mesas atendidas de um feriado
+  // em que a casa nao abriu e o tipo de cobranca falsa que faz o bloco perder credibilidade, e
+  // depois de perdida ninguem le mais nem a cobranca verdadeira.
+  const abriuNoDia = (x: string): boolean =>
+    coleta.find((l) => l.dia_operacional === x)?.casa_abre ?? casaAbrePadrao(x)
   const semMesas = [dia, somaDias(dia, -1), somaDias(dia, -2)].filter(
-    (x) => casaAbrePadrao(x) && !mesas.some((m) => m.dia_operacional === x),
+    (x) => abriuNoDia(x) && !mesas.some((m) => m.dia_operacional === x),
   )
   if (semMesas.length >= 3) {
     cobrancas.push('Mesas atendidas não informadas há 3 dias. Sem isso não existe conversão.')
   }
-  if ((d?.suspeitas ?? 0) > 0) {
-    cobrancas.push(`${d?.suspeitas ?? 0} resposta(s) marcada(s) como suspeita.`)
+  const suspeitas = d?.suspeitas ?? c?.suspeitas ?? 0
+  if (suspeitas > 0) {
+    cobrancas.push(`${suspeitas} resposta(s) marcada(s) como suspeita.`)
   }
-  if ((d?.pin_nao_reconhecido ?? 0) > 3) {
+  // O limiar mora na view (`pin_acima_do_limiar`), e nao aqui. Duas implementacoes do mesmo
+  // limiar divergem no dia em que uma das duas muda.
+  const pinNaoReconhecido = c?.pin_nao_reconhecido ?? 0
+  if (c?.pin_acima_do_limiar === true) {
     cobrancas.push(
-      `${d?.pin_nao_reconhecido ?? 0} respostas com PIN não reconhecido. Confira o cadastro de garçons.`,
+      `${pinNaoReconhecido} respostas com PIN não reconhecido. Confira o cadastro de garçons.`,
     )
   }
   if (cobrancas.length > 0) {
@@ -276,8 +334,12 @@ export async function rodaDigest(env: Ambiente): Promise<Record<string, number>>
     }
   }
 
+  // `respostas_no_periodo`, `email_enviado` e `destinatarios` tem COLUNA em `execucao_rotina`,
+  // e sao o que o painel de saude le por nome. O resto vai para `contagens`, que e jsonb.
   return {
-    respostas: nps.n,
+    respostas_no_periodo: nps.n,
+    email_enviado: enviados > 0,
+    destinatarios: [...porPapel.values()].flat(),
     detratores: contagem.detratores,
     blocos: blocos.length,
     destinatarios_enviados: enviados,

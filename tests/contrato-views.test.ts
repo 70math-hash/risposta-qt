@@ -57,11 +57,21 @@ function camposDaInterface(nome: string): string[] | null {
   return [...corpo.matchAll(/^\s*([a-z_][a-z0-9_]*)\s*:/gm)].map((m) => m[1]!)
 }
 
+/**
+ * `vw_texto_a_classificar` e view de TRABALHO da rotina do classificador: nenhuma tela a le, e
+ * por isso ela nao tem interface em `dados.ts`. Fica de fora da conferencia de interface, e
+ * dentro da conferencia de leitura do Worker, que e quem a usa.
+ */
+const SO_DE_TRABALHO = new Set(['vw_texto_a_classificar'])
+
 describe('o retrato das views foi gerado e tem conteudo', () => {
-  it('tem as 25 views do projeto', () => {
+  it('tem as 26 views do projeto, 25 de leitura e 1 de trabalho', () => {
     // Se este numero cair, ou uma migration deixou de criar view, ou o retrato ficou velho.
     // Regerar com: scripts/ensaio.sh && node scripts/formas-das-views.mjs
-    expect(Object.keys(RETRATO).length).toBe(25)
+    expect(Object.keys(RETRATO).length).toBe(26)
+    for (const v of SO_DE_TRABALHO) {
+      expect(RETRATO[v], `${v} deveria existir no retrato`).toBeDefined()
+    }
   })
 
   it('toda view do retrato comeca com vw_ e tem coluna', () => {
@@ -73,7 +83,9 @@ describe('o retrato das views foi gerado e tem conteudo', () => {
 })
 
 describe('cada interface do painel tem exatamente os campos da view', () => {
-  const views = Object.keys(RETRATO).sort()
+  const views = Object.keys(RETRATO)
+    .filter((v) => !SO_DE_TRABALHO.has(v))
+    .sort()
 
   it.each(views)('%s', (view) => {
     const nome = nomeInterface(view)

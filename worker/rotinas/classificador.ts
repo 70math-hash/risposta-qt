@@ -16,10 +16,20 @@
 import { diaOperacionalAnterior } from '../../src/comum/dia-operacional.js'
 import { DIMENSOES, FATORES, fatorValido } from '../../src/comum/dominio.js'
 import type { Ambiente } from '../lib/supabase.js'
-import { insere, seleciona } from '../lib/supabase.js'
+import { insere, seleciona, type ContagensRotina } from '../lib/supabase.js'
 
 const MODELO = 'llama-3.1-8b-instant'
 const VERSAO_PROMPT = '1.0.0'
+
+/**
+ * Os dois dominios fechados de `classificacao_texto`, iguais aos CHECK da migration.
+ *
+ * Escritos aqui e nao importados de `dominio.ts` porque `dominio.ts` guarda o dominio da
+ * COLETA (dimensao, fator, canal, idioma) e estes dois existem so na classificacao. Se um dia
+ * mudarem, mudam nos dois lugares, e o teste de contrato acusa a divergencia.
+ */
+const POLARIDADES: readonly FraseClassificada['polaridade'][] = ['positivo', 'negativo', 'neutro']
+const SEVERIDADES: readonly FraseClassificada['severidade'][] = ['baixa', 'media', 'alta']
 
 interface Pendente {
   resposta_id: string
@@ -96,14 +106,21 @@ async function classifica(
 
   // Valor fora da lista fechada e REJEITADO, nao corrigido. O classificador nao cria valor
   // novo: valor novo entra por decisao humana e por migration.
+  //
+  // `polaridade` e `severidade` sao conferidas aqui pelo mesmo motivo que `dimensao` e `fator`,
+  // e nao por simetria: as duas tem CHECK de dominio no banco, e um modelo que devolva
+  // `negativa` em vez de `negativo` faria a insercao do LOTE inteiro ser rejeitada. Com o
+  // filtro, a frase torta e descartada e as outras do mesmo comentario entram.
   return frases.filter(
     (f) =>
       (DIMENSOES as readonly string[]).includes(f.dimensao) &&
-      (f.fator === null || fatorValido(f.dimensao, f.fator)),
+      (f.fator === null || fatorValido(f.dimensao, f.fator)) &&
+      POLARIDADES.includes(f.polaridade) &&
+      SEVERIDADES.includes(f.severidade),
   )
 }
 
-export async function rodaClassificador(env: Ambiente): Promise<Record<string, number>> {
+export async function rodaClassificador(env: Ambiente): Promise<ContagensRotina> {
   const dia = diaOperacionalAnterior()
   const pendentes = await seleciona<Pendente>(
     env,
@@ -147,5 +164,12 @@ export async function rodaClassificador(env: Ambiente): Promise<Record<string, n
     }
   }
 
-  return { pendentes: pendentes.length, classificadas, rejeitadas, falhas }
+  // `respostas_no_periodo` tem coluna propria em `execucao_rotina`; o resto vai para
+  // `contagens`, que e jsonb.
+  return {
+    respostas_no_periodo: pendentes.length,
+    classificadas,
+    rejeitadas,
+    falhas,
+  }
 }

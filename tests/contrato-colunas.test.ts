@@ -79,11 +79,56 @@ function colunasPorTabela(sql: string): Map<string, Set<string>> {
   return mapa
 }
 
-/** Cada `seleciona(env, 'tabela', 'select=...&...')` do Worker, como (tabela, consulta). */
-function consultasDoWorker(): { tabela: string; consulta: string }[] {
-  const fonte = readFileSync(join(process.cwd(), 'worker', 'index.ts'), 'utf8')
-  const re = /seleciona<[^>]*>\(\s*env,\s*'([a-z_]+)',\s*'([^']+)'/g
-  return [...fonte.matchAll(re)].map((m) => ({ tabela: m[1]!, consulta: m[2]! }))
+/**
+ * O retrato das views, gerado por `scripts/formas-das-views.mjs` a partir do banco de ensaio.
+ *
+ * As leituras do Worker nao param em tabela: as rotinas leem VIEW, e a coluna de uma view nao
+ * esta em nenhum `create table`. Sem este retrato, a conferencia cobriria so metade das
+ * consultas, e foi na metade descoberta que estavam os dois piores erros: o digest filtrando
+ * `vw_fator_contagem` por `dia_operacional`, coluna que essa view nao tem, e o classificador
+ * lendo `vw_texto_a_classificar`, view que nao existia.
+ */
+function colunasPorView(): Map<string, Set<string>> {
+  const retrato = JSON.parse(
+    readFileSync(join(process.cwd(), 'supabase', 'formas-das-views.json'), 'utf8'),
+  ) as Record<string, string[]>
+  return new Map(Object.entries(retrato).map(([v, cs]) => [v, new Set(cs)]))
+}
+
+/** Toda fonte do Worker. As rotinas leem tanto quanto o `index`, e erravam mais. */
+function arquivosDoWorker(): { arquivo: string; texto: string }[] {
+  const dir = join(process.cwd(), 'worker')
+  const achados: { arquivo: string; texto: string }[] = []
+  const anda = (caminho: string): void => {
+    for (const entrada of readdirSync(caminho, { withFileTypes: true })) {
+      const cheio = join(caminho, entrada.name)
+      if (entrada.isDirectory()) anda(cheio)
+      else if (entrada.name.endsWith('.ts')) {
+        achados.push({ arquivo: cheio, texto: readFileSync(cheio, 'utf8') })
+      }
+    }
+  }
+  anda(dir)
+  return achados
+}
+
+/**
+ * Cada `seleciona(env, 'relacao', 'consulta')` de TODO o Worker.
+ *
+ * A consulta e reconhecida em duas formas, porque as duas existem na fonte: string simples e
+ * template com interpolacao. No template, cada `${...}` e trocado por um marcador, porque o
+ * que se confere e o NOME DA COLUNA a esquerda do `=`, e nunca o valor a direita.
+ */
+function consultasDoWorker(): { arquivo: string; relacao: string; consulta: string }[] {
+  const saida: { arquivo: string; relacao: string; consulta: string }[] = []
+  const re = /seleciona<[^>]*>\(\s*env,\s*'([a-z_]+)',\s*(?:'([^']*)'|`([^`]*)`)/g
+  for (const { arquivo, texto } of arquivosDoWorker()) {
+    for (const m of texto.matchAll(re)) {
+      const consulta = (m[2] ?? m[3] ?? '').replace(/\$\{[^}]*\}/g, 'VALOR')
+      saida.push({ arquivo: arquivo.replace(process.cwd(), '.'), relacao: m[1]!, consulta })
+    }
+  }
+  return saida
 }
 
 /** Toda coluna citada numa consulta PostgREST: no `select`, no `order` e nos filtros. */
@@ -99,7 +144,10 @@ function colunasCitadas(consulta: string): string[] {
       // `col`, `apelido:col` e `col.outra` para tabela relacionada. Aqui so o nivel raso.
       for (const c of valor.split(',')) {
         const semApelido = c.includes(':') ? c.slice(c.indexOf(':') + 1) : c
-        if (semApelido !== '' && !semApelido.includes('(')) citadas.push(semApelido)
+        // `*` nao e coluna: e o pedido de todas elas, e nao ha nada a conferir.
+        if (semApelido !== '' && semApelido !== '*' && !semApelido.includes('(')) {
+          citadas.push(semApelido)
+        }
       }
     } else if (chave === 'order') {
       for (const c of valor.split(',')) citadas.push(c.split('.')[0]!)
@@ -111,8 +159,9 @@ function colunasCitadas(consulta: string): string[] {
   return citadas
 }
 
-describe('as colunas que o Worker pede existem nas tabelas', () => {
+describe('as colunas que o Worker pede existem, em tabela ou em view', () => {
   const tabelas = colunasPorTabela(todoSql())
+  const views = colunasPorView()
   const consultas = consultasDoWorker()
 
   it('o DDL foi lido e as tabelas de cadastro estao la', () => {
@@ -123,23 +172,33 @@ describe('as colunas que o Worker pede existem nas tabelas', () => {
     expect(tabelas.size).toBeGreaterThanOrEqual(20)
   })
 
-  it('o Worker faz consulta a tabela, e elas foram encontradas na fonte', () => {
-    expect(consultas.length).toBeGreaterThanOrEqual(4)
+  it('o Worker le tanto tabela quanto view, e as duas familias foram encontradas', () => {
+    // Sete leituras chegaram a existir sem conferencia nenhuma, todas em rotina e todas em
+    // view. Contar as duas familias separado e o que impede o teste de voltar a cobrir metade.
+    expect(consultas.filter((c) => c.relacao.startsWith('vw_')).length).toBeGreaterThanOrEqual(5)
+    expect(consultas.filter((c) => !c.relacao.startsWith('vw_')).length).toBeGreaterThanOrEqual(4)
   })
 
-  it.each(consultasDoWorker())('$tabela: toda coluna citada existe', ({ tabela, consulta }) => {
-    const existentes = tabelas.get(tabela)
-    expect(existentes, `o Worker le a tabela ${tabela}, que nenhuma migration cria`).toBeDefined()
-    const faltando = colunasCitadas(consulta).filter((c) => !existentes!.has(c))
-    expect(
-      faltando,
-      `${tabela}: coluna citada e inexistente: ${faltando.join(', ')}. ` +
-        `Existem: ${[...existentes!].join(', ')}`,
-    ).toEqual([])
-  })
+  it.each(consultasDoWorker())(
+    '$relacao ($arquivo): toda coluna citada existe',
+    ({ relacao, consulta }) => {
+      const existentes = tabelas.get(relacao) ?? views.get(relacao)
+      expect(
+        existentes,
+        `o Worker le ${relacao}, que nenhuma migration cria. ` +
+          `Views que existem: ${[...views.keys()].join(', ')}`,
+      ).toBeDefined()
+      const faltando = colunasCitadas(consulta).filter((c) => !existentes!.has(c))
+      expect(
+        faltando,
+        `${relacao}: coluna citada e inexistente: ${faltando.join(', ')}. ` +
+          `Existem: ${[...existentes!].join(', ')}`,
+      ).toEqual([])
+    },
+  )
 
   it('item_cardapio e pedido com os dois nomes, porque o idioma e escolhido na tela', () => {
-    const q = consultas.find((c) => c.tabela === 'item_cardapio')
+    const q = consultas.find((c) => c.relacao === 'item_cardapio' && c.consulta.includes('grupo'))
     expect(q).toBeDefined()
     expect(q!.consulta).toContain('nome_pt')
     expect(q!.consulta).toContain('nome_en')
@@ -148,9 +207,30 @@ describe('as colunas que o Worker pede existem nas tabelas', () => {
   it('o item removido e o inativo nao chegam ao quiosque', () => {
     // Sem os dois filtros, prato tirado do cardapio continuaria aparecendo na T3C2, e a
     // reclamacao seria atribuida a um item que a casa nao serve mais.
-    const q = consultas.find((c) => c.tabela === 'item_cardapio')!
+    const q = consultas.find((c) => c.relacao === 'item_cardapio' && c.consulta.includes('grupo'))!
     expect(q.consulta).toContain('removido_em=is.null')
     expect(q.consulta).toContain('ativo=is.true')
+  })
+
+  it('vw_fator_contagem e filtrada por janela, e nao por dia_operacional', () => {
+    // A view e uma serie por janela e nao tem coluna de dia. O filtro errado devolvia 400, e
+    // como as consultas do digest correm num Promise.all, esse 400 derrubava o e-mail das 16h,
+    // que e o unico alarme do sistema: a regra "se nao chegar dois dias seguidos, algo quebrou"
+    // ficaria permanentemente disparada.
+    const q = consultas.find((c) => c.relacao === 'vw_fator_contagem')
+    expect(q, 'o digest deveria ler vw_fator_contagem').toBeDefined()
+    expect(q!.consulta).toContain('janela=eq.')
+    expect(q!.consulta).not.toContain('dia_operacional=eq.')
+    // E somente uma origem: opcao marcada mais classificacao de texto contaria a mesma
+    // reclamacao duas vezes, uma pelo toque e outra pela frase que a descreve.
+    expect(q!.consulta).toContain('origem=eq.')
+  })
+
+  it('pin_nao_reconhecido e lido de vw_coleta_dia, que e onde a coluna mora', () => {
+    const digest = readFileSync(join(process.cwd(), 'worker', 'rotinas', 'digest.ts'), 'utf8')
+    expect(views.get('vw_hoje')?.has('pin_nao_reconhecido')).toBe(false)
+    expect(views.get('vw_coleta_dia')?.has('pin_nao_reconhecido')).toBe(true)
+    expect(digest).toContain("'vw_coleta_dia'")
   })
 })
 
@@ -168,23 +248,6 @@ describe('as colunas que o Worker pede existem nas tabelas', () => {
 // errado do hash), duas colunas NOT NULL ausentes (`origem` e `execucao_importacao_id`) e
 // mandava a coluna `bytea` como texto decodificado.
 // -----------------------------------------------------------------------------
-
-/** Toda fonte do Worker, para achar escrita onde ela estiver. */
-function fontesDoWorker(): { arquivo: string; texto: string }[] {
-  const dir = join(process.cwd(), 'worker')
-  const achados: { arquivo: string; texto: string }[] = []
-  const anda = (caminho: string): void => {
-    for (const entrada of readdirSync(caminho, { withFileTypes: true })) {
-      const cheio = join(caminho, entrada.name)
-      if (entrada.isDirectory()) anda(cheio)
-      else if (entrada.name.endsWith('.ts')) {
-        achados.push({ arquivo: cheio, texto: readFileSync(cheio, 'utf8') })
-      }
-    }
-  }
-  anda(dir)
-  return achados
-}
 
 /** Do indice de um caractere de abertura, o indice do fechamento equilibrado. */
 function fecha(texto: string, inicio: number): number {
@@ -278,7 +341,7 @@ function chavesEscritas(texto: string): { tabela: string; chaves: string[] }[] {
 
 describe('as colunas que o Worker escreve existem nas tabelas', () => {
   const tabelas = colunasPorTabela(todoSql())
-  const escritas = fontesDoWorker().flatMap((f) =>
+  const escritas = arquivosDoWorker().flatMap((f) =>
     chavesEscritas(f.texto).map((e) => ({ ...e, arquivo: f.arquivo })),
   )
 
@@ -295,7 +358,7 @@ describe('as colunas que o Worker escreve existem nas tabelas', () => {
   })
 
   it.each(
-    fontesDoWorker().flatMap((f) =>
+    arquivosDoWorker().flatMap((f) =>
       chavesEscritas(f.texto).map((e) => ({ tabela: e.tabela, chaves: e.chaves })),
     ),
   )('insere em $tabela: toda chave e uma coluna', ({ tabela, chaves }) => {
@@ -312,7 +375,7 @@ describe('as colunas que o Worker escreve existem nas tabelas', () => {
   it('toda coluna NOT NULL sem default de execucao_importacao e escrita', () => {
     // `origem` era a que faltava, e a insercao inteira falharia por violacao de NOT NULL.
     const sql = todoSql()
-    const worker = fontesDoWorker().map((f) => f.texto).join('\n')
+    const worker = arquivosDoWorker().map((f) => f.texto).join('\n')
     for (const coluna of ['origem', 'arquivo', 'hash', 'arquivo_bruto', 'status']) {
       expect(
         new RegExp(`\\b${coluna}:`).test(worker),
@@ -325,22 +388,70 @@ describe('as colunas que o Worker escreve existem nas tabelas', () => {
   })
 
   it('a coluna bytea e escrita como \\x hexadecimal, e nao como texto decodificado', () => {
-    const worker = fontesDoWorker().map((f) => f.texto).join('\n')
+    const worker = arquivosDoWorker().map((f) => f.texto).join('\n')
     expect(worker).toContain('paraBytea')
     // O erro anterior, textualmente: a string decodificada por UTF-8 indo para uma coluna bytea.
     expect(worker).not.toMatch(/arquivo_bruto:\s*texto/)
   })
 
   it('venda_produto_dia e inserida com on_conflict pelo par UNIQUE, e nao pela chave primaria', () => {
-    const worker = fontesDoWorker().map((f) => f.texto).join('\n')
+    const worker = arquivosDoWorker().map((f) => f.texto).join('\n')
     // Sem isto, `resolution=merge-duplicates` resolve pelo `id`, que e sempre novo, e a
     // reimportacao do mesmo dia levanta 409 em vez de substituir o dia (F39).
     expect(worker).toContain("on_conflict: 'dia_operacional,produto_nome_norm'")
   })
 
   it('o filtro de idempotencia do watcher usa a coluna hash que existe', () => {
-    const worker = fontesDoWorker().map((f) => f.texto).join('\n')
+    const worker = arquivosDoWorker().map((f) => f.texto).join('\n')
     expect(worker).toContain('hash=eq.')
     expect(worker).not.toContain('hash_arquivo')
+  })
+})
+
+describe('os dominios fechados escritos em TypeScript casam com o CHECK do banco', () => {
+  /**
+   * O classificador filtra `polaridade` e `severidade` por listas escritas na propria fonte,
+   * porque as duas existem so na classificacao e nao no dominio da coleta. Duas listas em dois
+   * lugares divergem: se o CHECK do banco passar a aceitar um quarto valor e a lista aqui nao,
+   * a frase valida e descartada em silencio; se for o contrario, a insercao do LOTE inteiro e
+   * rejeitada e o comentario nao e classificado.
+   */
+  const sql = todoSql()
+  const classificador = readFileSync(
+    join(process.cwd(), 'worker', 'rotinas', 'classificador.ts'),
+    'utf8',
+  )
+
+  /** Os valores de um `check (coluna in ('a','b'))` das migrations. */
+  function dominioDoCheck(constraint: string): string[] {
+    const m = new RegExp(`${constraint}\\s*\\n?\\s*check \\([a-z_]+ in \\(([^)]*)\\)`).exec(sql)
+    expect(m, `nao achei o CHECK ${constraint} nas migrations`).not.toBeNull()
+    return [...m![1]!.matchAll(/'([a-z_]+)'/g)].map((x) => x[1]!)
+  }
+
+  /** Os valores de uma constante `readonly ... = ['a', 'b']` da fonte. */
+  function listaDaFonte(nome: string): string[] {
+    const m = new RegExp(`const ${nome}[^=]*=\\s*\\[([^\\]]*)\\]`).exec(classificador)
+    expect(m, `nao achei a constante ${nome} no classificador`).not.toBeNull()
+    return [...m![1]!.matchAll(/'([a-z_]+)'/g)].map((x) => x[1]!)
+  }
+
+  it('polaridade: a lista do classificador e o CHECK sao o mesmo conjunto', () => {
+    expect([...listaDaFonte('POLARIDADES')].sort()).toEqual(
+      [...dominioDoCheck('classificacao_texto_polaridade_dominio')].sort(),
+    )
+  })
+
+  it('severidade: a lista do classificador e o CHECK sao o mesmo conjunto', () => {
+    expect([...listaDaFonte('SEVERIDADES')].sort()).toEqual(
+      [...dominioDoCheck('classificacao_texto_severidade_dominio')].sort(),
+    )
+  })
+
+  it('o classificador filtra as duas antes de inserir', () => {
+    // Sem o filtro, uma frase com `negativa` no lugar de `negativo` derruba o lote inteiro e o
+    // comentario fica sem classificacao nenhuma, inclusive as frases que estavam certas.
+    expect(classificador).toContain('POLARIDADES.includes')
+    expect(classificador).toContain('SEVERIDADES.includes')
   })
 })

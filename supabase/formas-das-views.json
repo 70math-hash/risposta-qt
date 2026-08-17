@@ -328,6 +328,15 @@
     "pulo_pct",
     "candidata_reescrita"
   ],
+  "vw_texto_a_classificar": [
+    "resposta_id",
+    "dia_operacional",
+    "nota",
+    "idioma",
+    "texto_cru",
+    "mascarado_em",
+    "criado_em"
+  ],
   "vw_venda_dia": [
     "dia_operacional",
     "faturamento",

@@ -18,6 +18,7 @@ import type {
 import { validaResposta } from '../src/comum/contrato.js'
 import type { Ambiente } from './lib/supabase.js'
 import { ErroBanco, registraExecucao, rpc, seleciona } from './lib/supabase.js'
+import type { ContagensRotina } from './lib/supabase.js'
 import { rodaDigest } from './rotinas/digest.js'
 import { rodaClassificador } from './rotinas/classificador.js'
 import { rodaRetencao } from './rotinas/retencao.js'
@@ -233,7 +234,7 @@ export default {
 
     const executa = async (
       nome: string,
-      fn: () => Promise<Record<string, number>>,
+      fn: () => Promise<ContagensRotina>,
     ): Promise<void> => {
       try {
         const contagens = await fn()

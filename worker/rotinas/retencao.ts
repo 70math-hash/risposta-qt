@@ -13,9 +13,9 @@
  */
 
 import type { Ambiente } from '../lib/supabase.js'
-import { rpc, seleciona } from '../lib/supabase.js'
+import { rpc, seleciona, type ContagensRotina } from '../lib/supabase.js'
 
-export async function rodaRetencao(env: Ambiente): Promise<Record<string, number>> {
+export async function rodaRetencao(env: Ambiente): Promise<ContagensRotina> {
   // A regra vive no banco, em SQL, e nao aqui: apagar dado pessoal e operacao de uma
   // transacao, e dividir isso entre Worker e banco criaria estado intermediario onde o
   // cliente esta meio anonimizado.
@@ -33,10 +33,13 @@ export async function rodaRetencao(env: Ambiente): Promise<Record<string, number
     'select=id&atendido_em=is.null',
   )
 
+  // `linhas_anonimizadas` e `mascaramentos` sao as duas colunas de `execucao_rotina` que esta
+  // rotina preenche, e sao as que provam que a retencao rodou: sem elas, a unica evidencia de
+  // conformidade seria a ausencia de dado, que nao prova nada.
   return {
-    clientes_anonimizados: resultado.clientes_anonimizados,
+    linhas_anonimizadas: resultado.clientes_anonimizados,
+    mascaramentos: resultado.padroes_removidos,
     textos_varridos: resultado.textos_varridos,
-    padroes_removidos: resultado.padroes_removidos,
     pedidos_em_aberto: atrasados.length,
   }
 }

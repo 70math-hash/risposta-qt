@@ -844,10 +844,13 @@ begin
     raise notice '    %  %', rpad(v_view, 32), v_n;
   end loop;
 
-  if v_total <> 25 then
-    raise exception 'esperava 25 views executaveis e contei %', v_total;
+  -- Vinte e cinco de leitura mais `vw_texto_a_classificar`, que e view de trabalho da rotina do
+  -- classificador. Numero fixo de proposito: view que deixa de ser criada tem de derrubar isto,
+  -- e nao passar como "contei as que existem".
+  if v_total <> 26 then
+    raise exception 'esperava 26 views executaveis e contei %', v_total;
   end if;
-  raise notice 'ok  as 25 views executam contra dado, e nenhuma levanta erro';
+  raise notice 'ok  as 26 views executam contra dado, e nenhuma levanta erro';
 end
 $$;
 
@@ -863,6 +866,23 @@ declare
 begin
   select count(*) into v_n from experiencia.vw_hoje where dia_operacional = '2026-08-10';
   if v_n <> 0 then raise exception 'vw_hoje inventou linha para um dia sem resposta'; end if;
+
+  -- E a view de trabalho: com o texto da Parte 2 ainda sem classificacao, ela devolve 1. Depois
+  -- de classificado, tem de devolver 0, senao a rotina reclassifica todo dia o mesmo texto e
+  -- gasta a cota diaria da Groq com trabalho ja feito.
+  select count(*) into v_n from experiencia.vw_texto_a_classificar;
+  if v_n <> 1 then raise exception 'vw_texto_a_classificar deveria ter 1 pendente e tem %', v_n; end if;
+
+  insert into experiencia.classificacao_texto
+    (resposta_id, frase_ordem, frase, dimensao, fator, polaridade, severidade, modelo, versao_prompt)
+  values ('11111111-1111-4111-8111-111111111111', 1, 'a massa veio crua',
+          'comida', 'ponto_da_massa', 'negativo', 'alta', 'ensaio', '1.0.0');
+
+  select count(*) into v_n from experiencia.vw_texto_a_classificar;
+  if v_n <> 0 then
+    raise exception 'texto classificado continua pendente: a rotina o leria de novo todo dia';
+  end if;
+  raise notice 'ok  vw_texto_a_classificar: pendente antes, e fora da lista depois de classificado';
 
   -- E o painel tem de saber que a casa estava fechada, o que vem de `fn_casa_abre` e nao da
   -- ausencia de linha: ausencia de linha e ambigua entre "fechado" e "coleta quebrada".
@@ -950,6 +970,7 @@ declare
   v_antigo     uuid;
   v_recente    uuid;
   v_n          integer;
+  v_chave      text;
 begin
   -- Um cliente com ultima visita ha 13 meses (passou dos 12 de D4) e um com 2 meses.
   insert into experiencia.cliente (nome, email, ultima_visita_em)
@@ -979,13 +1000,35 @@ begin
    where id = v_recente and email = 'recente@exemplo.invalid' and anonimizado_em is null;
   if v_n <> 1 then raise exception 'o cliente de 2 meses foi anonimizado antes do prazo'; end if;
 
+  -- A CHAVE E `clientes_anonimizados`, e a primeira versao deste teste leu
+  -- `linhas_anonimizadas`, que e o nome da COLUNA de `execucao_rotina` e nao o da chave que a
+  -- funcao devolve. O teste passava sem conferir nada, porque `NULL <> 0` em SQL nao e
+  -- verdadeiro nem falso: e NULL, e um `if NULL` simplesmente nao entra. Por isso a chave e
+  -- conferida como existente ANTES de o valor ser comparado.
+  if not (v_r ? 'clientes_anonimizados') then
+    raise exception 'fn_aplica_retencao nao devolveu a chave clientes_anonimizados. Devolveu: %', v_r;
+  end if;
+  if (v_r->>'clientes_anonimizados')::integer <> 1 then
+    raise exception 'a primeira passada deveria ter anonimizado 1 cliente, e devolveu %', v_r;
+  end if;
+
   -- Rodar de novo nao pode contar o mesmo cliente outra vez: a rotina e mensal e vai rodar
   -- doze vezes por ano sobre a mesma base.
   v_r := experiencia.fn_aplica_retencao(12);
-  if (v_r->>'linhas_anonimizadas')::integer <> 0 then
-    raise exception 'a segunda passada anonimizou % linha(s), e deveria ser 0: %',
-      v_r->>'linhas_anonimizadas', v_r;
+  if (v_r->>'clientes_anonimizados')::integer <> 0 then
+    raise exception 'a segunda passada anonimizou % cliente(s), e deveria ser 0: %',
+      v_r->>'clientes_anonimizados', v_r;
   end if;
+
+  -- E as tres chaves que a rotina do Worker le do retorno. Ler chave que a funcao nao devolve
+  -- e o mesmo erro de nome de coluna, com a mesma consequencia: `undefined` virando zero e o
+  -- log dizendo que nada foi anonimizado num mes em que foi.
+  for v_chave in select unnest(array['clientes_anonimizados','textos_varridos','padroes_removidos'])
+  loop
+    if not (v_r ? v_chave) then
+      raise exception 'fn_aplica_retencao nao devolve a chave %, que retencao.ts le', v_chave;
+    end if;
+  end loop;
 
   raise notice 'ok  fn_aplica_retencao: anonimiza o de 13 meses, poupa o de 2, e nao repete';
 end

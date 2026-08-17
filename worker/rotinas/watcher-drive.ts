@@ -16,7 +16,7 @@
  */
 
 import type { Ambiente } from '../lib/supabase.js'
-import { insere, seleciona } from '../lib/supabase.js'
+import { insere, seleciona, type ContagensRotina } from '../lib/supabase.js'
 import { interpretaR3 } from './r3.js'
 
 interface ArquivoDrive {
@@ -99,7 +99,7 @@ async function hash(bytes: ArrayBuffer): Promise<string> {
   return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('')
 }
 
-export async function rodaWatcherDrive(env: Ambiente): Promise<Record<string, number>> {
+export async function rodaWatcherDrive(env: Ambiente): Promise<ContagensRotina> {
   const pastaId = (
     await seleciona<{ valor: string }>(env, 'configuracao', 'select=valor&chave=eq.drive_pasta_r3')
   )[0]?.valor

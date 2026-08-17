@@ -197,7 +197,10 @@ declare
   v_dispositivo_id  uuid        := nullif(p->>'dispositivo_id','')::uuid;
   v_mesa_digitada   text        := nullif(btrim(coalesce(p->>'mesa_digitada','')), '');
   v_mesa_id         uuid;
-  v_pin             text        := btrim(coalesce(p->>'garcom_pin_digitado',''));
+  -- Nulo, e nunca cadeia vazia: `resposta.garcom_pin_digitado` aceita nulo (canal `qr`) e
+  -- tem CHECK contra cadeia vazia, porque '' apareceria em toda exportacao como se fosse
+  -- PIN digitado.
+  v_pin             text        := nullif(btrim(coalesce(p->>'garcom_pin_digitado','')), '');
   v_garcom_id       uuid;
   v_nota            smallint;
   v_janela          integer;
@@ -217,7 +220,7 @@ begin
   -- O PIN vem da T0, e a T0 so existe no tablet. Resposta por QR no celular do cliente nao
   -- passa pela T0 e nao tem PIN, e exigir um aqui rejeitaria o canal `qr` inteiro, que a folha
   -- canonica define na secao 3.3. Portanto a exigencia vale so para `tablet`.
-  if v_canal = 'tablet' and v_pin = '' then
+  if v_canal = 'tablet' and v_pin is null then
     raise exception 'fn_grava_resposta: resposta de tablet sem `garcom_pin_digitado`. A T0 nao deixa passar campo vazio (F04)';
   end if;
 
@@ -240,14 +243,21 @@ begin
     where upper(btrim(m.numero)) = upper(v_mesa_digitada);
   end if;
 
-  select g.id into v_garcom_id
-  from experiencia.garcom g
-  where g.pin = v_pin and g.removido_em is null and g.ativo = true;
+  if v_pin is not null then
+    select g.id into v_garcom_id
+    from experiencia.garcom g
+    where g.pin = v_pin and g.removido_em is null and g.ativo = true;
+  end if;
 
   -- ---------------------------------------------------------------------------
   -- Caminho da recusa: uma linha em `tentativa`, e nada mais.
   -- ---------------------------------------------------------------------------
   if v_desfecho = 'recusou' then
+    -- Recusa sem PIN nao existe: ela e registrada em um toque na T0, que exige o PIN. Sem
+    -- este guarda o erro sairia como violacao de NOT NULL, que nao diz nada a quem le o log.
+    if v_pin is null then
+      raise exception 'fn_grava_resposta: recusa sem `garcom_pin_digitado`. A recusa e registrada na T0, e a T0 exige PIN (F05)';
+    end if;
     insert into experiencia.tentativa (
       id, criado_em_cliente, dia_operacional, desfecho, canal, dispositivo_id,
       mesa_digitada, mesa_id, garcom_pin_digitado, garcom_id, garcom_reconhecido)
@@ -303,14 +313,21 @@ begin
   end if;
 
   -- Tentativa de par, com o MESMO id da resposta, o que faz o par ser conferivel por
-  -- igualdade. E o denominador da conversao por garcom.
-  insert into experiencia.tentativa (
-    id, criado_em_cliente, dia_operacional, desfecho, canal, dispositivo_id,
-    mesa_digitada, mesa_id, garcom_pin_digitado, garcom_id, garcom_reconhecido)
-  values (
-    v_id, v_cliente_ts, v_dia, 'respondeu', v_canal, v_dispositivo_id,
-    v_mesa_digitada, v_mesa_id, v_pin, v_garcom_id, v_garcom_id is not null)
-  on conflict (id) do nothing;
+  -- igualdade e nao por juncao aproximada. E o denominador da conversao por garcom.
+  --
+  -- SO no canal `tablet`. Tentativa e "uma abordagem de mesa" registrada na T0, e resposta
+  -- por QR no celular do cliente nao e abordagem: ninguem ofereceu nada a ninguem. Gravar
+  -- tentativa para QR inflaria o denominador com abordagens que nao existiram, e a
+  -- conversao por garcom passaria a medir outra coisa sem avisar.
+  if v_canal = 'tablet' then
+    insert into experiencia.tentativa (
+      id, criado_em_cliente, dia_operacional, desfecho, canal, dispositivo_id,
+      mesa_digitada, mesa_id, garcom_pin_digitado, garcom_id, garcom_reconhecido)
+    values (
+      v_id, v_cliente_ts, v_dia, 'respondeu', v_canal, v_dispositivo_id,
+      v_mesa_digitada, v_mesa_id, v_pin, v_garcom_id, v_garcom_id is not null)
+    on conflict (id) do nothing;
+  end if;
 
   for r in select jsonb_array_elements(coalesce(p->'opcoes', '[]'::jsonb)) loop
     insert into experiencia.resposta_opcao (resposta_id, tela, opcao_codigo, dimensao, fator)

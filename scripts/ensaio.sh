@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+# =============================================================================
+# scripts/ensaio.sh
+#
+# Derruba e recria o banco de ensaio, semeia a estrutura de `public` e aplica TODAS as
+# migrations em ordem, com `ON_ERROR_STOP=1`.
+#
+# POR QUE EXISTE
+#   `tsc --noEmit` e os testes de contrato conferem a ponta TypeScript. Nada disso executa
+#   uma linha de SQL. As duas coisas que este script achou (`round(double precision, int)`
+#   inexistente e `temporary ... on commit drop` morrendo em autocommit) sao invisiveis para
+#   qualquer outro teste do projeto, e as duas derrubariam a aplicacao em producao.
+#
+# COMO USAR
+#   scripts/ensaio.sh            aplica estrutura + migrations
+#   scripts/ensaio.sh --dados    aplica tambem os dados de ensaio e roda as conferencias
+#
+# O QUE NAO FAZ
+#   Nao fala com Supabase. Precisa de um Postgres local e de `sudo -u postgres psql`.
+# =============================================================================
+set -euo pipefail
+
+BANCO="${BANCO:-qt_ensaio}"
+RAIZ="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+psql_() { sudo -u postgres psql -v ON_ERROR_STOP=1 -q -d "$BANCO" "$@"; }
+
+echo "== recriando $BANCO =="
+sudo -u postgres psql -q -c "drop database if exists $BANCO" -c "create database $BANCO"
+
+echo "== estrutura de public (as cinco tabelas de custo) =="
+psql_ -f "$RAIZ/scripts/ensaio-publico.sql"
+
+echo "== migrations =="
+for f in "$RAIZ"/supabase/migrations/*.sql; do
+  nome="$(basename "$f")"
+  printf '  %-52s ' "$nome"
+
+  if [[ "$nome" == *semeia_convite_clique* ]]; then
+    # Esta migration falha DE PROPOSITO quando o bloco gerado esta vazio, e essa falha e
+    # uma garantia: sem ela, aplicar o arquivo como esta no repositorio deixaria
+    # `convite_clique` vazia com aparencia de migrada. Aqui o teste e o inverso do normal:
+    # ela TEM de falhar, e com a mensagem certa. Tudo que vem antes do `do $$` final ja
+    # rodou quando a excecao estoura, entao chegar nessa mensagem tambem prova que o
+    # `begin`/`commit` e a area de pouso temporaria funcionam.
+    if psql_ -f "$f" >/dev/null 2>/tmp/ensaio-erro; then
+      echo "FALHOU: aplicou em silencio com o bloco gerado vazio"
+      exit 1
+    fi
+    if grep -q 'As 74 linhas nao foram embutidas' /tmp/ensaio-erro; then
+      echo "ok (falha proposital, mensagem certa)"
+    else
+      echo "FALHOU com erro diferente do proposital"
+      sed 's/^/      /' /tmp/ensaio-erro
+      exit 1
+    fi
+    continue
+  fi
+
+  if psql_ -f "$f" >/dev/null 2>/tmp/ensaio-erro; then
+    echo "ok"
+  else
+    echo "FALHOU"
+    sed 's/^/      /' /tmp/ensaio-erro
+    exit 1
+  fi
+done
+
+if [[ "${1:-}" == "--dados" ]]; then
+  echo "== dados de ensaio e conferencias =="
+  psql_ -f "$RAIZ/scripts/ensaio-dados.sql"
+fi
+
+echo "== fim =="

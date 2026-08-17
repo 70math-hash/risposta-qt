@@ -17,7 +17,7 @@ import type { ItemCardapio } from './coleta/App.js'
 interface CatalogoDaApi {
   itens?: ItemCardapio[]
   perguntas_ativas?: { id: string; numero: number }[]
-  consentimento?: { versao: string; texto_curto: string } | null
+  consentimento?: { versao: string; texto: string } | null
 }
 import { Painel } from './painel/Painel.jsx'
 

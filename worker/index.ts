@@ -148,10 +148,14 @@ async function postSinal(req: Request, env: Ambiente): Promise<Response> {
 async function getCatalogo(env: Ambiente): Promise<Response> {
   try {
     const [itens, perguntas, textos, mesas] = await Promise.all([
-      seleciona<{ id: string; nome: string; grupo: string }>(
+      // Os dois nomes, e nao um so: o questionario inteiro e bilingue (T0 a T7 tem texto em
+      // pt e en), e o idioma e escolhido pelo cliente NA TELA, depois de o catalogo ja ter
+      // sido baixado. Mandar so `nome_pt` mostraria a pizza em portugues a quem escolheu
+      // ingles, no meio de uma tela toda traduzida.
+      seleciona<{ id: string; nome_pt: string; nome_en: string; grupo: string }>(
         env,
         'item_cardapio',
-        'select=id,nome,grupo&removido_em=is.null&order=nome',
+        'select=id,nome_pt,nome_en,grupo&ativo=is.true&removido_em=is.null&order=nome_pt',
       ),
       // O `id` vem junto do `numero` porque o payload guarda o id, e nao o numero: numero e
       // rotulo de leitura e pode migrar numa reescrita, id nao.
@@ -160,10 +164,10 @@ async function getCatalogo(env: Ambiente): Promise<Response> {
         'pergunta_banco',
         'select=id,numero&ativa=is.true&order=numero',
       ),
-      seleciona<{ versao: string; texto_curto: string }>(
+      seleciona<{ versao: string; texto: string }>(
         env,
         'consentimento_texto',
-        'select=versao,texto_curto&order=vigente_de.desc&limit=1',
+        'select=versao,texto&order=vigente_de.desc&limit=1',
       ),
       seleciona<{ numero: string; area: string }>(
         env,

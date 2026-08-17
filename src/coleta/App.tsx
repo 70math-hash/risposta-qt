@@ -61,9 +61,18 @@ const CONTAGEM_VISIVEL_S = 15
 
 // `Passo` e `proximoPasso` vivem em questionario.ts, que e onde a ramificacao e testada.
 
+/**
+ * Um item do cardapio, como o catalogo o entrega.
+ *
+ * Os dois nomes vem juntos porque o idioma e escolhido na tela, depois de o catalogo ja
+ * ter sido baixado: nao ha como o servidor saber, na hora da consulta, em que lingua a
+ * proxima pessoa vai responder. Guardar so um dos dois mostraria a pizza em portugues no
+ * meio de uma tela em ingles.
+ */
 export interface ItemCardapio {
   id: string
-  nome: string
+  nome_pt: string
+  nome_en: string
   grupo: 'pizza' | 'entrada' | 'sobremesa'
 }
 
@@ -706,7 +715,7 @@ export function App(props: PropsColeta): React.ReactElement {
                       setPasso('T3C3')
                     }}
                   >
-                    {i.nome}
+                    {idioma === 'en' ? i.nome_en : i.nome_pt}
                   </button>
                 ))}
               <button

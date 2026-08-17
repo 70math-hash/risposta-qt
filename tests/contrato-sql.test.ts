@@ -143,6 +143,19 @@ describe('o canal qr nao exige PIN, em nenhuma das duas pontas', () => {
   it('a funcao exige PIN somente quando o canal e tablet', () => {
     // Sem esta condicao, toda resposta por QR no celular do cliente seria rejeitada, e o canal
     // `qr` que a folha canonica define ficaria morto.
-    expect(sql).toMatch(/v_canal = 'tablet' and v_pin = ''/)
+    //
+    // A condicao e sobre `v_pin is null`, e nao sobre cadeia vazia: `v_pin` e normalizado com
+    // `nullif` na declaracao, porque `resposta.garcom_pin_digitado` aceita nulo no canal `qr` e
+    // tem CHECK contra cadeia vazia. Guardar '' seria nulo com passos extras, e apareceria em
+    // toda exportacao como se alguem tivesse digitado um PIN.
+    expect(sql).toMatch(/v_canal = 'tablet' and v_pin is null/)
+    expect(sql).toMatch(/v_pin\s+text\s+:= nullif\(btrim\(coalesce\(p->>'garcom_pin_digitado',''\)\), ''\)/)
+  })
+
+  it('a tentativa de par nasce somente no canal tablet', () => {
+    // Tentativa e "uma abordagem de mesa" registrada na T0. Resposta por QR nao e abordagem, e
+    // gravar tentativa para ela inflaria o denominador da conversao por garcom com abordagens
+    // que nunca aconteceram.
+    expect(sql).toMatch(/if v_canal = 'tablet' then\s+insert into experiencia\.tentativa/)
   })
 })

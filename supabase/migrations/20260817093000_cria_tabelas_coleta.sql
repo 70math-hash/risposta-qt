@@ -14,8 +14,13 @@
 --      por isso que o default nao existe.
 --   2. `respondido_em` chega ja resolvido por `fn_grava_resposta` (regra das 48h da
 --      secao 3.2). A coluna gerada `dia_operacional` sai dele, nunca de `criado_em`.
---   3. `mesa_digitada` aceita nulo porque a resposta de QR pode vir sem `?m=`.
---      `garcom_pin_digitado` nao aceita nulo: a T0 nao deixa passar campo vazio (F04).
+--   3. `mesa_digitada` e `garcom_pin_digitado` aceitam nulo em `resposta`, e o CHECK exige
+--      os dois so no canal `tablet`. O PIN vem da T0, e a T0 so existe no tablet: resposta
+--      por QR no celular do cliente nao passa pela T0. Exigir PIN de toda resposta
+--      rejeitaria o canal `qr` inteiro, que a folha canonica define na secao 3.3. O
+--      criterio de F04 ("toda resposta carrega PIN") descreve a T0, e a T0 continua nao
+--      deixando passar campo vazio. Guardar cadeia vazia em vez de nulo seria nulo com
+--      passos extras, e passa a parecer PIN digitado em toda exportacao.
 --   4. Nao existe coluna de duracao em `resposta`. A duracao sai da diferenca entre
 --      carimbos de `tela_evento` do MESMO dispositivo, e guardar o total em `resposta`
 --      criaria uma segunda fonte para o mesmo numero.
@@ -50,7 +55,7 @@ create table if not exists experiencia.resposta (
   dispositivo_id       uuid        null references experiencia.dispositivo (id),
   mesa_digitada        text        null,
   mesa_id              uuid        null references experiencia.mesa (id),
-  garcom_pin_digitado  text        not null,
+  garcom_pin_digitado  text        null,
   garcom_id            uuid        null references experiencia.garcom (id),
   garcom_reconhecido   boolean     not null default false,
   idioma               text        not null,
@@ -75,7 +80,14 @@ create table if not exists experiencia.resposta (
   -- e o corte por aparelho e o que distingue "equipe ignora o ponto" de "ponto
   -- quebrado" (D5). Canal `qr` fica sem aparelho, que e o esperado.
   constraint resposta_tablet_tem_dispositivo
-    check (canal <> 'tablet' or dispositivo_id is not null)
+    check (canal <> 'tablet' or dispositivo_id is not null),
+  -- O PIN e obrigatorio no tablet e ausente no QR. Ver "O QUE ASSUME", item 3.
+  constraint resposta_tablet_tem_pin
+    check (canal <> 'tablet'
+           or (garcom_pin_digitado is not null and btrim(garcom_pin_digitado) <> '')),
+  -- Cadeia vazia nunca entra: ou tem PIN, ou e nulo.
+  constraint resposta_pin_nao_vazio
+    check (garcom_pin_digitado is null or btrim(garcom_pin_digitado) <> '')
 );
 
 comment on table experiencia.resposta is
@@ -285,6 +297,10 @@ create table if not exists experiencia.tentativa (
   garcom_reconhecido  boolean     not null default false,
   constraint tentativa_desfecho_dominio check (desfecho in ('respondeu','recusou')),
   constraint tentativa_canal_dominio check (canal in ('tablet','qr')),
+  -- Aqui o PIN e obrigatorio e nao aceita cadeia vazia, porque tentativa SO nasce da T0,
+  -- que so existe no tablet. O dominio de `canal` continua sendo o da folha canonica, e no
+  -- MVP nenhuma linha de `qr` chega aqui: resposta de QR nao e abordagem de mesa.
+  constraint tentativa_pin_nao_vazio check (btrim(garcom_pin_digitado) <> ''),
   constraint tentativa_reconhecido_tem_garcom
     check ((garcom_reconhecido = true  and garcom_id is not null)
         or (garcom_reconhecido = false and garcom_id is null))

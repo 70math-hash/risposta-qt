@@ -89,7 +89,7 @@ select d.dia_operacional,
        f.faixa,
        count(r.id)::int as respostas
 from (select distinct dia_operacional from experiencia.resposta) d
-cross join (values ('detrator'), ('neutro'), ('promotor')) as f(faixa)
+cross join (values ('detrator'::text), ('neutro'), ('promotor')) as f(faixa)
 left join experiencia.resposta r
        on r.dia_operacional = d.dia_operacional
       and r.faixa = f.faixa
@@ -142,11 +142,14 @@ calculado as (
          ) * 100 as erro_padrao
   from agregado a
 )
+-- `sqrt()` devolve double precision, e `round(double precision, int)` NAO EXISTE no
+-- Postgres: round com casas decimais so tem versao para numeric. Sem os casts abaixo esta
+-- view falha na criacao, o que foi descoberto rodando as migrations num Postgres de ensaio.
 select janela, inicio, fim, n, promotores, neutros, detratores,
-       round(nps_fracao * 100, 1)              as nps,
-       round(erro_padrao, 1)                   as erro_padrao,
-       round(1.96 * erro_padrao, 1)            as faixa_95,
-       round(1.96 * erro_padrao * sqrt(2), 1)  as diferenca_minima_detectavel,
+       round((nps_fracao * 100)::numeric, 1)             as nps,
+       round(erro_padrao::numeric, 1)                    as erro_padrao,
+       round((1.96 * erro_padrao)::numeric, 1)           as faixa_95,
+       round((1.96 * erro_padrao * sqrt(2))::numeric, 1) as diferenca_minima_detectavel,
        (n >= 20)                               as amostra_suficiente,
        case when n < 20 then 'amostra insuficiente, n=' || n else null end as aviso
 from calculado;
@@ -278,9 +281,13 @@ with resp as (
   select r.garcom_id,
          date_trunc('quarter', r.dia_operacional)::date as trimestre,
          count(*)::int                                  as n,
-         count(*) filter (where r.faixa = 'promotor')::int as promotores,
-         count(*) filter (where r.faixa = 'neutro')::int   as neutros,
-         count(*) filter (where r.faixa = 'detrator')::int as detratores
+         -- Numerador da conversao: SO o canal tablet, porque `tentativa` so existe no
+         -- tablet. Somar as respostas de QR sobre um denominador que nao as conta produziria
+         -- conversao acima de 100%, que e o tipo de numero que ninguem confere duas vezes.
+         count(*) filter (where r.canal = 'tablet')::int    as n_tablet,
+         count(*) filter (where r.faixa = 'promotor')::int  as promotores,
+         count(*) filter (where r.faixa = 'neutro')::int    as neutros,
+         count(*) filter (where r.faixa = 'detrator')::int  as detratores
   from experiencia.resposta r
   where r.suspeita = false and r.garcom_reconhecido = true
   group by 1, 2
@@ -293,29 +300,39 @@ tent as (
   from experiencia.tentativa t
   where t.garcom_reconhecido = true
   group by 1, 2
+),
+-- A dimensao (garcom, trimestre) sai da UNIAO dos dois lados, e nao de um deles. Sem
+-- isso, o garcom que abordou mesas e nao trouxe resposta nenhuma desapareceria da tela,
+-- que e exatamente o caso que a conversao existe para mostrar.
+grade as (
+  select garcom_id, trimestre from resp
+  union
+  select garcom_id, trimestre from tent
 )
 select g.id            as garcom_id,
        g.nome,
        g.ativo,
-       coalesce(resp.trimestre, tent.trimestre) as trimestre,
+       gr.trimestre,
        coalesce(resp.n, 0)          as n,
-       resp.promotores,
-       resp.neutros,
-       resp.detratores,
+       coalesce(resp.n_tablet, 0)   as n_tablet,
+       coalesce(resp.promotores, 0) as promotores,
+       coalesce(resp.neutros, 0)    as neutros,
+       coalesce(resp.detratores, 0) as detratores,
        case when coalesce(resp.n, 0) >= 20
             then round((resp.promotores - resp.detratores)::numeric * 100 / resp.n, 1)
             else null end           as nps,
        coalesce(tent.tentativas, 0) as tentativas,
        coalesce(tent.recusas, 0)    as recusas,
        case when coalesce(tent.tentativas, 0) >= 20
-            then round(coalesce(resp.n, 0)::numeric * 100 / tent.tentativas, 1)
+            then round(coalesce(resp.n_tablet, 0)::numeric * 100 / tent.tentativas, 1)
             else null end           as conversao_pct,
        case when coalesce(resp.n, 0) < 20
             then 'amostra insuficiente, n=' || coalesce(resp.n, 0)
             else null end           as aviso
-from experiencia.garcom g
-left join resp on resp.garcom_id = g.id
-left join tent on tent.garcom_id = g.id and tent.trimestre = resp.trimestre;
+from grade gr
+join experiencia.garcom g on g.id = gr.garcom_id
+left join resp on resp.garcom_id = gr.garcom_id and resp.trimestre = gr.trimestre
+left join tent on tent.garcom_id = gr.garcom_id and tent.trimestre = gr.trimestre;
 
 comment on view experiencia.vw_garcom_trimestre is
   'Janela trimestral, e n minimo de 20 (N32). Garcom removido continua aqui com o '
@@ -381,7 +398,10 @@ with resp as (
          count(*) filter (where suspeita = true)::int               as suspeitas,
          count(*) filter (where garcom_reconhecido = false)::int    as pin_nao_reconhecido,
          count(*) filter (where canal = 'tablet')::int              as respostas_tablet,
-         count(*) filter (where canal = 'qr')::int                  as respostas_qr
+         count(*) filter (where canal = 'qr')::int                  as respostas_qr,
+         -- Numerador da conversao por tentativa: tablet e nao suspeita. Ver a nota de
+         -- vw_garcom_trimestre: `tentativa` so existe no tablet.
+         count(*) filter (where canal = 'tablet' and suspeita = false)::int as respostas_tablet_validas
   from experiencia.resposta
   group by 1
 ),
@@ -408,7 +428,8 @@ select r.dia_operacional,
        t.tentativas,
        t.recusas,
        case when coalesce(t.tentativas, 0) = 0 then null
-            else round(r.respostas::numeric * 100 / t.tentativas, 1) end as conversao_tentativa_pct,
+            else round(r.respostas_tablet_validas::numeric * 100 / t.tentativas, 1)
+       end as conversao_tentativa_pct,
        r.suspeitas,
        case when r.respostas + r.suspeitas = 0 then null
             else round(r.suspeitas::numeric * 100 / (r.respostas + r.suspeitas), 1) end as suspeitas_pct,

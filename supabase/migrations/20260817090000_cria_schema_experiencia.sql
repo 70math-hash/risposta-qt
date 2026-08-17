@@ -60,10 +60,22 @@ grant usage on schema experiencia to experiencia_app, experiencia_leitura;
 
 -- O painel entra pelo PostgREST como `authenticated`. Sem esta linha, e sem o schema
 -- `experiencia` na lista de Exposed schemas do projeto, o painel nao le nada.
-grant experiencia_leitura to authenticated;
-
--- `anon` nao recebe nada. Chave publica vazada nao le uma linha do schema.
-revoke all on schema experiencia from anon;
+--
+-- `authenticated` e `anon` sao papeis do Supabase e NAO existem num Postgres 17 limpo.
+-- O guarda de existencia esta aqui para que a camada 1 de ensaio (banco local em
+-- conteiner, 01-arquitetura secao 7.2) aplique as migrations do zero sem erro. Sem ele,
+-- o unico ambiente de teste que o projeto tem nao sobe.
+do $$
+begin
+  if exists (select 1 from pg_roles where rolname = 'authenticated') then
+    grant experiencia_leitura to authenticated;
+  end if;
+  -- `anon` nao recebe nada. Chave publica vazada nao le uma linha do schema.
+  if exists (select 1 from pg_roles where rolname = 'anon') then
+    revoke all on schema experiencia from anon;
+  end if;
+end
+$$;
 
 -- -----------------------------------------------------------------------------
 -- Privilegios padrao. Cada migration de tabela repete o grant explicito, de

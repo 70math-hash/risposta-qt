@@ -11,25 +11,30 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { SimboloQt } from '../comum/SimboloQt.js'
-import { calculaNps } from '../comum/nps.js'
 import { rotuloDiaOperacional, diaOperacionalAnterior } from '../comum/dia-operacional.js'
 import {
   baixaCsv,
   le,
   supabase,
+  type VwAlertaIncidente,
   type VwClienteMes,
   type VwColetaDia,
   type VwCustoPrato,
+  type VwDiaSemana,
   type VwDispositivoSinal,
+  type VwDuracaoSemana,
   type VwFatorContagem,
   type VwGarcomTrimestre,
   type VwHoje,
   type VwItemTrimestre,
-  type VwSaudeRotina,
+  type VwNpsJanela,
+  type VwPerguntaDesempenho,
   type VwSatisfacaoVendaDia,
+  type VwSaudeRotina,
+  type VwSemanaDetrator,
   type VwTelaPulo,
 } from './dados.js'
-import { Aviso, Barra, BlocoNps, Cartao, Marca, Numero, Proporcao, Tabela } from './componentes.jsx'
+import { Aviso, Barra, Cartao, Marca, Numero, Proporcao, Tabela } from './componentes.jsx'
 
 const ABAS = [
   { id: '', nome: 'Hoje' },
@@ -269,74 +274,210 @@ function Estado({
   return null
 }
 
+// ---------------------------------------------------------------------------
+// Auxiliares de leitura de view.
+//
+// Toda coluna de view chega `| null`, porque `left join` e `case` bastam para produzir nulo e
+// o Postgres nao promete o contrario. Estas tres funcoes concentram o tratamento, em vez de
+// espalhar `?? 0` por cento e poucas linhas de JSX.
+// ---------------------------------------------------------------------------
+
+/**
+ * Numero para conta. Nulo vira zero: somar nulo produz `NaN`, que aparece na tela.
+ *
+ * Aceita `undefined` porque `find` sobre uma view devolve `undefined` quando o dia nao existe
+ * na serie, e `d?.respostas` produz o mesmo. Sao o mesmo caso de leitura: nao veio.
+ */
+function num(v: number | null | undefined): number {
+  return v ?? 0
+}
+
+/** Numero para exibicao. Nulo vira travessao, e NUNCA zero: zero e um valor, ausencia nao. */
+function mostra(v: number | null | undefined, casas = 0): string {
+  return v === null || v === undefined ? '—' : v.toFixed(casas)
+}
+
+function reais(v: number | null | undefined): string {
+  return v === null || v === undefined ? '—' : `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+}
+
+function pct(v: number | null | undefined): string {
+  return v === null || v === undefined ? '—' : `${v.toFixed(1)}%`
+}
+
+/** Data ISO curta, `08-17`. Rotulo de eixo, nao de leitura. */
+function curta(d: string | null): string {
+  return d === null ? '—' : d.slice(5)
+}
+
+/**
+ * O aviso que a VIEW escreveu, e nao um aviso do painel.
+ *
+ * Dezoito das vinte e cinco views tem uma coluna `aviso` que o SQL preenche quando o numero
+ * nao deve ser lido de frente: amostra abaixo de 20, semana incomparavel, casa fechada, R3 nao
+ * importado. Mostrar essa coluna, em vez de reescrever a mesma regra em TypeScript, e o que
+ * mantem uma regra em um lugar so. Quando a regra muda no SQL, a tela acompanha sem edicao.
+ */
+function AvisoDaView({ aviso }: { aviso: string | null | undefined }): React.ReactElement | null {
+  if (aviso === null || aviso === undefined || aviso === '') return null
+  return <Aviso>{aviso}</Aviso>
+}
+
+/**
+ * O NPS com a faixa de confianca, direto de `vw_nps_janela`.
+ *
+ * A conta de erro padrao e de diferenca minima detectavel ja esta na view, identica a de
+ * `src/comum/nps.ts` e coberta pelos mesmos testes. Recalcular aqui a partir das contagens
+ * seria uma segunda implementacao da mesma formula, e a segunda implementacao e a que
+ * divergiria em silencio.
+ */
+function NpsDaView({ r, legenda }: { r: VwNpsJanela | undefined; legenda: string }): React.ReactElement {
+  if (r === undefined || num(r.n) === 0) {
+    return <Numero valor="—" legenda={legenda} ressalva="nenhuma resposta coletada" />
+  }
+  if (r.amostra_suficiente !== true) {
+    return (
+      <Numero
+        valor={mostra(r.nps, 1)}
+        legenda={legenda}
+        ressalva={`amostra insuficiente, n=${num(r.n)}. Não tire conclusão daqui.`}
+      />
+    )
+  }
+  return (
+    <Numero
+      valor={`${mostra(r.nps, 1)} ±${mostra(r.faixa_95, 1)}`}
+      legenda={legenda}
+      ressalva={`n=${num(r.n)} · só diferença acima de ${mostra(r.diferenca_minima_detectavel, 1)} pontos é real`}
+    />
+  )
+}
+
+/** Botao de exportacao de uma view, sempre com o `n` de cada linha embutido no CSV. */
+function Exportar<T extends object>({
+  nome,
+  linhas,
+}: {
+  nome: string
+  linhas: readonly T[]
+}): React.ReactElement {
+  return (
+    <button
+      type="button"
+      className="btn btn--secundario"
+      style={{ minHeight: 32, padding: '4px 12px', fontSize: 12 }}
+      onClick={() => baixaCsv(nome, linhas)}
+    >
+      Exportar
+    </button>
+  )
+}
+
+/** A linha mais recente de uma serie diaria, pela data e nao pela ordem de chegada. */
+function ultimoDia<T extends { dia_operacional: string | null }>(linhas: readonly T[]): T | undefined {
+  return [...linhas]
+    .filter((l) => l.dia_operacional !== null)
+    .sort((a, b) => (a.dia_operacional! < b.dia_operacional! ? 1 : -1))[0]
+}
+
+/** Ordena uma serie por uma coluna de data crescente, para os graficos lerem da esquerda. */
+function porData<T>(linhas: readonly T[], chave: keyof T): T[] {
+  return [...linhas].sort((a, b) => String(a[chave] ?? '').localeCompare(String(b[chave] ?? '')))
+}
+
 // --------------------------------------------------------------------------- Hoje
 
 function AbaHoje(): React.ReactElement {
   const dia = diaOperacionalAnterior()
   const { dados, erro, carregando } = useView<VwHoje>('vw_hoje')
+  const { dados: janelas } = useView<VwNpsJanela>('vw_nps_janela')
   const { dados: fatores } = useView<VwFatorContagem>('vw_fator_contagem')
 
   const estado = <Estado carregando={carregando} erro={erro} />
   if (estado !== null) return estado
 
-  const d = dados.find((x) => x.dia_operacional === dia) ?? dados[0]
-  const nps = calculaNps({
-    detratores: d?.detratores ?? 0,
-    neutros: d?.neutros ?? 0,
-    promotores: d?.promotores ?? 0,
-  })
-  const maiorFator = Math.max(1, ...fatores.map((f) => f.mencoes))
+  const d = dados.find((x) => x.dia_operacional === dia) ?? ultimoDia(dados)
+  const diaMostrado = d?.dia_operacional ?? dia
+
+  // O NPS do dia sai da janela `dia` com a data igual. Sem a data, `find` pegaria a primeira
+  // linha da view, que e um dia qualquer da serie.
+  const npsDoDia = janelas.find((j) => j.janela === 'dia' && j.inicio === diaMostrado)
+  const npsDoMes = janelas
+    .filter((j) => j.janela === 'mes')
+    .sort((a, b) => String(b.inicio).localeCompare(String(a.inicio)))[0]
+
+  // Menções da janela `mes` mais recente, e apenas as de opcao marcada: somar opcao com
+  // classificacao de texto contaria a mesma reclamacao duas vezes, uma vez pelo toque e outra
+  // pela frase que a descreve.
+  const mesFator = fatores
+    .filter((f) => f.janela === 'mes' && f.origem === 'opcao')
+    .sort((a, b) => String(b.inicio).localeCompare(String(a.inicio)))[0]?.inicio
+  const doMes = fatores
+    .filter((f) => f.janela === 'mes' && f.origem === 'opcao' && f.inicio === mesFator)
+    .sort((a, b) => num(b.mencoes) - num(a.mencoes))
+  const maiorFator = Math.max(1, ...doMes.map((f) => num(f.mencoes)))
+  const total = num(d?.respostas)
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--u3)' }}>
-      <p className="rotulo">{rotuloDiaOperacional(d?.dia_operacional ?? dia)}</p>
+      <p className="rotulo">{rotuloDiaOperacional(diaMostrado)}</p>
+
+      {d?.casa_abre === false ? (
+        <Aviso>
+          Casa fechada neste dia operacional. Zero resposta aqui é o esperado, e não falha de
+          coleta.
+        </Aviso>
+      ) : null}
 
       <div style={GRADE}>
         <Cartao titulo="Respostas">
-          <Numero valor={nps.n} legenda="no dia operacional fechado" />
+          <Numero valor={total} legenda="no dia operacional fechado" />
         </Cartao>
         <Cartao titulo="Distribuição">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <Barra rotulo="Promotores 9–10" valor={nps.n === 0 ? 0 : (d?.promotores ?? 0)} maximo={Math.max(1, nps.n)} />
-            <Barra rotulo="Neutros 7–8" valor={d?.neutros ?? 0} maximo={Math.max(1, nps.n)} />
-            <Barra rotulo="Detratores 0–6" valor={d?.detratores ?? 0} maximo={Math.max(1, nps.n)} />
+            <Barra rotulo="Promotores 9–10" valor={num(d?.promotores)} maximo={Math.max(1, total)} />
+            <Barra rotulo="Neutros 7–8" valor={num(d?.neutros)} maximo={Math.max(1, total)} />
+            <Barra rotulo="Detratores 0–6" valor={num(d?.detratores)} maximo={Math.max(1, total)} />
           </div>
         </Cartao>
-        <Cartao titulo="NPS">
-          <BlocoNps r={nps} legenda="do dia" />
+        <Cartao titulo="NPS do dia">
+          <NpsDaView r={npsDoDia} legenda="do dia operacional" />
         </Cartao>
+        <Cartao titulo="NPS do mês">
+          <NpsDaView r={npsDoMes} legenda="acumulado do mês" />
+        </Cartao>
+      </div>
+
+      <div style={GRADE}>
         <Cartao titulo="Conversão">
           <Proporcao
-            parte={nps.n}
-            total={d?.mesas_atendidas ?? 0}
+            parte={total}
+            total={num(d?.mesas_atendidas)}
             legenda="respostas sobre mesas atendidas"
+          />
+        </Cartao>
+        <Cartao titulo="Suspeitas">
+          <Numero
+            valor={num(d?.suspeitas)}
+            legenda="respostas marcadas no dia"
+            ressalva="marcação, nunca rejeição: mesas juntadas produzem respostas legítimas em sequência"
           />
         </Cartao>
       </div>
 
-      <Cartao
-        titulo="Menções por fator"
-        acao={
-          <button
-            type="button"
-            className="btn btn--secundario"
-            style={{ minHeight: 32, padding: '4px 12px', fontSize: 12 }}
-            onClick={() => baixaCsv('fatores', fatores)}
-          >
-            Exportar
-          </button>
-        }
-      >
-        {fatores.length === 0 ? (
+      <AvisoDaView aviso={d?.aviso} />
+
+      <Cartao titulo="Menções por fator, no mês" acao={<Exportar nome="fatores" linhas={doMes} />}>
+        {doMes.length === 0 ? (
           <p className="ajuda">Nenhuma menção no período.</p>
         ) : (
           <div>
-            {fatores.slice(0, 12).map((f) => (
+            {doMes.slice(0, 12).map((f) => (
               <Barra
-                key={`${f.dimensao}-${f.fator ?? ''}`}
-                rotulo={f.fator ?? f.dimensao}
-                detalhe={f.dimensao}
-                valor={f.mencoes}
+                key={`${f.dimensao ?? ''}-${f.fator ?? ''}`}
+                rotulo={f.fator ?? f.dimensao ?? '—'}
+                {...(f.dimensao === null ? {} : { detalhe: f.dimensao })}
+                valor={num(f.mencoes)}
                 maximo={maiorFator}
               />
             ))}
@@ -356,70 +497,111 @@ function AbaHoje(): React.ReactElement {
 
 function AbaTendencia(): React.ReactElement {
   const { dados, erro, carregando } = useView<VwSatisfacaoVendaDia>('vw_satisfacao_venda_dia')
+  const { dados: semanas } = useView<VwSemanaDetrator>('vw_semana_detrator')
+  const { dados: diasSemana } = useView<VwDiaSemana>('vw_dia_semana')
   const estado = <Estado carregando={carregando} erro={erro} />
   if (estado !== null) return estado
 
-  const ultimos = dados.slice(-28)
-  const maiorResp = Math.max(1, ...ultimos.map((d) => d.respostas))
-  const total = ultimos.reduce(
-    (acc, d) => ({
-      detratores: acc.detratores + d.detratores,
-      respostas: acc.respostas + d.respostas,
-    }),
-    { detratores: 0, respostas: 0 },
+  const ultimos = porData(dados, 'dia_operacional').slice(-28)
+  const maiorResp = Math.max(1, ...ultimos.map((d) => num(d.n)))
+  const soma = ultimos.reduce(
+    (acc, d) => ({ detratores: acc.detratores + num(d.detratores), n: acc.n + num(d.n) }),
+    { detratores: 0, n: 0 },
   )
+  const semanasOrd = porData(semanas, 'semana').slice(-12)
+  const quedas = semanasOrd.filter((s) => s.alerta_queda === true)
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--u3)' }}>
       <div style={GRADE}>
         <Cartao titulo="Últimos 28 dias operacionais">
-          <Numero valor={total.respostas} legenda="respostas no período" />
+          <Numero valor={soma.n} legenda="respostas no período" />
         </Cartao>
         <Cartao titulo="Detratores no período">
           <Numero
-            valor={total.detratores}
+            valor={soma.detratores}
             legenda="notas de 0 a 6"
             ressalva="contagem, não percentual: percentual sobre amostra pequena engana"
+          />
+        </Cartao>
+        <Cartao titulo="Semanas com queda">
+          <Numero
+            valor={quedas.length}
+            legenda="nas últimas 12 semanas"
+            ressalva="queda é o dobro de detratores da semana anterior, com os dias abertos comparáveis"
           />
         </Cartao>
       </div>
 
       <Cartao
         titulo="Respostas por dia operacional"
-        acao={
-          <button
-            type="button"
-            className="btn btn--secundario"
-            style={{ minHeight: 32, padding: '4px 12px', fontSize: 12 }}
-            onClick={() => baixaCsv('tendencia', ultimos)}
-          >
-            Exportar
-          </button>
-        }
+        acao={<Exportar nome="tendencia-dia" linhas={ultimos} />}
       >
         {ultimos.map((d) => (
           <Barra
-            key={d.dia_operacional}
-            rotulo={d.dia_operacional.slice(5)}
-            valor={d.respostas}
+            key={d.dia_operacional ?? ''}
+            rotulo={curta(d.dia_operacional)}
+            valor={num(d.n)}
             maximo={maiorResp}
-            {...(d.detratores > 0 ? { detalhe: `${d.detratores} detrator(es)` } : {})}
+            estimado={d.casa_abre === false}
+            {...(num(d.detratores) > 0 ? { detalhe: `${num(d.detratores)} detrator(es)` } : {})}
           />
         ))}
       </Cartao>
 
-      <Cartao titulo="Satisfação e faturamento">
+      <Cartao
+        titulo="Detratores por semana"
+        acao={<Exportar nome="tendencia-semana" linhas={semanasOrd} />}
+      >
         <Tabela
-          colunas={['Dia', 'Respostas', 'Detratores', 'Faturamento']}
+          colunas={['Semana', 'Detratores', 'Respostas (n)', 'Dias abertos', 'Semana anterior', 'Alerta']}
+          linhas={semanasOrd.map((s) => [
+            s.semana ?? '—',
+            num(s.detratores),
+            num(s.respostas),
+            num(s.dias_abertos),
+            s.semana_incomparavel === true
+              ? `${num(s.detratores_semana_anterior)} · ${num(s.dias_abertos_semana_anterior)} dia(s), incomparável`
+              : num(s.detratores_semana_anterior),
+            <Marca
+              key="m"
+              estado={s.alerta_queda === true ? 'vazio' : 'cheio'}
+              texto={s.alerta_queda === true ? 'queda' : 'estável'}
+            />,
+          ])}
+          rodape="Semana com número diferente de dias abertos é marcada como incomparável em vez de comparada: feriado a menos derruba o total sem nada ter piorado."
+        />
+      </Cartao>
+
+      <Cartao titulo="Satisfação e faturamento" acao={<Exportar nome="satisfacao-venda" linhas={ultimos} />}>
+        <Tabela
+          colunas={['Dia', 'Respostas (n)', 'Detratores', 'Faturamento', 'Mesas', 'Ticket por mesa']}
           linhas={ultimos.map((d) => [
-            d.dia_operacional,
-            d.respostas,
-            d.detratores,
-            d.faturamento === null
-              ? '—'
-              : `R$ ${d.faturamento.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+            d.dia_operacional ?? '—',
+            num(d.n),
+            num(d.detratores),
+            reais(d.faturamento),
+            d.mesas_atendidas ?? 'não informado',
+            reais(d.ticket_medio_por_mesa),
           ])}
           rodape="Junção por dia operacional, nunca por comanda. Faturamento vazio significa R3 não importado naquele dia."
+        />
+      </Cartao>
+
+      <Cartao titulo="O mesmo dia da semana, contra a média das quatro ocorrências anteriores">
+        <Tabela
+          colunas={['Dia', 'Respostas (n)', 'Detratores', 'Média de 4', 'Comparações', 'Aviso']}
+          linhas={porData(diasSemana, 'dia_operacional')
+            .slice(-14)
+            .map((d) => [
+              d.dia_operacional ?? '—',
+              num(d.n_dia),
+              num(d.detratores),
+              mostra(d.media_detratores_4, 1),
+              num(d.ocorrencias_comparadas),
+              d.aviso ?? '',
+            ])}
+          rodape="Terça se compara com terça, nunca com a média da semana: o padrão semanal de um restaurante é forte o suficiente para produzir alarme falso todo domingo."
         />
       </Cartao>
     </div>
@@ -433,6 +615,12 @@ function AbaGarcons(): React.ReactElement {
   const estado = <Estado carregando={carregando} erro={erro} />
   if (estado !== null) return estado
 
+  const trimestres = [...new Set(dados.map((g) => g.trimestre).filter((t) => t !== null))].sort()
+  const ultimo = trimestres[trimestres.length - 1]
+  const doTrimestre = dados
+    .filter((g) => g.trimestre === ultimo)
+    .sort((a, b) => num(b.n) - num(a.n))
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--u3)' }}>
       <Aviso>
@@ -441,27 +629,45 @@ function AbaGarcons(): React.ReactElement {
         oficial do Google quando envolve pedido de avaliação (decisão D8).
       </Aviso>
 
-      <Tabela
-        colunas={['Garçom', 'Trimestre', 'Respostas (n)', 'Promotores', 'Detratores', 'Conversão']}
-        linhas={dados.map((g) => {
-          const nps = calculaNps({
-            detratores: g.detratores,
-            neutros: g.respostas - g.promotores - g.detratores,
-            promotores: g.promotores,
-          })
-          return [
-            g.garcom,
-            g.trimestre,
-            nps.amostraSuficiente ? g.respostas : `${g.respostas} · insuficiente`,
-            g.promotores,
-            g.detratores,
-            g.tentativas === 0
-              ? '—'
-              : `${Math.round((g.respostas / g.tentativas) * 100)}% de ${g.tentativas}`,
-          ]
-        })}
-        rodape="Conversão por garçom usa as tentativas registradas na T0, não a contagem diária de mesas: são dois denominadores diferentes."
-      />
+      <Cartao
+        titulo={`Trimestre ${ultimo ?? '—'}`}
+        acao={<Exportar nome="garcons" linhas={doTrimestre} />}
+      >
+        <Tabela
+          colunas={['Garçom', 'Respostas (n)', 'NPS', 'Promotores', 'Detratores', 'Conversão', 'Recusas']}
+          linhas={doTrimestre.map((g) => [
+            g.ativo === false ? `${g.nome ?? '—'} · inativo` : (g.nome ?? '—'),
+            g.aviso === null ? num(g.n) : `${num(g.n)} · insuficiente`,
+            mostra(g.nps, 1),
+            num(g.promotores),
+            num(g.detratores),
+            g.conversao_pct === null
+              ? `— de ${num(g.tentativas)}`
+              : `${pct(g.conversao_pct)} de ${num(g.tentativas)}`,
+            num(g.recusas),
+          ])}
+          rodape="Conversão por garçom usa as tentativas registradas na T0, não a contagem diária de mesas: são dois denominadores diferentes. Sem 20 tentativas no trimestre, não existe taxa."
+        />
+      </Cartao>
+
+      {trimestres.length > 1 ? (
+        <Cartao titulo="Trimestres anteriores" acao={<Exportar nome="garcons-historico" linhas={dados} />}>
+          <Tabela
+            colunas={['Garçom', 'Trimestre', 'Respostas (n)', 'NPS', 'Conversão']}
+            linhas={dados
+              .filter((g) => g.trimestre !== ultimo)
+              .sort((a, b) => String(b.trimestre).localeCompare(String(a.trimestre)))
+              .map((g) => [
+                g.nome ?? '—',
+                g.trimestre ?? '—',
+                num(g.n),
+                mostra(g.nps, 1),
+                pct(g.conversao_pct),
+              ])}
+            rodape="Garçom removido continua aqui com o histórico dele: remover preenche a data de saída e não reatribui resposta nenhuma."
+          />
+        </Cartao>
+      ) : null}
     </div>
   )
 }
@@ -474,51 +680,86 @@ function AbaPratos(): React.ReactElement {
   const estado = <Estado carregando={carregando} erro={erro} />
   if (estado !== null) return estado
 
-  const semFicha = custos.filter((c) => !c.ficha_completa).length
+  const trimestres = [...new Set(dados.map((i) => i.trimestre).filter((t) => t !== null))].sort()
+  const ultimo = trimestres[trimestres.length - 1]
+  const itens = dados
+    .filter((i) => i.trimestre === ultimo)
+    .sort((a, b) => num(b.reclamacoes) - num(a.reclamacoes))
+
+  const semCusto = custos.filter((c) => c.custo_ausente === true)
+  const naoConferido = custos.filter((c) => c.premissa_conferida !== true)
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--u3)' }}>
-      <Cartao titulo="Reclamações por item, no trimestre">
+      <Cartao
+        titulo={`Reclamações por item, trimestre ${ultimo ?? '—'}`}
+        acao={<Exportar nome="itens" linhas={itens} />}
+      >
         <Tabela
-          colunas={['Item', 'Reclamações', 'Unidades', 'Por 100 vendidas', 'Média do cardápio']}
-          linhas={dados.map((i) => [
-            i.item,
-            i.reclamacoes,
-            i.unidades_vendidas ?? '—',
-            i.reclamacoes_por_100 === null ? '—' : i.reclamacoes_por_100.toFixed(1),
-            i.media_do_cardapio === null ? '—' : i.media_do_cardapio.toFixed(1),
+          colunas={['Item', 'Grupo', 'Reclamações', 'Unidades', 'Média do cardápio', 'Sinalizado']}
+          linhas={itens.map((i) => [
+            i.ativo === false ? `${i.nome_pt ?? '—'} · fora do cardápio` : (i.nome_pt ?? '—'),
+            i.grupo ?? '—',
+            num(i.reclamacoes),
+            i.unidades_vendidas === null ? 'R3 não importado' : mostra(i.unidades_vendidas),
+            mostra(i.media_reclamacoes_cardapio, 2),
+            <Marca
+              key="m"
+              estado={i.sinalizado === true ? 'cheio' : 'vazio'}
+              texto={i.sinalizado === true ? 'sinalizado' : i.aviso === null ? 'dentro da média' : 'sem base'}
+            />,
           ])}
-          rodape="Item só é sinalizado com no mínimo 3 reclamações e 30 unidades vendidas no trimestre. Abaixo disso é ruído."
+          rodape="Item só é sinalizado com no mínimo 3 reclamações e 30 unidades vendidas no trimestre. Abaixo disso é ruído, e a coluna diz `sem base` em vez de fingir um número."
         />
       </Cartao>
 
-      <Cartao titulo="Satisfação cruzada com custo">
+      <Cartao
+        titulo="Satisfação cruzada com custo"
+        acao={<Exportar nome="custo-prato" linhas={custos} />}
+      >
         {erroCusto !== null ? (
           <Aviso>Custo indisponível: {erroCusto}</Aviso>
         ) : (
           <>
             <Tabela
-              colunas={['Prato', 'Custo', 'Preço', 'Margem', 'Ficha']}
+              colunas={['Prato', 'Custo', 'Preço', 'CMV', 'Meta', 'Margem', 'Ficha']}
               linhas={custos.map((c) => [
-                c.prato,
-                c.custo === null ? '—' : `R$ ${c.custo.toFixed(2)}`,
-                c.preco_venda === null ? '—' : `R$ ${c.preco_venda.toFixed(2)}`,
-                c.margem === null ? '—' : `R$ ${c.margem.toFixed(2)}`,
+                c.prato_nome ?? '—',
+                reais(c.custo_total),
+                reais(c.preco_venda),
+                pct(c.cmv_pct),
+                c.cmv_meta === null ? '—' : pct(c.cmv_meta),
+                reais(c.margem_bruta),
                 <Marca
                   key="m"
-                  estado={c.ficha_completa ? 'cheio' : 'vazio'}
-                  texto={c.ficha_completa ? 'completa' : 'ausente'}
+                  estado={c.custo_ausente === true ? 'vazio' : num(c.insumos_sem_preco) > 0 ? 'meio' : 'cheio'}
+                  texto={
+                    c.custo_ausente === true
+                      ? (c.motivo_incompleto ?? 'ausente')
+                      : num(c.insumos_sem_preco) > 0
+                        ? `${num(c.insumos_sem_preco)} sem preço`
+                        : 'completa'
+                  }
                 />,
               ])}
+              rodape="Custo por resolução recursiva da lista de materiais: sub-receita desce um nível e entra pelo conteúdo dela, nunca como zero. Massa e molho são exatamente sub-receitas, e são a maior parte do custo de uma pizza."
             />
             <Aviso>
-              O custo vem por leitura das tabelas do sistema fiscal, com resolução recursiva da
-              lista de materiais, e nunca é copiado. <strong>Número não conferido:</strong> a
-              semântica de <code>rn</code>, <code>rendimento</code> e <code>rn_override</code> é
-              NÃO VERIFICADA, e a view usa a premissa mais defensável até o proprietário
-              confirmar.
-              {semFicha > 0
-                ? ` ${semFicha} prato(s) sem ficha técnica: aparecem como ausente, nunca como custo zero.`
+              O custo vem por <strong>leitura</strong> das tabelas do sistema fiscal, com resolução
+              recursiva da lista de materiais, e nunca é copiado.
+              {naoConferido.length > 0 ? (
+                <>
+                  {' '}
+                  <strong>Número não conferido:</strong> a semântica de <code>rn</code>,{' '}
+                  <code>rendimento</code> e <code>rn_override</code> é NÃO VERIFICADA, e a view usa
+                  a premissa mais defensável até o proprietário confirmar.
+                  {naoConferido[0]?.nota_premissa === null
+                    ? ''
+                    : ` ${naoConferido[0]?.nota_premissa ?? ''}`}
+                </>
+              ) : null}
+              {semCusto.length > 0
+                ? ` ${semCusto.length} prato(s) sem ficha técnica completa: aparecem como ausente, nunca como custo zero.`
                 : ''}
             </Aviso>
           </>
@@ -533,58 +774,143 @@ function AbaPratos(): React.ReactElement {
 function AbaColeta(): React.ReactElement {
   const { dados, erro, carregando } = useView<VwColetaDia>('vw_coleta_dia')
   const { dados: pulos } = useView<VwTelaPulo>('vw_tela_pulo')
+  const { dados: duracoes } = useView<VwDuracaoSemana>('vw_duracao_semana')
+  const { dados: perguntas } = useView<VwPerguntaDesempenho>('vw_pergunta_desempenho')
   const estado = <Estado carregando={carregando} erro={erro} />
   if (estado !== null) return estado
 
-  const ultimos = dados.slice(-14)
-  const totalResp = ultimos.reduce((s, d) => s + d.respostas, 0)
-  const totalSusp = ultimos.reduce((s, d) => s + d.suspeitas, 0)
+  const ultimos = porData(dados, 'dia_operacional').slice(-14)
+  const totalResp = ultimos.reduce((s, d) => s + num(d.respostas), 0)
+  const totalSusp = ultimos.reduce((s, d) => s + num(d.suspeitas), 0)
+  const totalPin = ultimos.reduce((s, d) => s + num(d.pin_nao_reconhecido), 0)
+
+  const mesPulo = [...new Set(pulos.map((p) => p.mes).filter((m) => m !== null))].sort().pop()
+  const doMes = pulos
+    .filter((p) => p.mes === mesPulo)
+    .sort((a, b) => num(b.pulo_pct) - num(a.pulo_pct))
+
+  const janelaPergunta = [...new Set(perguntas.map((p) => p.janela))].includes('trimestre')
+    ? 'trimestre'
+    : 'mes'
+  const inicioPergunta = [
+    ...new Set(
+      perguntas.filter((p) => p.janela === janelaPergunta).map((p) => p.inicio).filter((i) => i !== null),
+    ),
+  ]
+    .sort()
+    .pop()
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--u3)' }}>
       <div style={GRADE}>
         <Cartao titulo="Suspeitas">
-          <Proporcao parte={totalSusp} total={totalResp} legenda="respostas marcadas" />
+          <Proporcao parte={totalSusp} total={totalResp} legenda="respostas marcadas em 14 dias" />
           <span style={{ fontSize: 12, color: 'var(--tinta-3)' }}>
             Meta: abaixo de 3% e estável. Marcação, nunca rejeição.
           </span>
         </Cartao>
         <Cartao titulo="PIN não reconhecido">
           <Numero
-            valor={ultimos.reduce((s, d) => s + d.pin_nao_reconhecido, 0)}
+            valor={totalPin}
             legenda="nos últimos 14 dias"
             ressalva="acima de 3 no dia vira cobrança no e-mail das 16h"
           />
         </Cartao>
+        <Cartao titulo="Canal">
+          <Numero
+            valor={`${ultimos.reduce((s, d) => s + num(d.respostas_tablet), 0)} / ${ultimos.reduce((s, d) => s + num(d.respostas_qr), 0)}`}
+            legenda="tablet / QR, em 14 dias"
+            ressalva="o tablet é o que traz volume; o QR existe para quem prefere o próprio telefone"
+          />
+        </Cartao>
       </div>
 
-      <Cartao titulo="Respostas sobre mesas atendidas">
+      <Cartao titulo="Coleta por dia" acao={<Exportar nome="coleta-dia" linhas={ultimos} />}>
         <Tabela
-          colunas={['Dia', 'Respostas', 'Mesas', 'Conversão', 'Suspeitas']}
+          colunas={['Dia', 'Respostas', 'Mesas', 'Sobre mesas', 'Tentativas', 'Sobre tentativas', 'Suspeitas', 'PIN']}
           linhas={ultimos.map((d) => [
-            d.dia_operacional,
-            d.respostas,
+            d.casa_abre === false ? `${d.dia_operacional ?? '—'} · fechada` : (d.dia_operacional ?? '—'),
+            num(d.respostas),
             d.mesas_atendidas ?? 'não informado',
-            d.mesas_atendidas === null || d.mesas_atendidas === 0
-              ? '—'
-              : `${Math.round((d.respostas / d.mesas_atendidas) * 100)}%`,
-            d.suspeitas,
+            pct(d.conversao_casa_pct),
+            num(d.tentativas),
+            pct(d.conversao_tentativa_pct),
+            d.suspeitas_pct === null ? num(d.suspeitas) : `${num(d.suspeitas)} · ${pct(d.suspeitas_pct)}`,
+            <Marca
+              key="m"
+              estado={d.pin_acima_do_limiar === true ? 'vazio' : 'cheio'}
+              texto={String(num(d.pin_nao_reconhecido))}
+            />,
           ])}
-          rodape="Sem mesas atendidas informadas não existe taxa. É a cobrança que aparece no digest depois de 3 dias."
+          rodape="Sem mesas atendidas informadas não existe taxa. É a cobrança que aparece no digest depois de 3 dias. Duas taxas, porque são dois denominadores: mesas atendidas vem da casa, tentativas vem da T0."
         />
       </Cartao>
 
-      <Cartao titulo="Pulo por tela, no mês">
+      {ultimos.some((d) => d.dispositivo_acima_do_teto === true) ? (
+        <Aviso>
+          Em algum dos últimos 14 dias, um único aparelho respondeu por uma fatia do total acima do
+          esperado para quatro tablets em uso. Vale conferir se os outros estão ligados e com o
+          endereço certo, antes de ler o total do dia como queda de coleta.
+        </Aviso>
+      ) : null}
+
+      <Cartao titulo={`Pulo por tela, ${mesPulo ?? '—'}`} acao={<Exportar nome="tela-pulo" linhas={doMes} />}>
         <Tabela
-          colunas={['Tela', 'Mês', 'Exibições', 'Pulos', 'Taxa']}
-          linhas={pulos.map((p) => [
-            p.tela,
-            p.mes,
-            p.exibicoes,
-            p.pulos,
-            p.exibicoes === 0 ? '—' : `${Math.round((p.pulos / p.exibicoes) * 100)}%`,
+          colunas={['Tela', 'Exibições', 'Pulos', 'Taxa', 'Reescrita']}
+          linhas={doMes.map((p) => [
+            p.tela ?? '—',
+            num(p.exibicoes),
+            num(p.pulos),
+            pct(p.pulo_pct),
+            <Marca
+              key="m"
+              estado={p.candidata_reescrita === true ? 'vazio' : 'cheio'}
+              texto={p.candidata_reescrita === true ? 'candidata' : 'ok'}
+            />,
           ])}
           rodape="Acima de 60% de pulo, a tela é candidata a reescrita. Taxa de pulo é o melhor sinal de tela mal escrita, e sai de graça."
+        />
+      </Cartao>
+
+      <Cartao titulo="Duração do caminho, por semana" acao={<Exportar nome="duracao" linhas={duracoes} />}>
+        <Tabela
+          colunas={['Semana', 'Caminho', 'n', 'Descartadas', 'Mediana', 'p90']}
+          linhas={porData(duracoes, 'semana')
+            .slice(-16)
+            .map((d) => [
+              d.semana ?? '—',
+              d.tipo_caminho ?? '—',
+              num(d.n),
+              num(d.descartadas),
+              `${mostra(d.mediana_s)}s`,
+              <span key="p" style={{ fontWeight: d.p90_acima_do_teto === true ? 700 : 400 }}>
+                {mostra(d.p90_s)}s
+              </span>,
+            ])}
+          rodape="Mediana e p90, nunca média: uma pesquisa esquecida aberta na mesa por vinte minutos move a média e não move a mediana. As esquecidas entram na coluna de descartadas."
+        />
+      </Cartao>
+
+      <Cartao titulo="Perguntas do banco" acao={<Exportar nome="perguntas" linhas={perguntas} />}>
+        <Tabela
+          colunas={['Nº', 'Pergunta', 'Dimensão', 'Foco', 'Sorteadas', 'Respondidas', 'Taxa']}
+          linhas={perguntas
+            .filter((p) => p.janela === janelaPergunta && p.inicio === inicioPergunta)
+            .sort((a, b) => num(a.numero) - num(b.numero))
+            .map((p) => [
+              num(p.numero),
+              p.texto_pt ?? '—',
+              p.dimensao ?? '—',
+              <Marca
+                key="m"
+                estado={p.em_foco === true ? 'cheio' : 'vazio'}
+                texto={p.em_foco === true ? `desde ${p.em_foco_desde ?? '—'}` : 'fora de foco'}
+              />,
+              num(p.sorteadas),
+              num(p.respondidas),
+              p.aviso === null ? pct(p.respondidas_pct) : (p.aviso ?? ''),
+            ])}
+          rodape="Pergunta em foco recebe metade das exibições, por peso, e não por regra fixa. Taxa de resposta baixa em pergunta sorteada é sinal de pergunta mal escrita, não de cliente apressado."
         />
       </Cartao>
     </div>
@@ -598,23 +924,28 @@ function AbaClientes(): React.ReactElement {
   const estado = <Estado carregando={carregando} erro={erro} />
   if (estado !== null) return estado
 
+  const meses = porData(dados, 'mes').slice(-18)
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--u3)' }}>
       <Aviso>
         A coleta é anônima por desenho. Estes são apenas os clientes que escolheram deixar
         contato, com consentimento de finalidade própria. Dado pessoal é apagado 12 meses depois
-        da última visita, por rotina automática.
+        da última visita, por rotina automática, e a resposta da pesquisa fica sem dono.
       </Aviso>
-      <Tabela
-        colunas={['Mês', 'Contatos deixados', 'Respostas', 'Taxa de contato']}
-        linhas={dados.map((c) => [
-          c.mes,
-          c.contatos,
-          c.respostas,
-          c.respostas === 0 ? '—' : `${Math.round((c.contatos / c.respostas) * 100)}%`,
-        ])}
-        rodape="A taxa de contato é a variável que decide se previsão de recompra é possível algum dia."
-      />
+      <Cartao titulo="Contato por mês" acao={<Exportar nome="clientes-mes" linhas={meses} />}>
+        <Tabela
+          colunas={['Mês', 'Contatos deixados', 'Respostas (n)', 'Taxa de contato', 'Anonimizados']}
+          linhas={meses.map((c) => [
+            c.mes ?? '—',
+            num(c.contatos_deixados),
+            num(c.respostas),
+            c.aviso === null ? pct(c.taxa_contato_pct) : (c.aviso ?? ''),
+            num(c.anonimizados_no_mes),
+          ])}
+          rodape="A taxa de contato é a variável que decide se previsão de recompra é possível algum dia. A coluna de anonimizados é a prova de que a retenção rodou."
+        />
+      </Cartao>
     </div>
   )
 }
@@ -624,10 +955,14 @@ function AbaClientes(): React.ReactElement {
 function AbaSaude(): React.ReactElement {
   const { dados, erro, carregando } = useView<VwDispositivoSinal>('vw_dispositivo_sinal')
   const { dados: rotinas } = useView<VwSaudeRotina>('vw_saude_rotina')
+  const { dados: incidentes } = useView<VwAlertaIncidente>('vw_alerta_incidente')
   const estado = <Estado carregando={carregando} erro={erro} />
   if (estado !== null) return estado
 
-  const agora = Date.now()
+  const recentes = [...incidentes]
+    .sort((a, b) => String(b.respondido_em).localeCompare(String(a.respondido_em)))
+    .slice(0, 25)
+  const semContato = recentes.filter((i) => i.houve_contato !== true).length
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--u3)' }}>
@@ -636,47 +971,76 @@ function AbaSaude(): React.ReactElement {
         dois dias seguidos, algo quebrou. Não existe monitoramento além disso, de propósito.
       </Aviso>
 
-      <Cartao titulo="Aparelhos">
+      <Cartao titulo="Aparelhos" acao={<Exportar nome="dispositivos" linhas={dados} />}>
         <Tabela
-          colunas={['Apelido', 'Uso', 'Último sinal', 'Fila', 'Estado']}
-          linhas={dados.map((d) => {
-            const horas =
-              d.ultimo_sinal_em === null
-                ? null
-                : Math.floor((agora - Date.parse(d.ultimo_sinal_em)) / 3_600_000)
-            const mudo = horas === null || horas > 24
-            const filaAlta = (d.fila_pendente ?? 0) > 5
-            return [
-              d.apelido,
-              d.uso,
-              horas === null ? 'nunca' : `há ${horas}h`,
-              d.fila_pendente ?? 0,
-              <Marca
-                key="m"
-                estado={mudo ? 'vazio' : filaAlta ? 'meio' : 'cheio'}
-                texto={mudo ? 'mudo' : filaAlta ? 'fila alta' : 'ok'}
-              />,
-            ]
-          })}
+          colunas={['Apelido', 'Uso', 'Último sinal', 'Fila', 'Respostas hoje', 'Versão', 'Estado']}
+          linhas={dados.map((d) => [
+            d.apelido ?? '—',
+            d.uso ?? '—',
+            d.horas_sem_sinal === null ? 'nunca' : `há ${Math.floor(num(d.horas_sem_sinal))}h`,
+            num(d.fila_pendente),
+            num(d.respostas_dia_corrente),
+            d.versao_app ?? '—',
+            <Marca
+              key="m"
+              estado={d.mudo === true ? 'vazio' : d.fila_alta === true ? 'meio' : 'cheio'}
+              texto={d.mudo === true ? 'mudo' : d.fila_alta === true ? 'fila alta' : 'ok'}
+            />,
+          ])}
           rodape="Com quatro tablets em uso, um aparelho mudo é invisível no total do dia: os outros três seguem coletando. É por isso que cada um aparece pelo apelido."
         />
       </Cartao>
 
-      <Cartao titulo="Rotinas">
+      <Cartao titulo="Rotinas" acao={<Exportar nome="rotinas" linhas={rotinas} />}>
         <Tabela
-          colunas={['Rotina', 'Início', 'Status', 'Erro']}
+          colunas={['Rotina', 'Passo', 'Início', 'Duração', 'Status', 'Erro']}
           linhas={rotinas.slice(0, 40).map((r) => [
-            r.rotina,
-            r.iniciado_em.replace('T', ' ').slice(0, 16),
+            r.rotina ?? '—',
+            r.passo ?? '—',
+            (r.iniciado_em ?? '—').replace('T', ' ').slice(0, 16),
+            r.duracao_s === null ? '—' : `${mostra(r.duracao_s, 1)}s`,
             <Marca
               key="m"
               estado={r.status === 'sucesso' ? 'cheio' : 'vazio'}
-              texto={r.status}
+              texto={r.status ?? '—'}
             />,
             r.erro ?? '',
           ])}
-          rodape="Este log vive no próprio banco porque o log do fornecedor expira em 1 dia no plano gratuito."
+          rodape="Este log vive no próprio banco porque o log do fornecedor expira em 1 dia no plano gratuito. A consulta e o envio do e-mail são passos separados: falha de e-mail não pode desligar o keep-alive do banco."
         />
+      </Cartao>
+
+      <Cartao titulo="Alertas de detrator" acao={<Exportar nome="incidentes" linhas={recentes} />}>
+        <Tabela
+          colunas={['Dia', 'Mesa', 'Nota', 'Fator', 'Envio', 'Contato', 'Erro']}
+          linhas={recentes.map((i) => [
+            i.dia_operacional ?? '—',
+            i.mesa_digitada ?? '—',
+            num(i.nota),
+            i.fator ?? '—',
+            i.enviado_em === null ? (
+              <Marca key="e" estado="vazio" texto="não enviado" />
+            ) : (
+              <Marca
+                key="e"
+                estado={i.dentro_dos_30_s === true ? 'cheio' : 'meio'}
+                texto={`${mostra(i.segundos_ate_envio)}s`}
+              />
+            ),
+            i.houve_contato === true
+              ? `${mostra(i.minutos_ate_contato)} min`
+              : <Marca key="c" estado="vazio" texto="sem registro" />,
+            i.erro ?? '',
+          ])}
+          rodape="O alerta é gravado na mesma transação da resposta, e não por rotina: com duas chamadas, uma resposta poderia existir sem o aviso dela. Alerta sem destinatário configurado é gravado com o erro e reaparece no digest do dia seguinte."
+        />
+        {semContato > 0 ? (
+          <Aviso>
+            {semContato} dos últimos {recentes.length} alertas não têm contato registrado. O
+            registro é manual e o campo existir vazio não prova que ninguém falou com a mesa — prova
+            que ninguém anotou.
+          </Aviso>
+        ) : null}
       </Cartao>
     </div>
   )

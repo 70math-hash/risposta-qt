@@ -307,7 +307,8 @@
     "linhas_anonimizadas",
     "mascaramentos",
     "erro",
-    "duracao_s"
+    "duracao_s",
+    "contagens"
   ],
   "vw_semana_detrator": [
     "semana",

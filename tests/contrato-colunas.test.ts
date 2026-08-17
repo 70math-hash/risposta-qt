@@ -64,6 +64,18 @@ function colunasPorTabela(sql: string): Map<string, Set<string>> {
     }
     mapa.set(nome, colunas)
   }
+
+  // As colunas acrescentadas depois, por `alter table ... add column`. Sem esta segunda
+  // passada, o DDL lido aqui e o DDL da primeira migration e nao o do banco: `contagens` de
+  // `execucao_rotina` nasceu numa migration additiva e o teste a acusaria de inexistente.
+  const reAlter =
+    /alter table (?:if exists )?experiencia\.([a-z_]+)\s+add column (?:if not exists )?([a-z_][a-z0-9_]*)/gi
+  for (const m of sql.matchAll(reAlter)) {
+    const tabela = m[1]!.toLowerCase()
+    if (!mapa.has(tabela)) mapa.set(tabela, new Set())
+    mapa.get(tabela)!.add(m[2]!.toLowerCase())
+  }
+
   return mapa
 }
 
@@ -139,5 +151,196 @@ describe('as colunas que o Worker pede existem nas tabelas', () => {
     const q = consultas.find((c) => c.tabela === 'item_cardapio')!
     expect(q.consulta).toContain('removido_em=is.null')
     expect(q.consulta).toContain('ativo=is.true')
+  })
+})
+
+// -----------------------------------------------------------------------------
+// A metade da ESCRITA.
+//
+// As leituras acima cobrem `seleciona(...)`. As escritas eram piores, e por um motivo
+// estrutural: `registraExecucao` envolve a insercao num `catch` VAZIO, de proposito, para
+// falha de log nao derrubar a rotina que estava rodando. Enquanto ela mandava um campo
+// `contagens` que nenhuma coluna recebia, as quatro rotinas rodavam, todo log falhava com 400
+// e `/painel/saude` ficava vazio para sempre, sem uma linha de erro em lugar nenhum.
+//
+// O watcher do Drive tinha quatro nomes errados de uma vez (`arquivo_nome` por `arquivo`,
+// `hash_arquivo` por `hash`, `linhas_lidas` por `linhas`, e o filtro de idempotencia pelo nome
+// errado do hash), duas colunas NOT NULL ausentes (`origem` e `execucao_importacao_id`) e
+// mandava a coluna `bytea` como texto decodificado.
+// -----------------------------------------------------------------------------
+
+/** Toda fonte do Worker, para achar escrita onde ela estiver. */
+function fontesDoWorker(): { arquivo: string; texto: string }[] {
+  const dir = join(process.cwd(), 'worker')
+  const achados: { arquivo: string; texto: string }[] = []
+  const anda = (caminho: string): void => {
+    for (const entrada of readdirSync(caminho, { withFileTypes: true })) {
+      const cheio = join(caminho, entrada.name)
+      if (entrada.isDirectory()) anda(cheio)
+      else if (entrada.name.endsWith('.ts')) {
+        achados.push({ arquivo: cheio, texto: readFileSync(cheio, 'utf8') })
+      }
+    }
+  }
+  anda(dir)
+  return achados
+}
+
+/** Do indice de um caractere de abertura, o indice do fechamento equilibrado. */
+function fecha(texto: string, inicio: number): number {
+  let nivel = 0
+  for (let i = inicio; i < texto.length; i++) {
+    const c = texto[i]!
+    if (c === '[' || c === '{' || c === '(') nivel++
+    else if (c === ']' || c === '}' || c === ')') {
+      nivel--
+      if (nivel === 0) return i
+    }
+  }
+  return -1
+}
+
+/** As chaves de primeiro nivel dos objetos dentro de um trecho de codigo. */
+function chavesDeObjeto(corpo: string): string[] {
+  const chaves = new Set<string>()
+  let profundidade = 0
+  for (const linha of corpo.split('\n')) {
+    const limpa = linha.replace(/\/\/.*$/, '')
+    const antes = profundidade
+    for (const c of limpa) {
+      if (c === '{' || c === '[' || c === '(') profundidade++
+      else if (c === '}' || c === ']' || c === ')') profundidade--
+    }
+    // Nivel 0 ou 1 e o corpo do objeto que esta sendo inserido; mais fundo e valor aninhado.
+    if (antes <= 1) {
+      for (const k of limpa.matchAll(
+        /(?:^|[{,]|\.\.\.\([^)]*\?\s*\{)\s*([a-z_][a-z0-9_]*)\s*:/g,
+      )) {
+        chaves.add(k[1]!)
+      }
+    }
+  }
+  return [...chaves]
+}
+
+/**
+ * As chaves de cada escrita do Worker, como (tabela, chaves).
+ *
+ * Duas formas de chamada, porque as duas existem na fonte:
+ *
+ *   insere(env, 'tabela', [ { ... } ])      objeto literal na propria chamada
+ *   insere(env, 'tabela', linhas, ...)      variavel, construida por um `.map(... => ({ ... }))`
+ *
+ * A segunda forma e a de `venda_produto_dia`, que e a escrita mais perigosa do sistema: e a
+ * unica com chave estrangeira NOT NULL e a unica com idempotencia por UNIQUE composto. Ignorar
+ * a forma com variavel deixaria justamente ela sem conferencia, e o teste passaria com
+ * aparencia de cobertura.
+ */
+function chavesEscritas(texto: string): { tabela: string; chaves: string[] }[] {
+  const saida: { tabela: string; chaves: string[] }[] = []
+  const re = /insere(?:<[^>]*>)?\(\s*env,\s*'([a-z_]+)',\s*([[a-zA-Z_])/g
+
+  for (const m of texto.matchAll(re)) {
+    const tabela = m[1]!
+    const inicioArg = m.index + m[0].length - 1
+
+    if (texto[inicioArg] === '[') {
+      const f = fecha(texto, inicioArg)
+      if (f < 0) continue
+      saida.push({ tabela, chaves: chavesDeObjeto(texto.slice(inicioArg + 1, f)) })
+      continue
+    }
+
+    // Variavel: acha `const <nome> = ...` e recorta o objeto que o callback devolve. Duas
+    // formas de retorno, porque as duas sao idiomaticas: `=> ({ ... })` e `=> { ... return
+    // { ... } }`. A segunda e a que `venda_produto_dia` usa, porque o corpo tem uma resolucao
+    // de item antes do retorno.
+    const nome = /^[a-zA-Z_][a-zA-Z0-9_]*/.exec(texto.slice(inicioArg))?.[0]
+    if (nome === undefined) continue
+    const decl = texto.indexOf(`const ${nome} = `)
+    if (decl < 0 || decl > inicioArg) continue
+
+    const seta = texto.indexOf('=> ({', decl)
+    const retorno = texto.indexOf('return {', decl)
+    const abre =
+      seta >= 0 && seta < inicioArg
+        ? seta + 3
+        : retorno >= 0 && retorno < inicioArg
+          ? retorno + 7
+          : -1
+    if (abre < 0) continue
+    const f = fecha(texto, abre)
+    if (f < 0) continue
+    saida.push({ tabela, chaves: chavesDeObjeto(texto.slice(abre + 1, f)) })
+  }
+  return saida
+}
+
+describe('as colunas que o Worker escreve existem nas tabelas', () => {
+  const tabelas = colunasPorTabela(todoSql())
+  const escritas = fontesDoWorker().flatMap((f) =>
+    chavesEscritas(f.texto).map((e) => ({ ...e, arquivo: f.arquivo })),
+  )
+
+  it('as tres escritas do Worker foram encontradas na fonte', () => {
+    // Nomeadas, e nao contadas: um recortador que perde uma chamada faria o teste passar com
+    // aparencia de cobertura, e a escrita perdida seria justamente a que ninguem confere.
+    const alvos = new Set(escritas.map((e) => e.tabela))
+    for (const t of ['execucao_rotina', 'execucao_importacao', 'venda_produto_dia']) {
+      expect(alvos.has(t), `nenhuma escrita em ${t} foi recortada da fonte do Worker`).toBe(true)
+    }
+    for (const e of escritas) {
+      expect(e.chaves.length, `a escrita em ${e.tabela} saiu sem chave nenhuma`).toBeGreaterThan(2)
+    }
+  })
+
+  it.each(
+    fontesDoWorker().flatMap((f) =>
+      chavesEscritas(f.texto).map((e) => ({ tabela: e.tabela, chaves: e.chaves })),
+    ),
+  )('insere em $tabela: toda chave e uma coluna', ({ tabela, chaves }) => {
+    const existentes = tabelas.get(tabela)
+    expect(existentes, `o Worker escreve em ${tabela}, que nenhuma migration cria`).toBeDefined()
+    const faltando = chaves.filter((c) => !existentes!.has(c))
+    expect(
+      faltando,
+      `${tabela}: chave escrita e inexistente: ${faltando.join(', ')}. ` +
+        `Existem: ${[...existentes!].join(', ')}`,
+    ).toEqual([])
+  })
+
+  it('toda coluna NOT NULL sem default de execucao_importacao e escrita', () => {
+    // `origem` era a que faltava, e a insercao inteira falharia por violacao de NOT NULL.
+    const sql = todoSql()
+    const worker = fontesDoWorker().map((f) => f.texto).join('\n')
+    for (const coluna of ['origem', 'arquivo', 'hash', 'arquivo_bruto', 'status']) {
+      expect(
+        new RegExp(`\\b${coluna}:`).test(worker),
+        `execucao_importacao.${coluna} e NOT NULL e o Worker nao a escreve`,
+      ).toBe(true)
+    }
+    // E a venda precisa do id da execucao, que tambem e NOT NULL.
+    expect(sql).toContain('execucao_importacao_id  uuid        not null')
+    expect(worker).toContain('execucao_importacao_id:')
+  })
+
+  it('a coluna bytea e escrita como \\x hexadecimal, e nao como texto decodificado', () => {
+    const worker = fontesDoWorker().map((f) => f.texto).join('\n')
+    expect(worker).toContain('paraBytea')
+    // O erro anterior, textualmente: a string decodificada por UTF-8 indo para uma coluna bytea.
+    expect(worker).not.toMatch(/arquivo_bruto:\s*texto/)
+  })
+
+  it('venda_produto_dia e inserida com on_conflict pelo par UNIQUE, e nao pela chave primaria', () => {
+    const worker = fontesDoWorker().map((f) => f.texto).join('\n')
+    // Sem isto, `resolution=merge-duplicates` resolve pelo `id`, que e sempre novo, e a
+    // reimportacao do mesmo dia levanta 409 em vez de substituir o dia (F39).
+    expect(worker).toContain("on_conflict: 'dia_operacional,produto_nome_norm'")
+  })
+
+  it('o filtro de idempotencia do watcher usa a coluna hash que existe', () => {
+    const worker = fontesDoWorker().map((f) => f.texto).join('\n')
+    expect(worker).toContain('hash=eq.')
+    expect(worker).not.toContain('hash_arquivo')
   })
 })

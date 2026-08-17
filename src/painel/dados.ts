@@ -419,6 +419,7 @@ export interface VwSaudeRotina {
   mascaramentos: number | null
   erro: string | null
   duracao_s: number | null
+  contagens: unknown | null
 }
 
 /** `experiencia.vw_semana_detrator`. Forma lida do banco, nao escrita a mao. */

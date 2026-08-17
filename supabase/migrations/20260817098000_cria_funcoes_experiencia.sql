@@ -2,11 +2,15 @@
 -- 20260817098000_cria_funcoes_experiencia.sql
 --
 -- O QUE FAZ
---   Cria as quatro funcoes que dependem de tabela: `fn_casa_abre`,
---   `fn_sorteia_pergunta`, `fn_grava_resposta` e `fn_registra_sinal`. As tres
---   `immutable` (`fn_dia_operacional`, `fn_faixa_nps`, `fn_fator_valido`) ja existem
---   desde 20260817091000, porque coluna gerada e CHECK precisavam delas antes das
---   tabelas.
+--   Cria as seis funcoes que nao precisam existir antes das tabelas: `fn_casa_abre`,
+--   `fn_sorteia_pergunta`, `fn_grava_resposta`, `fn_registra_sinal`,
+--   `fn_mascara_contato` e `fn_aplica_retencao`. As tres `immutable`
+--   (`fn_dia_operacional`, `fn_faixa_nps`, `fn_fator_valido`) ja existem desde
+--   20260817091000, porque coluna gerada e CHECK precisavam delas antes das tabelas.
+--
+--   `fn_mascara_contato` tambem e `immutable` e tambem nao le tabela, e mesmo assim esta
+--   aqui: ela existe para ser chamada por `fn_aplica_retencao`, e separar as duas em
+--   arquivos diferentes obrigaria a ler dois arquivos para entender uma regra so.
 --
 -- O QUE ASSUME
 --   1. `fn_casa_abre` e `stable`, e nao `immutable`, porque le `calendario_operacao`.
@@ -25,6 +29,8 @@
 --      Isso esta registrado como achado no documento de modelo de dados.
 --
 -- COMO SE DESFAZ
+--   drop function if exists experiencia.fn_aplica_retencao(integer);
+--   drop function if exists experiencia.fn_mascara_contato(text);
 --   drop function if exists experiencia.fn_registra_sinal(jsonb);
 --   drop function if exists experiencia.fn_grava_resposta(jsonb);
 --   drop function if exists experiencia.fn_sorteia_pergunta(uuid, text);
@@ -493,7 +499,145 @@ comment on function experiencia.fn_registra_sinal(jsonb) is
   'e versao_app de um dispositivo. Nao cria linha: aparelho desconhecido e ignorado, '
   'porque o cadastro dos 5 tablets e ato humano e nao efeito colateral de heartbeat.';
 
+-- -----------------------------------------------------------------------------
+-- fn_mascara_contato(text) returns text
+--
+-- NOME NOVO, NAO CONSTA NA FOLHA CANONICA. A varredura de padrao de telefone, e-mail e
+-- CPF exigida por D4 e por N11. Vive em funcao propria, e nao inline dentro da retencao,
+-- por dois motivos: e `immutable` e pura, entao da para conferir com exemplo; e a mesma
+-- regra precisa poder ser lida por quem escrever o mascaramento do payload do LLM (F38).
+--
+-- A ordem das quatro passadas importa:
+--   1. e-mail primeiro, senao os digitos de um endereco entram nas passadas de numero.
+--   2. CPF com pontuacao, que e o unico formato inequivoco.
+--   3. telefone com pontuacao ou espaco.
+--   4. sequencia crua de 10 ou 11 digitos, que pega o resto.
+--
+-- A AMBIGUIDADE DECLARADA: CPF sem pontuacao e celular com DDD tem os mesmos 11 digitos, e
+-- nao ha como distinguir os dois. Isso NAO custa nada aqui, porque os dois sao mascarados:
+-- o que importa e nao deixar passar, e nao acertar o rotulo.
+--
+-- A ASSIMETRIA QUE JUSTIFICA SER AGRESSIVO: falso positivo custa um numero mascarado dentro
+-- de um comentario de restaurante. Falso negativo custa dado pessoal guardado para sempre,
+-- contornando os 12 meses pelo proprio texto que se pretende preservar. Os dois erros nao
+-- tem o mesmo tamanho, entao a regra pende para mascarar demais.
+-- -----------------------------------------------------------------------------
+create or replace function experiencia.fn_mascara_contato(texto text)
+returns text
+language sql
+immutable
+as $$
+  select regexp_replace(
+           regexp_replace(
+             regexp_replace(
+               regexp_replace(
+                 texto,
+                 '[[:alnum:]._%+-]+@[[:alnum:].-]+\.[[:alpha:]]{2,}',
+                 '[e-mail removido]', 'g'),
+               '[0-9]{3}\.[0-9]{3}\.[0-9]{3}-[0-9]{2}',
+               '[documento removido]', 'g'),
+             '(\+?55[[:space:]]?)?\(?[0-9]{2}\)?[[:space:]]?9?[0-9]{4}[-.[:space:]][0-9]{4}',
+             '[contato removido]', 'g'),
+           '[0-9]{10,11}',
+           '[contato removido]', 'g')
+$$;
+
+comment on function experiencia.fn_mascara_contato(text) is
+  'Nome novo, nao consta na folha canonica. Varredura de telefone, e-mail e CPF no texto '
+  'aberto (D4, N11). Pura e immutable, para poder ser conferida com exemplo.';
+
+-- -----------------------------------------------------------------------------
+-- fn_aplica_retencao(integer) returns jsonb
+--
+-- NOME NOVO, NAO CONSTA NA FOLHA CANONICA. E o corpo de `cron_retencao`, e ela existe
+-- porque `worker/rotinas/retencao.ts` ja a chama por nome: sem esta funcao, a rotina de
+-- retencao falha na primeira execucao, o que significa que a obrigacao de LGPD do projeto
+-- nao roda. O proprio Worker explica por que a regra vive aqui e nao la: apagar dado
+-- pessoal e operacao de UMA transacao, e dividir isso entre Worker e banco criaria estado
+-- intermediario em que o cliente esta meio anonimizado.
+--
+-- As duas metades de D4, e a separacao entre elas e o que faz a decisao funcionar:
+--   1. Dado pessoal (nome, e-mail, WhatsApp, nascimento): apagado 12 meses depois da
+--      ULTIMA VISITA, nao da coleta. Cliente que volta reinicia o prazo.
+--   2. Resposta da pesquisa: MANTIDA indefinidamente, desvinculada do contato. Nunca
+--      `DELETE`, nunca em nenhuma linha de nenhuma tabela de coleta.
+--
+-- Devolve `jsonb` com as tres contagens que o Worker le por nome, e que ele grava em
+-- `execucao_rotina`: clientes_anonimizados, textos_varridos, padroes_removidos.
+-- -----------------------------------------------------------------------------
+create or replace function experiencia.fn_aplica_retencao(p_meses integer default 12)
+returns jsonb
+language plpgsql
+security definer
+set search_path = experiencia, public, pg_temp
+as $$
+declare
+  v_corte     timestamptz := now() - make_interval(months => p_meses);
+  v_clientes  integer := 0;
+  v_textos    integer := 0;
+  v_padroes   integer := 0;
+begin
+  if p_meses is null or p_meses < 1 then
+    raise exception 'fn_aplica_retencao: p_meses invalido (%). O valor de D4 e N10 e 12', p_meses;
+  end if;
+
+  -- 1. Anonimizacao do dado pessoal. UPDATE para nulo, nunca DELETE (F48): a linha fica, e
+  -- `anonimizado_em` e a prova de que a rotina rodou. O CHECK
+  -- `cliente_anonimizado_sem_dado_pessoal` garante que "anonimizado" nao possa ser mentira.
+  with feito as (
+    update experiencia.cliente
+    set nome           = null,
+        email          = null,
+        whatsapp       = null,
+        nascimento     = null,
+        anonimizado_em = now()
+    where anonimizado_em is null
+      and ultima_visita_em < v_corte
+    returning 1
+  )
+  select count(*) into v_clientes from feito;
+
+  -- 2. Varredura de padrao no texto aberto, antes de ele ser tratado como dado NAO pessoal.
+  -- Sem esta metade, os 12 meses sao contornados pelo proprio texto que se pretende
+  -- preservar, que e o detalhe que D4 diz que quase sempre escapa.
+  with alvo as (
+    select rt.id, rt.texto_cru
+    from experiencia.resposta_texto rt
+    join experiencia.resposta r on r.id = rt.resposta_id
+    where rt.mascarado_em is null
+      and r.respondido_em < v_corte
+  ),
+  limpo as (
+    select a.id,
+           experiencia.fn_mascara_contato(a.texto_cru) as texto_novo,
+           (experiencia.fn_mascara_contato(a.texto_cru) is distinct from a.texto_cru) as alterado
+    from alvo a
+  ),
+  feito as (
+    update experiencia.resposta_texto rt
+    set texto_cru    = l.texto_novo,
+        mascarado_em = now()
+    from limpo l
+    where l.id = rt.id
+    returning l.alterado
+  )
+  select count(*), count(*) filter (where alterado) into v_textos, v_padroes from feito;
+
+  return jsonb_build_object(
+    'clientes_anonimizados', v_clientes,
+    'textos_varridos',       v_textos,
+    'padroes_removidos',     v_padroes);
+end
+$$;
+
+comment on function experiencia.fn_aplica_retencao(integer) is
+  'Nome novo, nao consta na folha canonica. O corpo de cron_retencao, numa transacao: '
+  'anonimiza cliente com 12 meses da ultima visita e varre o texto aberto. Nunca apaga '
+  'resposta: a serie historica e o ativo que o projeto existe para preservar (D4, N11).';
+
 grant execute on function experiencia.fn_casa_abre(date)                  to experiencia_app, experiencia_leitura;
 grant execute on function experiencia.fn_sorteia_pergunta(uuid, text)     to experiencia_app;
 grant execute on function experiencia.fn_grava_resposta(jsonb)            to experiencia_app;
 grant execute on function experiencia.fn_registra_sinal(jsonb)            to experiencia_app;
+grant execute on function experiencia.fn_mascara_contato(text)            to experiencia_app, experiencia_leitura;
+grant execute on function experiencia.fn_aplica_retencao(integer)         to experiencia_app;

@@ -95,15 +95,28 @@ export async function seleciona<T>(
   return (await resp.json()) as T[]
 }
 
-/** Insere linhas. Usado apenas pelas rotinas, nunca pelo caminho do tablet. */
+/**
+ * Insere linhas. Usado apenas pelas rotinas, nunca pelo caminho do tablet.
+ *
+ * `on_conflict` e obrigatorio quando a idempotencia da tabela vem de um UNIQUE que NAO e a
+ * chave primaria. `resolution=merge-duplicates` sozinho resolve o conflito pela chave primaria,
+ * e um `id` gerado por `gen_random_uuid()` nunca conflita: o efeito e um 409 na reimportacao em
+ * vez da substituicao que se queria. `venda_produto_dia` e o caso: a idempotencia dela e
+ * (dia_operacional, produto_nome_norm), e reimportar o mesmo dia tem de substituir o dia.
+ */
 export async function insere<T>(
   env: Ambiente,
   relacao: string,
   linhas: readonly unknown[],
   schema = 'experiencia',
+  opcoes: { on_conflict?: string } = {},
 ): Promise<T[]> {
   if (linhas.length === 0) return []
-  const resp = await chama(env, `/${relacao}`, {
+  const consulta =
+    opcoes.on_conflict === undefined
+      ? ''
+      : `?on_conflict=${encodeURIComponent(opcoes.on_conflict)}`
+  const resp = await chama(env, `/${relacao}${consulta}`, {
     method: 'POST',
     body: JSON.stringify(linhas),
     headers: { prefer: 'return=representation,resolution=merge-duplicates' },
@@ -114,20 +127,66 @@ export async function insere<T>(
 }
 
 /**
+ * As contagens que uma rotina devolve.
+ *
+ * Cinco chaves tem COLUNA PROPRIA em `execucao_rotina`, porque sao as que o digest e o painel
+ * leem por nome e as que valem alarme. As demais entram em `contagens`, que e `jsonb`.
+ *
+ * O tipo e aberto (`[chave: string]: ...`) porque cada rotina tem os proprios numeros, e nao
+ * faria sentido uma uniao fechada de tudo que as quatro devolvem. O que o tipo garante e que as
+ * cinco chaves com coluna, quando aparecem, aparecem com o tipo da coluna: `email_enviado` como
+ * booleano e `destinatarios` como lista de texto, e nao como numero.
+ */
+export interface ContagensRotina {
+  respostas_no_periodo?: number
+  email_enviado?: boolean
+  destinatarios?: readonly string[]
+  linhas_anonimizadas?: number
+  mascaramentos?: number
+  [chave: string]: number | boolean | readonly string[] | undefined
+}
+
+/** As cinco chaves que tem coluna propria. Fonte unica, usada para separar do resto. */
+const COLUNAS_DE_CONTAGEM = [
+  'respostas_no_periodo',
+  'email_enviado',
+  'destinatarios',
+  'linhas_anonimizadas',
+  'mascaramentos',
+] as const
+
+/**
  * Registra a execucao de uma rotina no proprio banco.
  *
  * Existe porque o log do fornecedor expira (o plano gratuito do Supabase retem 1 dia) e o
  * nosso nao. Sem este registro, ninguem consegue responder "quando foi a ultima vez que a
  * importacao rodou", que e a primeira pergunta de todo diagnostico.
+ *
+ * ATENCAO ao `catch` vazio no fim: ele existe para falha de log nao derrubar a rotina que
+ * estava rodando, e essa decisao esta certa. Mas ela tem um custo, e o custo apareceu de
+ * verdade: enquanto esta funcao mandava um campo `contagens` que nenhuma coluna recebia, as
+ * quatro rotinas rodavam, todo log falhava com 400 e `/painel/saude` ficava vazio, sem uma
+ * linha de erro em lugar nenhum. E por isso que os nomes de coluna daqui sao conferidos por
+ * `tests/contrato-colunas.test.ts` contra o DDL, e nao pela primeira execucao em producao.
  */
 export async function registraExecucao(
   env: Ambiente,
   rotina: string,
   iniciadoEm: string,
   status: 'sucesso' | 'erro',
-  contagens: Record<string, number>,
+  contagens: ContagensRotina,
   erro?: string,
 ): Promise<void> {
+  // As cinco com coluna vao para a coluna; o resto vai para `contagens`, que e jsonb. Assim o
+  // numero que alguma tela le por nome nunca fica escondido dentro de um objeto.
+  const nomeadas: Record<string, unknown> = {}
+  const resto: Record<string, unknown> = {}
+  for (const [chave, valor] of Object.entries(contagens)) {
+    if (valor === undefined) continue
+    if ((COLUNAS_DE_CONTAGEM as readonly string[]).includes(chave)) nomeadas[chave] = valor
+    else resto[chave] = valor
+  }
+
   try {
     await insere(env, 'execucao_rotina', [
       {
@@ -135,8 +194,16 @@ export async function registraExecucao(
         iniciado_em: iniciadoEm,
         terminado_em: new Date().toISOString(),
         status,
-        contagens,
-        ...(erro !== undefined ? { erro: erro.slice(0, 1000) } : {}),
+        ...nomeadas,
+        ...(Object.keys(resto).length > 0 ? { contagens: resto } : {}),
+        // `execucao_rotina_erro_tem_mensagem` exige mensagem quando o status e `erro`. Sem este
+        // texto de reserva, a linha de log de uma falha sem mensagem seria REJEITADA pelo
+        // CHECK, e a falha desapareceria justamente no caso em que o log mais importa.
+        ...(status === 'erro'
+          ? { erro: (erro ?? 'rotina falhou sem mensagem').slice(0, 1000) }
+          : erro !== undefined
+            ? { erro: erro.slice(0, 1000) }
+            : {}),
       },
     ])
   } catch {

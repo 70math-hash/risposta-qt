@@ -39,8 +39,28 @@ create table if not exists experiencia.convite_clique (
   migrado_em  timestamptz not null default now(),
   -- A conferencia de integridade depende de o id da origem ser unico aqui. Sem isto,
   -- reaplicar a migracao dobraria as 74 linhas e ninguem notaria.
-  constraint convite_clique_id_origem_uq unique (id_origem),
-  constraint convite_clique_garcom_nao_vazio check (btrim(garcom) <> '')
+  constraint convite_clique_id_origem_uq unique (id_origem)
+  -- NAO existe CHECK de `garcom` nao vazio nesta tabela, e a ausencia e deliberada.
+  --
+  -- Havia um, `check (btrim(garcom) <> '')`, copiado das tabelas que a aplicacao escreve. Nelas
+  -- ele esta certo: cadeia vazia apareceria em toda exportacao como se fosse um valor digitado.
+  -- Aqui ele estava errado, e a diferenca so apareceu quando o caminho FELIZ da migration foi
+  -- executado de verdade, com dado que tem a forma do dado da origem.
+  --
+  -- `public.cliques_avaliacao.garcom` e texto livre de um formulario que nao exigia
+  -- preenchimento. Linha com `garcom` em branco e um FATO da origem, e a folha canonica manda
+  -- preservar esse campo "cru, nao normalizado". Com o CHECK, uma unica linha em branco entre as
+  -- 74 derruba a migration inteira — e essa migration e o unico caminho para a unica copia desse
+  -- historico, porque `qt-avaliacoes` e pausado depois dela.
+  --
+  -- As tres saidas possiveis eram: descartar a linha (perde historico), trocar o vazio por um
+  -- marcador tipo `(sem garcom)` (inventa dado que a origem nao tem), ou aceitar o vazio como o
+  -- valor que ele e. As duas primeiras sao interpretar durante a migracao, que e exatamente o
+  -- que o script de exportacao tem escrito que nao faz.
+  --
+  -- O que protege a leitura no lugar do CHECK: `garcom_id` fica nulo nessas linhas, porque nome
+  -- em branco nao casa com garcom nenhum, e a conferencia no fim da migration de semente imprime
+  -- quantas linhas ficaram sem garcom resolvido.
 );
 
 comment on table experiencia.convite_clique is

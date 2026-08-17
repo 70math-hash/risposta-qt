@@ -68,6 +68,31 @@ done
 if [[ "${1:-}" == "--dados" ]]; then
   echo "== dados de ensaio e conferencias =="
   psql_ -f "$RAIZ/scripts/ensaio-dados.sql"
+
+  # ---------------------------------------------------------------------------
+  # O CAMINHO FELIZ da semente de convite_clique.
+  #
+  # A falha proposital ja foi conferida acima. Ela nao prova que a migration funciona com o
+  # bloco preenchido, e foi so ao rodar o caminho feliz que apareceu um CHECK que derrubaria
+  # a migracao inteira por causa de uma linha com `garcom` em branco.
+  #
+  # A migration do repositorio NAO e alterada: o bloco e injetado numa copia temporaria, com
+  # as 74 linhas sinteticas de `ensaio-semente-74.sql`. O arquivo versionado continua sendo
+  # o que falha de proposito.
+  # ---------------------------------------------------------------------------
+  echo "== caminho feliz da semente de convite_clique =="
+  # `mktemp` cria com 0600, e o `psql` roda como `postgres` via sudo: sem o chmod, o arquivo
+  # existe e o Postgres nao o le, com um "Permission denied" que parece problema de banco.
+  COPIA="$(mktemp /tmp/semente-XXXXXX.sql)"
+  python3 "$RAIZ/scripts/monta-semente-de-ensaio.py" "$RAIZ" "$COPIA"
+  chmod 644 "$COPIA"
+
+  psql_ -f "$COPIA"
+  # Reaplicar, para provar que o UNIQUE em id_origem torna a migracao repetivel.
+  psql_ -f "$COPIA" >/dev/null
+  rm -f "$COPIA"
+
+  psql_ -f "$RAIZ/scripts/ensaio-semente-confere.sql"
 fi
 
 echo "== fim =="

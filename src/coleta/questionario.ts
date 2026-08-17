@@ -382,3 +382,84 @@ export function sorteiaPerguntas(
 export function perguntasAtivas(numeros: readonly number[]): readonly PerguntaBanco[] {
   return BANCO_PERGUNTAS.filter((p) => numeros.includes(p.numero))
 }
+
+// ---------------------------------------------------------------------------
+// A decisao de navegacao, como funcao pura
+// ---------------------------------------------------------------------------
+
+/**
+ * Os passos do fluxo. `T4` nao existe como nome: a segunda rotacionada e `ROT2`.
+ */
+export type Passo =
+  | 'T0' | 'T1' | 'T2A' | 'T2B' | 'T2C'
+  | 'T3C1' | 'T3C2' | 'T3C3' | 'T3C'
+  | 'ROT1' | 'ROT2' | 'T5' | 'T6' | 'T7'
+
+export interface EstadoFluxo {
+  nota: number
+  /** Quantas rotacionadas foram sorteadas para esta resposta. */
+  rotacionadas: number
+  /** Na T2C, o que a pessoa apontou. Ausente quando pulou. */
+  causa?: 'grupo_item' | 'fator' | 'nenhuma'
+  /** Na T3C1, se existe item do grupo no catalogo carregado. */
+  temItensDoGrupo?: boolean
+}
+
+/**
+ * O proximo passo, dado o passo atual e o estado.
+ *
+ * Extraida do componente de proposito: a ramificacao e a logica de maior risco do quiosque, e
+ * dentro de um componente React ela so seria testavel com DOM. Aqui ela e uma tabela de
+ * transicao conferivel, e o componente vira desenho de tela.
+ *
+ * A invariante que esta funcao garante: quem passa por `T2C` (nota baixa) nunca chega em
+ * `ROT1`. E o que mantem os quatro caminhos dentro do teto de 45 s.
+ */
+export function proximoPasso(atual: Passo, e: EstadoFluxo): Passo {
+  const depoisDaRamificacao = (): Passo => (e.rotacionadas >= 1 ? 'ROT1' : 'T5')
+
+  switch (atual) {
+    case 'T0':
+      return 'T1'
+    case 'T1':
+      if (e.nota >= 9) return 'T2A'
+      if (e.nota >= 7) return 'T2B'
+      return 'T2C'
+    case 'T2A':
+    case 'T2B':
+      return depoisDaRamificacao()
+    case 'T2C':
+      if (e.causa === 'grupo_item') return 'T3C1'
+      if (e.causa === 'fator') return 'T3C'
+      return 'T5'
+    case 'T3C1':
+      return e.temItensDoGrupo === true ? 'T3C2' : 'T3C3'
+    case 'T3C2':
+      return 'T3C3'
+    case 'T3C3':
+    case 'T3C':
+      return 'T5'
+    case 'ROT1':
+      return e.rotacionadas >= 2 ? 'ROT2' : 'T5'
+    case 'ROT2':
+      return 'T5'
+    case 'T5':
+      return 'T6'
+    case 'T6':
+      return 'T7'
+    case 'T7':
+      return 'T0'
+  }
+}
+
+/** O caminho completo de uma resposta, para conferir orcamento de tempo e invariantes. */
+export function caminhoCompleto(e: EstadoFluxo, comT0 = true): readonly Passo[] {
+  const caminho: Passo[] = []
+  let passo: Passo = comT0 ? 'T0' : 'T1'
+  caminho.push(passo)
+  for (let i = 0; i < 20 && passo !== 'T7'; i++) {
+    passo = proximoPasso(passo, e)
+    caminho.push(passo)
+  }
+  return caminho
+}

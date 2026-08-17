@@ -1,0 +1,10 @@
+{
+  "name": "QT Pizza Bar",
+  "short_name": "QT",
+  "start_url": "/",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "background_color": "#EFECEC",
+  "theme_color": "#EFECEC",
+  "icons": []
+}

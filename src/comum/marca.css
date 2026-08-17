@@ -1,0 +1,361 @@
+/*
+ * Identidade visual da QT Pizza Bar.
+ *
+ * Do manual de marca: Preto Profundo #1A1E1E, Cinza Medio #A0A5A5, Branco #EFECEC.
+ * Helvetica. Fundo branco como padrao para interface. Minimalismo Bauhaus: geometria,
+ * grid de 8px, cantos retos, muito espaco em branco, tipografia como elemento grafico.
+ *
+ * O manual proibe: gradiente complexo, sombra pesada, efeito 3D, cor vibrante, floreio,
+ * animacao desnecessaria. Nao ha excecao aqui.
+ *
+ * UMA CORRECAO NECESSARIA DE ACESSIBILIDADE: o proprio numero canonico N37 registra que
+ * #A0A5A5 sobre fundo claro da 2,1:1 e por isso e PROIBIDO para texto. O cinza do manual
+ * fica para linha, borda e elemento decorativo. Texto secundario usa um cinza escurecido da
+ * mesma familia, que passa 4,5:1 e continua sendo cinza da QT.
+ */
+
+:root {
+  /* Paleta do manual */
+  --preto: #1a1e1e;
+  --cinza: #a0a5a5;
+  --branco: #efecec;
+
+  /* Derivados, todos da mesma familia de matiz */
+  --papel: #efecec;
+  --papel-2: #e5e2e2;
+  --papel-3: #dad7d7;
+  --linha: #c8c5c5;
+  /* Texto secundario acessivel: 4,6:1 sobre --papel. O #A0A5A5 nunca carrega texto. */
+  --tinta-2: #5f6565;
+  --tinta-3: #767c7c;
+
+  /* Grid de 8px */
+  --u: 8px;
+  --u2: 16px;
+  --u3: 24px;
+  --u4: 32px;
+  --u6: 48px;
+  --u8: 64px;
+
+  --fonte: Helvetica, "Helvetica Neue", Arial, "Liberation Sans", sans-serif;
+
+  /* N34: alvo minimo de toque. Nao reduzir, em nenhuma tela. */
+  --alvo-min: 44px;
+  /* N34: os 11 botoes de nota, entre 60 e 80px de lado. */
+  --alvo-nota: 72px;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--papel);
+  color: var(--preto);
+  font-family: var(--fonte);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* No quiosque, ninguem rola, ninguem seleciona e ninguem da zoom por engano. */
+body.quiosque {
+  overflow: hidden;
+  height: 100vh;
+  height: 100dvh;
+  user-select: none;
+  touch-action: manipulation;
+  overscroll-behavior: none;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-weight: 700;
+  letter-spacing: 0.01em; /* +0.5px em titulo, do manual */
+  text-wrap: balance;
+}
+
+button {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 3px solid var(--preto);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ---------- Rotulo utilitario ---------- */
+
+.rotulo {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+  color: var(--tinta-2);
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Botao, no estilo do manual: cantos retos, sem sombra ---------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--alvo-min);
+  padding: var(--u2) var(--u3);
+  font-weight: 700;
+  border: 1px solid var(--preto);
+  background: var(--preto);
+  color: var(--papel);
+  transition: background-color 200ms ease, color 200ms ease;
+}
+
+.btn:hover,
+.btn:active {
+  background: var(--cinza);
+  border-color: var(--cinza);
+  color: var(--preto);
+}
+
+.btn--secundario {
+  background: transparent;
+  color: var(--preto);
+}
+
+.btn--secundario:hover,
+.btn--secundario:active {
+  background: var(--cinza);
+}
+
+.btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* ---------- Estrutura do quiosque ---------- */
+
+.tela {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  padding: var(--u4);
+  gap: var(--u3);
+}
+
+.tela__topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--u2);
+  min-height: var(--alvo-min);
+}
+
+.tela__corpo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--u3);
+  min-height: 0;
+}
+
+.tela__rodape {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--u2);
+  min-height: var(--alvo-min);
+}
+
+.pergunta {
+  font-size: clamp(26px, 4.4vw, 44px);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  max-width: 26ch;
+}
+
+.ajuda {
+  font-size: clamp(15px, 1.8vw, 19px);
+  color: var(--tinta-2);
+}
+
+.aviso-anonimo {
+  font-size: clamp(13px, 1.5vw, 16px);
+  color: var(--tinta-2);
+  max-width: 52ch;
+}
+
+/* ---------- Botao de idioma ---------- */
+
+.idioma {
+  min-width: var(--alvo-min);
+  min-height: var(--alvo-min);
+  padding: 0 var(--u2);
+  border: 1px solid var(--linha);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--tinta-2);
+}
+
+.idioma[aria-pressed='true'] {
+  background: var(--preto);
+  color: var(--papel);
+  border-color: var(--preto);
+}
+
+/* ---------- Escala de nota: 11 alvos, duas fileiras de 6 e 5, sem rolagem ---------- */
+
+.notas {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--u2);
+  max-width: 720px;
+}
+
+.nota {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--alvo-nota);
+  min-height: var(--alvo-nota);
+  aspect-ratio: 1;
+  border: 2px solid var(--preto);
+  font-size: clamp(24px, 3vw, 32px);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  background: var(--papel);
+}
+
+.nota:active {
+  background: var(--preto);
+  color: var(--papel);
+}
+
+/* A segunda fileira tem 5 e fica centrada: 11 nao divide por 6. */
+.nota:nth-child(7) {
+  grid-column: 1;
+}
+
+.ancoras {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--u2);
+  max-width: 720px;
+  font-size: 13px;
+  color: var(--tinta-2);
+}
+
+/* ---------- Opcoes de toque ---------- */
+
+.opcoes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--u2);
+  max-width: 860px;
+}
+
+.opcao {
+  min-height: 72px;
+  padding: var(--u2) var(--u3);
+  border: 2px solid var(--linha);
+  background: var(--papel);
+  font-size: clamp(16px, 2vw, 20px);
+  font-weight: 700;
+  text-align: left;
+}
+
+.opcao[aria-pressed='true'] {
+  border-color: var(--preto);
+  background: var(--preto);
+  color: var(--papel);
+}
+
+/* ---------- Campo de texto e de contato ---------- */
+
+.campo {
+  width: 100%;
+  max-width: 640px;
+  min-height: var(--alvo-min);
+  padding: var(--u2);
+  border: 1px solid var(--cinza);
+  background: var(--papel);
+  font-family: inherit;
+  font-size: 18px;
+  color: var(--preto);
+}
+
+.campo:focus {
+  border-color: var(--preto);
+  outline: none;
+}
+
+.campo::placeholder {
+  color: var(--tinta-3);
+}
+
+textarea.campo {
+  min-height: 96px;
+  resize: none;
+  line-height: 1.5;
+}
+
+/* ---------- Contagem de inatividade, visivel nos 15 segundos finais ---------- */
+
+.contagem {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--tinta-2);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Agradecimento ---------- */
+
+.fim {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  height: 100dvh;
+  gap: var(--u3);
+  text-align: center;
+}
+
+.fim__texto {
+  font-size: clamp(32px, 6vw, 64px);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+/* ---------- Simbolo QT: circulo com fatia mais o T ---------- */
+
+.simbolo {
+  display: block;
+  color: var(--preto);
+}

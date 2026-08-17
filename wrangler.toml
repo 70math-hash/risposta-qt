@@ -1,0 +1,30 @@
+# Worker do sistema de experiencia da QT.
+# Quatro Cron Triggers, dos 5 que o plano gratuito da por conta (N22).
+# O quinto slot fica livre de proposito, e NAO e para keep-alive: quem mantem o banco
+# acordado e o proprio cron_digest_16h (folha canonica, secao 5.2).
+
+name = "qt-experiencia"
+main = "worker/index.ts"
+compatibility_date = "2026-08-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Os horarios sao UTC. O fuso da casa e America/Sao_Paulo (UTC-3, sem horario de verao em 2026).
+# Se o horario de verao voltar, estas quatro expressoes mudam. Ver folha canonica, secao 5.1.
+[triggers]
+crons = [
+  "*/30 * * * *",  # watcher_drive      · a cada 30 min
+  "0 10 * * *",    # cron_classificador · 07h local
+  "0 19 * * *",    # cron_digest_16h    · 16h local
+  "0 8 1 * *",     # cron_retencao      · dia 1, 05h local
+]
+
+[vars]
+TZ_CASA = "America/Sao_Paulo"
+CORTE_DIA_HORAS = "6"
+
+# Segredos, definidos com `wrangler secret put`, NUNCA neste arquivo:
+#   SUPABASE_URL
+#   SUPABASE_SERVICE_KEY   (nunca vai para o bundle do PWA)
+#   RESEND_API_KEY
+#   GROQ_API_KEY
+#   DRIVE_SA_JSON          (conta de servico, somente leitura, em UMA pasta)

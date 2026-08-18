@@ -28,7 +28,7 @@
 import { readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { DIMENSOES, FATORES, fatorValido } from '../src/comum/dominio.js'
+import { DIMENSOES, FATORES, ROTINAS, fatorValido } from '../src/comum/dominio.js'
 import { caminhoCompleto } from '../src/coleta/questionario.js'
 
 const DIR = join(process.cwd(), 'supabase', 'migrations')
@@ -455,5 +455,53 @@ describe('nenhuma escrita fica sem tela que a chame', () => {
       `\`${nome}\` existe em dados.ts e nenhuma tela a chama. A capacidade existe e a pessoa não ` +
         'tem como usá-la, que foi exatamente o caso de `registraContatoAlerta` (A29).',
     ).toBe(true)
+  })
+})
+
+/**
+ * O que o workflow de backup escreve no banco.
+ *
+ * `.github/workflows/backup.yml` monta um `INSERT` em shell, com o nome da rotina e o status como
+ * texto literal. Isso e o mesmo tipo de fronteira que ja custou caro neste projeto: `tsc` nao ve
+ * dentro de uma string de YAML, `psql` so descobre no domingo, e o unico sintoma seria o workflow
+ * falhando toda semana com uma violacao de CHECK — ou, pior, ninguem olhando.
+ *
+ * O passo antes escrevia `select 1`. `backup_semanal` e uma das cinco rotinas do dominio fechado e
+ * `/painel/saude` tem uma linha esperando por ela, que nunca era escrita: a tela mostrava do backup
+ * exatamente o mesmo que mostraria se ele nunca tivesse rodado.
+ */
+describe('o backup semanal deixa rastro que o painel encontra', () => {
+  const WF = readFileSync(join(process.cwd(), '.github', 'workflows', 'backup.yml'), 'utf8')
+
+  it('escreve em `execucao_rotina`, e nao um `select 1`', () => {
+    expect(WF).toContain('insert into experiencia.execucao_rotina')
+    expect(
+      WF,
+      'o passo voltou a ser `select 1`: ele cumpre o keep-alive e nao deixa rastro, e a aba de ' +
+        'saúde volta a não distinguir "não rodou" de "rodou".',
+    ).not.toMatch(/psql .*-c "select 1"/)
+  })
+
+  it('a rotina que ele escreve está no domínio fechado', () => {
+    const m = WF.match(/values \('([a-z_]+)',/)
+    expect(m, 'não achei o valor de `rotina` no INSERT do workflow').not.toBeNull()
+    expect(ROTINAS as readonly string[]).toContain(m![1]!)
+  })
+
+  it('registra os dois desfechos, e não só o sucesso', () => {
+    // Registrar só o sucesso faria a tela mostrar silêncio para as duas coisas que mais importa
+    // distinguir: "não rodou" e "rodou e falhou".
+    expect(WF).toContain("STATUS=sucesso")
+    expect(WF).toContain("STATUS=erro")
+    expect(WF).toContain('if: always()')
+    // `execucao_rotina_erro_tem_mensagem` recusa status `erro` sem mensagem, então o ramo de erro
+    // precisa preencher `erro` — senão o INSERT falha justamente quando ele mais importa.
+    expect(WF).toMatch(/ERRO="'[^']+'"/)
+  })
+
+  it('lê `steps.dump.outcome`, e o passo de dump tem esse id', () => {
+    // Sem o `id`, `steps.dump.outcome` vem vazio e TODO backup seria registrado como erro.
+    expect(WF).toContain('steps.dump.outcome')
+    expect(WF).toMatch(/id: dump/)
   })
 })

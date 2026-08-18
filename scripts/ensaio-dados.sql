@@ -975,6 +975,50 @@ end
 $$;
 
 -- =============================================================================
+-- O INSERT que `.github/workflows/backup.yml` monta em shell.
+--
+-- Os dois ramos, com os literais exatos do arquivo. E fronteira de string pura: `tsc` nao ve
+-- dentro do YAML, `psql` so descobre no domingo, e o sintoma seria o workflow falhando toda semana
+-- com violacao de CHECK — ou ninguem olhando.
+--
+-- `tests/contrato-telas.test.ts` confere o LADO DE LA (que o workflow escreve em execucao_rotina,
+-- com rotina do dominio, nos dois desfechos). Este bloco confere que o comando roda de verdade.
+-- =============================================================================
+do $$
+declare v_n int;
+begin
+  insert into experiencia.execucao_rotina (rotina, iniciado_em, terminado_em, status, erro)
+  values ('backup_semanal', now(), now(), 'sucesso', NULL);
+
+  -- O ramo de erro, com a mensagem exata: `execucao_rotina_erro_tem_mensagem` recusa status `erro`
+  -- sem mensagem, entao um workflow que passasse NULL aqui perderia o registro justamente no caso
+  -- em que ele mais importa.
+  insert into experiencia.execucao_rotina (rotina, iniciado_em, terminado_em, status, erro)
+  values ('backup_semanal', now(), now(), 'erro',
+          'o passo de dump e envio terminou como failure. Ver o log da execucao no GitHub Actions.');
+
+  select count(*) into v_n from experiencia.vw_saude_rotina where rotina = 'backup_semanal';
+  if v_n <> 2 then
+    raise exception
+      'backup_semanal gravado e vw_saude_rotina mostra % linha(s), esperado 2. O passo antes era '
+      '`select 1`: a aba de saude nao distinguia "o backup nao rodou" de "o backup rodou".', v_n;
+  end if;
+
+  -- E o CHECK recusa o que nao e rotina, que e o que protege contra um erro de digitacao no YAML.
+  begin
+    insert into experiencia.execucao_rotina (rotina, iniciado_em, status)
+    values ('backup_semana', now(), 'sucesso');
+    raise exception 'o dominio de `rotina` aceitou `backup_semana`, que nao existe';
+  exception when check_violation then
+    null;
+  end;
+
+  delete from experiencia.execucao_rotina where rotina = 'backup_semanal';
+  raise notice 'ok  backup_semanal: os dois INSERT do workflow rodam e aparecem em vw_saude_rotina';
+end
+$$;
+
+-- =============================================================================
 -- PARTE 11. O R3 e o cruzamento com venda.
 -- =============================================================================
 do $$

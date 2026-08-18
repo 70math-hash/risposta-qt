@@ -35,6 +35,24 @@ Combinado com `insumos_master.tipo`, isso significa:
 | `comercial` | 129 | Insumo comprado, com preço vindo de nota fiscal |
 | `producao_interna` | 1 | Sub-receita (massa, molho, base), que tem a **própria** lista de ingredientes em `producao_ingredientes` |
 
+> **Esta tabela não fecha, e a discrepância é de uma linha.** 129 + 1 = 130, e a seção 2 registra
+> `insumos_master` com **131 linhas**. `tipo` é `NOT NULL`, então ou a contagem de linhas está
+> errada, ou existe um **terceiro valor de `tipo`** que esta inspeção não enumerou. As duas
+> contagens saíram da mesma leitura, e nenhuma releitura deste arquivo resolve qual está certa —
+> só o banco responde.
+>
+> **Isso deixou de ser um risco para o cálculo.** A resolução recursiva descia por
+> `tipo = 'producao_interna'` enquanto decidia folha por *ter lista própria*, e um insumo com lista
+> e outro rótulo caía no vão entre os dois: não era descido nem contado como folha, sumia da conta
+> inteira, e o custo do prato saía menor, completo e sem aviso. Desde
+> `20260817116000_custo_por_fato_e_nao_por_rotulo.sql` os dois lados usam **o mesmo predicado** —
+> tem lista própria ou não tem — e o valor de `tipo` não participa mais do cálculo.
+>
+> A pergunta continua valendo para o **cadastro**, e agora ela é uma consulta em vez de uma nota de
+> rodapé: `experiencia.vw_custo_insumo_suspeito` enumera os valores de `tipo` que existem de
+> verdade, marca o que estiver fora destes dois, e conta onde rótulo e fato discordam. A aba de
+> pratos mostra o resultado quando há o que mostrar.
+
 **Consequência:** o custo de um prato não é uma soma plana de `prato_ingredientes`. É uma resolução
 **recursiva**: prato leva insumos, e insumo de tipo `producao_interna` leva outros insumos, em
 quantos níveis houver. A consulta correta é um `WITH RECURSIVE`, e uma soma plana daria custo
@@ -84,8 +102,8 @@ custo de uma pizza.
 | `estoque_minimo`, `estoque_atual` | `numeric` | sim | Fora do escopo da pesquisa |
 | `ativo` | `boolean` | sim | |
 | **`rn`** | `numeric` | **não** | **Rendimento.** Divisor do custo: quantidade usada sobre rendimento |
-| **`preco_unitario_fixo`** | `numeric` | sim | Preço travado. **Só 1 dos 130 tem.** Serve de reserva |
-| **`tipo`** | `text` | **não** | `comercial` ou `producao_interna`. Define se desce um nível |
+| **`preco_unitario_fixo`** | `numeric` | sim | Preço travado. **Só 1 insumo tem.** Serve de reserva |
+| **`tipo`** | `text` | **não** | `comercial` e `producao_interna` foram os valores lidos, e a soma deles não fecha com o total (ver 1.2). **Não define mais se desce um nível:** quem define é ter lista própria em `producao_ingredientes` |
 | `codigo_producao` | `text` | sim | Nenhuma linha preenchida |
 | `id_altec` | `text` | sim | |
 | `rendimento`, `modo_preparo` | `numeric`, `text` | sim | |

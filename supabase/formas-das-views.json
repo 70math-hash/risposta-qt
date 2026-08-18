@@ -46,6 +46,14 @@
     "dispositivo_acima_do_teto",
     "aviso"
   ],
+  "vw_custo_insumo_suspeito": [
+    "tipo",
+    "insumos",
+    "com_lista_propria",
+    "rotulado_producao_sem_lista",
+    "com_lista_e_outro_rotulo",
+    "tipo_fora_do_documentado"
+  ],
   "vw_custo_prato": [
     "prato_id",
     "prato_nome",

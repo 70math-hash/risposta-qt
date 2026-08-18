@@ -494,6 +494,7 @@ quando ela faz parte do sentido (`_dia`, `_semana`, `_trimestre`, `_mes`).
 | `vw_dispositivo_sinal` | `/painel/saude` | Cada aparelho pelo apelido, com hora do último sinal e fila pendente | Um aparelho |
 | `vw_saude_rotina` | `/painel/saude` | As últimas 30 execuções de cada rotina, com hora e status | Uma execução |
 | `vw_custo_prato` | `/painel/pratos` | Custo por prato numa data de referência, com `WITH RECURSIVE`, lendo as tabelas de custo em modo somente leitura | Um prato por data de referência |
+| `vw_custo_insumo_suspeito` | `/painel/pratos` | Quantos valores de `tipo` existem de verdade em `insumos_master`, e onde o rótulo discorda do fato de ter lista própria | Um valor de `tipo` |
 
 **Acrescentadas depois da implementação**, pelo mesmo motivo declarado na seção 6.4: a folha estava
 atrás do SQL, e folha atrasada tem precedência e mente. As quatro nasceram de dado que era **gravado
@@ -747,7 +748,7 @@ delas só pode voltar ocorrência dentro desta seção ou precedida de "não exi
 | `nota de sentimento de 0 a 100` | Indicador de vaidade disfarçado de precisão | `polaridade` e `severidade` |
 | `índice composto proprietário`, `Índice Risposta` | A fórmula publicada não fecha no exemplo oficial dela | NPS e fator, com a fórmula escrita na tela |
 | `100% dos itens do cardápio ativo casam` | Aceite impossível antes do primeiro import | `conferido contra um arquivo R3 exportado à mão`, e item sem venda fica como `sem venda no período` |
-| `soma plana de prato_ingredientes` | Insumo de tipo `producao_interna` tem lista própria, e soma plana dá número errado | `WITH RECURSIVE` em `vw_custo_prato` |
+| `soma plana de prato_ingredientes` | Insumo com lista própria em `producao_ingredientes` tem custo composto, e soma plana dá número errado. **Ter lista, e não estar rotulado como `producao_interna`, é o que decide:** enquanto a recursão descia pelo rótulo e parava pelo fato, um insumo com lista e outro rótulo sumia da conta inteira e o custo saía menor sem aviso (`A24`) | `WITH RECURSIVE` em `vw_custo_prato`, com o mesmo predicado nas duas pontas |
 | `Raspberry Pi` | Ponto de falha físico no salão para uma tarefa que um cron na nuvem faz de graça | `watcher_drive` mais o botão de importar planilha |
 | `fingerprinting` do celular do cliente | Tratamento oculto: o titular não pode se opor ao que não sabe que existe | Identificação do aparelho **da casa**, em `dispositivo` |
 | `cupom`, `voucher`, `convite ao Google` na tela final | A tela final apenas agradece | `T7` só agradece e reseta em 8 segundos |

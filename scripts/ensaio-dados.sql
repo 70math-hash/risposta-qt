@@ -876,6 +876,105 @@ end
 $$;
 
 -- =============================================================================
+-- A24. O insumo que tem lista propria e NAO esta rotulado como `producao_interna`.
+--
+-- A inspecao de 14/08/2026 registrou `insumos_master` com 131 linhas e, tres paragrafos antes,
+-- 129 `comercial` mais 1 `producao_interna`. Falta uma linha, e `tipo` e NOT NULL. Este bloco nao
+-- descobre qual e — isso so o banco de producao responde. Ele prova que a resposta DEIXOU DE
+-- IMPORTAR para o calculo.
+--
+-- O que se monta aqui e o caso exato do vao: um insumo com `tipo` que ninguem documentou, com lista
+-- propria de ingredientes. Antes da correcao, `arvore` nao descia nele (o `join` exigia
+-- `tipo = 'producao_interna'`) e `folha` tambem nao o aceitava (ele TEM lista). O no sumia inteiro:
+-- fora de `insumos_contados`, fora de todos os contadores de buraco, e o custo do prato saia MENOR,
+-- completo e sem aviso nenhum.
+-- =============================================================================
+do $$
+declare
+  v_sub    uuid;
+  v_queijo uuid;
+  v_prato  uuid;
+  v_r      record;
+  v_tipos  int;
+begin
+  select id into v_queijo from public.insumos_master where nome_qt = 'MUCARELA';
+
+  -- `tipo` fora dos dois valores documentados. Se a 131a linha da producao for algo assim, este e
+  -- o comportamento que ela vai encontrar.
+  insert into public.insumos_master (nome_qt, tipo, rn, rendimento, unidade_padrao)
+  values ('MOLHO NAO ROTULADO', 'sub_receita', 1, 1000, 'g') returning id into v_sub;
+
+  insert into public.producao_ingredientes (producao_id, insumo_master_id, quantidade, ordem)
+  values (v_sub, v_queijo, 500, 1);
+
+  insert into public.pratos (nome, categoria, id_altec, preco_venda, ativo)
+  values ('Prato Com Rotulo Estranho', 'PIZZAS', 'ALT-778', 40.00, true) returning id into v_prato;
+  insert into public.prato_ingredientes (prato_id, insumo_master_id, quantidade, ordem)
+  values (v_prato, v_sub, 200, 1);
+
+  select * into v_r from experiencia.vw_custo_prato
+  where id_altec = 'ALT-778'
+    and data_referencia <= current_date
+    and (vigente_ate is null or vigente_ate > current_date);
+
+  -- A prova de que a recursao desceu: o unico insumo da ficha e o MOLHO, e ele nao tem preco
+  -- proprio. Se o calculo tivesse parado nele, `insumos_contados` seria 1 e o insumo contado seria
+  -- o molho. Descendo, o contado passa a ser a MUCARELA, que tem preco, e o custo existe.
+  --
+  -- Conta a lapis: 200 g de molho / rn 1 = 200; 500 g de mucarela / rn 1 = 500, dividido pelo
+  -- rendimento do lote 1000 = 0,5; 200 x 0,5 = 100 g de mucarela a R$ 0,050 = R$ 5,00.
+  if v_r.insumos_contados <> 1 then
+    raise exception
+      'A24: esperado 1 insumo folha (a mucarela dentro do molho), veio %. A recursao nao desceu num '
+      'insumo que TEM lista propria so porque o rotulo nao era producao_interna.', v_r.insumos_contados;
+  end if;
+  if v_r.custo_ausente then
+    raise exception
+      'A24: o custo veio AUSENTE (%), e a ficha esta completa: molho -> mucarela, com preco e '
+      'rendimento. Sinal de que o no do molho caiu no vao entre `arvore` e `folha`.',
+      v_r.motivo_incompleto;
+  end if;
+  if round(v_r.custo_total, 2) <> 5.00 then
+    raise exception
+      'A24: custo deu % e a conta a mao da 5.00. Se deu zero ou nulo, o no do molho sumiu; se deu '
+      'outro numero, a divisao pelo rendimento do lote mudou.', round(v_r.custo_total, 2);
+  end if;
+  if v_r.nivel_maximo < 2 then
+    raise exception 'A24: nivel_maximo deu %, e a ficha tem 2 niveis: a recursao parou no rotulo', v_r.nivel_maximo;
+  end if;
+  raise notice 'ok  A24: insumo com lista propria e rotulo desconhecido e resolvido, e nao some da conta';
+
+  -- E a view que responde a pergunta que o documento nao responde.
+  select count(*) into v_tipos from experiencia.vw_custo_insumo_suspeito;
+  if v_tipos < 2 then
+    raise exception 'A24: vw_custo_insumo_suspeito devolveu % linha(s), e existem pelo menos 2 tipos', v_tipos;
+  end if;
+
+  select * into v_r from experiencia.vw_custo_insumo_suspeito where tipo = 'sub_receita';
+  if not v_r.tipo_fora_do_documentado then
+    raise exception 'A24: `sub_receita` nao esta entre os dois tipos documentados e nao foi marcada';
+  end if;
+  if v_r.com_lista_e_outro_rotulo <> 1 then
+    raise exception
+      'A24: esperado 1 insumo com lista propria e rotulo diferente de producao_interna, veio %',
+      v_r.com_lista_e_outro_rotulo;
+  end if;
+
+  select * into v_r from experiencia.vw_custo_insumo_suspeito where tipo = 'comercial';
+  if v_r.tipo_fora_do_documentado then
+    raise exception 'A24: `comercial` e um dos dois tipos documentados e foi marcado como fora deles';
+  end if;
+  raise notice 'ok  A24: vw_custo_insumo_suspeito enumera os tipos que existem e marca o nao documentado';
+
+  -- Desfaz, para nao mexer nos numeros conferidos a lapis mais acima.
+  delete from public.prato_ingredientes where prato_id = v_prato;
+  delete from public.pratos where id = v_prato;
+  delete from public.producao_ingredientes where producao_id = v_sub;
+  delete from public.insumos_master where id = v_sub;
+end
+$$;
+
+-- =============================================================================
 -- PARTE 11. O R3 e o cruzamento com venda.
 -- =============================================================================
 do $$
@@ -996,13 +1095,13 @@ begin
     raise notice '    %  %', rpad(v_view, 32), v_n;
   end loop;
 
-  -- Vinte e cinco de leitura mais `vw_texto_a_classificar`, que e view de trabalho da rotina do
+  -- As de leitura mais `vw_texto_a_classificar`, que e view de trabalho da rotina do
   -- classificador. Numero fixo de proposito: view que deixa de ser criada tem de derrubar isto,
   -- e nao passar como "contei as que existem".
-  if v_total <> 30 then
-    raise exception 'esperava 30 views executaveis e contei %', v_total;
+  if v_total <> 31 then
+    raise exception 'esperava 31 views executaveis e contei %', v_total;
   end if;
-  raise notice 'ok  as 30 views executam contra dado, e nenhuma levanta erro';
+  raise notice 'ok  as 31 views executam contra dado, e nenhuma levanta erro';
 end
 $$;
 

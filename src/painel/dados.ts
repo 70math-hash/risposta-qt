@@ -200,6 +200,16 @@ export interface VwCustoPrato {
   nota_premissa: string | null
 }
 
+/** `experiencia.vw_custo_insumo_suspeito`. Forma lida do banco, nao escrita a mao. */
+export interface VwCustoInsumoSuspeito {
+  tipo: string | null
+  insumos: number | null
+  com_lista_propria: number | null
+  rotulado_producao_sem_lista: number | null
+  com_lista_e_outro_rotulo: number | null
+  tipo_fora_do_documentado: boolean | null
+}
+
 /** `experiencia.vw_dia_semana`. Forma lida do banco, nao escrita a mao. */
 export interface VwDiaSemana {
   dia_operacional: string | null

@@ -21,6 +21,7 @@ import {
   type VwAlertaIncidente,
   type VwClienteMes,
   type VwColetaDia,
+  type VwCustoInsumoSuspeito,
   type VwCustoPrato,
   type VwDiaSemana,
   type VwDispositivoSinal,
@@ -693,6 +694,7 @@ function AbaGarcons(): React.ReactElement {
 function AbaPratos(): React.ReactElement {
   const { dados, erro, carregando } = useView<VwItemTrimestre>('vw_item_trimestre')
   const { dados: custos, erro: erroCusto } = useView<VwCustoPrato>('vw_custo_prato')
+  const { dados: suspeitos } = useView<VwCustoInsumoSuspeito>('vw_custo_insumo_suspeito')
   const estado = <Estado carregando={carregando} erro={erro} />
   if (estado !== null) return estado
 
@@ -704,6 +706,14 @@ function AbaPratos(): React.ReactElement {
 
   const semCusto = custos.filter((c) => c.custo_ausente === true)
   const naoConferido = custos.filter((c) => c.premissa_conferida !== true)
+
+  // A inspecao do sistema fiscal registrou 131 linhas em `insumos_master` e 129 + 1 por `tipo`.
+  // Falta uma linha, e nenhum documento resolve isso: so o banco. O calculo deixou de depender do
+  // rotulo (desce em quem TEM lista propria), entao isto aqui e aviso de CADASTRO, nao de conta
+  // errada — e por isso aparece so quando ha o que avisar.
+  const tiposEstranhos = suspeitos.filter((s) => s.tipo_fora_do_documentado === true)
+  const rotuloDivergente = suspeitos.reduce((t, s) => t + num(s.com_lista_e_outro_rotulo), 0)
+  const rotuloSemLista = suspeitos.reduce((t, s) => t + num(s.rotulado_producao_sem_lista), 0)
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--u3)' }}>
@@ -778,6 +788,26 @@ function AbaPratos(): React.ReactElement {
                 ? ` ${semCusto.length} prato(s) sem ficha técnica completa: aparecem como ausente, nunca como custo zero.`
                 : ''}
             </Aviso>
+
+            {tiposEstranhos.length > 0 || rotuloDivergente > 0 || rotuloSemLista > 0 ? (
+              <Aviso>
+                <strong>Cadastro de insumo para conferir.</strong> O cálculo desce em quem{' '}
+                <em>tem</em> lista própria de ingredientes, e não em quem está rotulado como
+                sub-receita, então nada abaixo altera os números acima — é o cadastro que está
+                inconsistente, não a conta.
+                {tiposEstranhos.length > 0
+                  ? ` Existe(m) ${tiposEstranhos.length} valor(es) de tipo além de comercial e producao_interna: ${tiposEstranhos
+                      .map((s) => `${s.tipo ?? '—'} (${num(s.insumos)})`)
+                      .join(', ')}.`
+                  : ''}
+                {rotuloDivergente > 0
+                  ? ` ${rotuloDivergente} insumo(s) têm lista própria sem estar marcados como producao_interna.`
+                  : ''}
+                {rotuloSemLista > 0
+                  ? ` ${rotuloSemLista} insumo(s) estão marcados como producao_interna e não têm lista: entram na conta pelo preço próprio, e se a ficha deles faltar o custo do prato sai menor.`
+                  : ''}
+              </Aviso>
+            ) : null}
           </>
         )}
       </Cartao>

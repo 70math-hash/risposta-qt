@@ -44,10 +44,16 @@
 -- `rolinherit` que ele tinha entao, e deixa de reproduzir um projeto novo justamente na
 -- propriedade que decide se o painel funciona.
 -- -----------------------------------------------------------------------------
+-- `experiencia_app`, `experiencia_leitura` e `authenticator` entram na mesma lista, e pelo mesmo
+-- motivo com uma consequencia a mais: `sql/papeis.sql`, que e o primeiro passo de uma restauracao,
+-- so exercita o ramo de CRIACAO se os papeis nao existirem. Herdando-os da execucao anterior, o
+-- ensaio rodava sempre o ramo "ja existia", e o caminho que importa no dia do backup — Postgres
+-- cru, papel nenhum — nunca era percorrido.
 do $$
 declare p text;
 begin
-  foreach p in array array['anon','authenticated','service_role'] loop
+  foreach p in array array['anon','authenticated','service_role',
+                           'experiencia_app','experiencia_leitura','authenticator'] loop
     if exists (select 1 from pg_roles where rolname = p) then
       execute format('reassign owned by %I to postgres', p);
       execute format('drop owned by %I', p);

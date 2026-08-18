@@ -321,7 +321,18 @@ não como código de aplicação.
 
 Formato fixo por tabela: o SQL completo (privilégio mais política), quem passa, quem não passa, e o teste que
 comprova. Todos os testes rodam dentro de `begin; ... rollback;` e vivem no arquivo `sql/teste_rls.sql`, que
-**ainda não existe**.
+**agora existe** e roda dentro de `scripts/ensaio.sh`.
+
+> **A primeira execução dele contradisse esta seção.** O bloco de `resposta` abaixo diz que
+> `experiencia_app` não passa, "sem `GRANT` nenhum". A migration de coleta concedia `select, insert`
+> nas sete tabelas de coleta, e portanto a propriedade estava escrita como fato e nunca existiu.
+> Nenhuma leitura pegaria: o documento era coerente consigo mesmo, e o SQL também. Só girar a
+> maçaneta pega.
+>
+> A promessa venceu o código, porque ela é a melhor das duas e cabia:
+> `20260817117000_app_nao_le_a_coleta.sql` revoga os privilégios, e nada quebra — a resposta entra
+> por `fn_grava_resposta`, que é `security definer` e roda com o privilégio do dono. Os 36 casos de
+> `tests/worker-integracao.test.ts`, que gravam resposta de verdade por HTTP, continuam passando.
 
 #### Bloco A. Coleta
 

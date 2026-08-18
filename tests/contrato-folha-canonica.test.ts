@@ -20,7 +20,7 @@
  *   ela nao pode e afirmar que existem cinco funcoes quando existem onze.
  */
 
-import { readFileSync, readdirSync } from 'node:fs'
+import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { erroPadraoNps } from '../src/comum/nps.js'
@@ -220,5 +220,69 @@ describe('os números canônicos de NPS batem com o que o código calcula', () =
     // `±20,5` continua aparecendo em N09 (a diferença mínima com n=100), então a busca é pelo par
     // erro padrão + faixa que só existia na linha errada.
     expect(FOLHA).not.toMatch(/erro padrão \*\*10,5\*\*, faixa \*\*±20,5/)
+  })
+})
+
+/**
+ * Arquivo citado por um documento tem de existir.
+ *
+ * A critica adversarial abriu com quatro arquivos que os documentos citavam como se existissem:
+ * `scripts/exporta_cliques_avaliacao.mjs`, `scripts/ensaio-dados.sql`, `sql/papeis.sql` e
+ * `docs/registro-tratamento.md`. Os dois primeiros travavam a migration da semente e o ensaio; o
+ * terceiro travava a RESTAURACAO, que e o caminho que so se percorre no dia em que o backup importa;
+ * o quarto e obrigacao do art. 37 da LGPD.
+ *
+ * Referencia para arquivo ausente e pior que omissao: quem le a referencia conclui que o assunto
+ * esta resolvido e nao procura mais. Este caso varre os caminhos que os documentos citam e confere
+ * que cada um existe.
+ */
+describe('todo caminho de arquivo citado nos documentos existe', () => {
+  const DOCS = readdirSync(join(process.cwd(), 'docs', 'arquitetura'))
+    .filter((f) => f.endsWith('.md'))
+    .map((f) => ({
+      nome: f,
+      texto: readFileSync(join(process.cwd(), 'docs', 'arquitetura', f), 'utf8'),
+    }))
+
+  /**
+   * So caminhos com barra e extensao conhecida, entre crases. Sem a barra, `resposta.id` e
+   * `vw_hoje` viriam junto; sem a extensao, viria qualquer `a/b` de prosa.
+   */
+  const CAMINHO = /`((?:src|scripts|supabase|worker|sql|docs|tests|\.github)\/[A-Za-z0-9_./-]+\.(?:ts|tsx|sql|mjs|js|md|yml|json))`/g
+
+  /**
+   * Os EXEMPLOS de convencao de nomenclatura, que nao sao referencias.
+   *
+   * A folha tem uma tabela que ensina onde cada tipo de arquivo mora, e a coluna de exemplo traz
+   * nomes ilustrativos. Cobrar existencia deles seria transformar a tabela que ensina a nomear em
+   * uma lista de arquivos a criar.
+   *
+   * A lista e curta e explicita de proposito: uma regra generica ("ignore o que parece exemplo")
+   * abriria a porta para uma referencia de verdade escapar por parecer ilustrativa.
+   */
+  const EXEMPLOS_DE_CONVENCAO = new Set([
+    'supabase/migrations/AAAAMMDDHHMMSS_verbo_objeto.sql',
+    'supabase/migrations/AAAAMMDDHHMMSS_cria_papeis_e_politicas_rls.sql',
+    'sql/consulta_custo_prato.sql',
+  ])
+
+  const citados = new Map<string, string>()
+  for (const doc of DOCS) {
+    for (const m of doc.texto.matchAll(CAMINHO)) {
+      if (EXEMPLOS_DE_CONVENCAO.has(m[1]!)) continue
+      if (!citados.has(m[1]!)) citados.set(m[1]!, doc.nome)
+    }
+  }
+
+  it('os documentos citam caminhos de arquivo', () => {
+    expect(citados.size).toBeGreaterThan(10)
+  })
+
+  it.each([...citados.keys()].sort())('%s existe', (caminho) => {
+    expect(
+      existsSync(join(process.cwd(), caminho)),
+      `${caminho} é citado por ${citados.get(caminho)} e não existe no repositório. ` +
+        'Documento que aponta para arquivo ausente faz quem lê concluir que o assunto está resolvido.',
+    ).toBe(true)
   })
 })

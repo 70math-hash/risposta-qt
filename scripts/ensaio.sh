@@ -30,6 +30,20 @@ sudo -u postgres psql -q -c "drop database if exists $BANCO" -c "create database
 echo "== estrutura de public (as cinco tabelas de custo) =="
 psql_ -f "$RAIZ/scripts/ensaio-publico.sql"
 
+# ---------------------------------------------------------------------------
+# `sql/papeis.sql` ANTES das migrations, que e a ordem de uma RESTAURACAO.
+#
+# Papel e objeto do cluster, e `pg_dump` de um banco nao leva papel nenhum. Quem restaura num
+# Postgres cru precisa criar os papeis primeiro, senao cada `GRANT` do dump falha. Esse e o
+# caminho que so se percorre no dia em que o backup importa — e ensaia-lo aqui e a unica forma
+# de saber que ele funciona antes desse dia.
+#
+# Aqui ele prova o ramo "os papeis existem, o schema ainda nao": e o estado exato de quem acabou
+# de criar o banco e ainda nao aplicou o dump.
+# ---------------------------------------------------------------------------
+echo "== sql/papeis.sql, na ordem de uma restauracao =="
+psql_ -f "$RAIZ/sql/papeis.sql" 2>&1 | grep -E 'criado:|ok  ' | sed 's/^/  /'
+
 echo "== migrations =="
 for f in "$RAIZ"/supabase/migrations/*.sql; do
   nome="$(basename "$f")"
@@ -64,6 +78,25 @@ for f in "$RAIZ"/supabase/migrations/*.sql; do
     exit 1
   fi
 done
+
+# A segunda passada, que e a que prova a restauracao UTILIZAVEL: com o schema no lugar, o arquivo
+# confere que os GRANT do dump encontraram os papeis. Rodar duas vezes tambem e o teste de
+# idempotencia — se ele nao fosse idempotente, este comando falharia aqui.
+echo "== sql/papeis.sql de novo, agora com o schema no lugar =="
+psql_ -f "$RAIZ/sql/papeis.sql" 2>&1 | grep -E 'ok  |WARNING|ERROR' | sed 's/^/  /'
+
+# ---------------------------------------------------------------------------
+# A matriz de permissoes, girando a maçaneta.
+#
+# `03-seguranca-e-lgpd.md` declara quem passa e quem nao passa em cada tabela, e os testes estavam
+# escritos em PROSA. Matriz conferida por leitura nao e matriz conferida: quem le confirma o que
+# esperava ver. Na primeira execucao este arquivo achou que `experiencia_app` lia toda a coleta,
+# enquanto o documento afirmava que ele nao tinha grant nenhum ali.
+#
+# Roda dentro de `begin; ... rollback;`, entao nao deixa rastro no banco de ensaio.
+# ---------------------------------------------------------------------------
+echo "== sql/teste_rls.sql, a matriz de permissoes =="
+psql_ -f "$RAIZ/sql/teste_rls.sql" 2>&1 | grep -E 'ok  |MATRIZ|ERROR' | sed 's/^/  /'
 
 if [[ "${1:-}" == "--dados" ]]; then
   echo "== dados de ensaio e conferencias =="

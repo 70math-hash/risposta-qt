@@ -107,7 +107,9 @@ describe('converteNumericos transforma o que o PostgREST manda entre aspas', () 
   })
 
   it('o resultado aceita `.toFixed`, que era exatamente o que estourava', () => {
-    const [linha] = converteNumericos('vw_nps_janela', [{ nps: '53.8' }]) as Array<
+    // `as unknown as` porque a entrada e o que o PostgREST manda (string) e a saida e o que a
+    // interface promete (number) — a conversao no meio e justamente o que esta sob teste.
+    const [linha] = converteNumericos('vw_nps_janela', [{ nps: '53.8' }]) as unknown as Array<
       Record<string, number>
     >
     expect(() => linha!['nps']!.toFixed(1)).not.toThrow()
@@ -145,5 +147,39 @@ describe('converteNumericos transforma o que o PostgREST manda entre aspas', () 
   it('view fora da lista passa sem tocar em nada', () => {
     const linhas = [{ qualquer: '123' }]
     expect(converteNumericos('vw_que_nao_existe', linhas)).toEqual([{ qualquer: '123' }])
+  })
+})
+
+/**
+ * O quiosque nao baixa o painel.
+ *
+ * Os dois modos moram no mesmo pacote, e o `import` estatico do painel arrastava junto o
+ * `supabase-js` inteiro: 208 KB (54 KB comprimidos) que o TABLET baixava e nunca executava, porque
+ * o quiosque fala com o Worker por `fetch` e nao usa uma linha da biblioteca.
+ *
+ * O quiosque e a superficie offline, no meio do salao, num aparelho barato e num Wi-Fi de
+ * restaurante — e quem menos pode pagar por codigo que nao e dele.
+ */
+describe('o painel entra por import dinâmico', () => {
+  const MAIN = readFileSync(join(process.cwd(), 'src', 'main.tsx'), 'utf8')
+
+  it('não há import estático do Painel', () => {
+    expect(
+      MAIN,
+      'o Painel voltou a ser importado estaticamente, e o tablet volta a baixar o supabase-js.',
+    ).not.toMatch(/^import\s+\{[^}]*Painel[^}]*\}\s+from/m)
+  })
+
+  it('o Painel é carregado com `import()`', () => {
+    expect(MAIN).toMatch(/import\(['"]\.\/painel\/Painel\.js['"]\)/)
+  })
+
+  it('o supabase-js não é importado fora de dados.ts', () => {
+    // `dados.ts` e o unico ponto de contato, e ele so e alcancado pelo painel. Um import em
+    // qualquer arquivo do quiosque desfaria a separacao sem mudar uma linha de `main.tsx`.
+    const coleta = ['App.tsx', 'fila.ts', 'questionario.ts']
+      .map((f) => readFileSync(join(process.cwd(), 'src', 'coleta', f), 'utf8'))
+      .join('\n')
+    expect(coleta).not.toContain('@supabase/supabase-js')
   })
 })

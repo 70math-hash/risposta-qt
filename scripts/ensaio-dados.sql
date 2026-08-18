@@ -908,10 +908,10 @@ begin
   -- Vinte e cinco de leitura mais `vw_texto_a_classificar`, que e view de trabalho da rotina do
   -- classificador. Numero fixo de proposito: view que deixa de ser criada tem de derrubar isto,
   -- e nao passar como "contei as que existem".
-  if v_total <> 29 then
-    raise exception 'esperava 29 views executaveis e contei %', v_total;
+  if v_total <> 30 then
+    raise exception 'esperava 30 views executaveis e contei %', v_total;
   end if;
-  raise notice 'ok  as 29 views executam contra dado, e nenhuma levanta erro';
+  raise notice 'ok  as 30 views executam contra dado, e nenhuma levanta erro';
 end
 $$;
 
@@ -1045,25 +1045,45 @@ begin
   end if;
   raise notice 'ok  A04: consentimento com a versao 1, que a semente garante existir';
 
-  -- A02: a tela `ROT1` NAO e valor valido em `resposta_opcao`, e o quiosque parou de escrever la.
-  -- Este e um teste de NEGACAO: o banco tem de continuar recusando, senao a contagem por fator
-  -- volta a poder ser poluida por resposta de rotacionada.
-  begin
-    perform experiencia.fn_grava_resposta(jsonb_build_object(
-      'id', '99999999-9999-4999-8999-000000000a02',
-      'criado_em_cliente', to_char(now(),'YYYY-MM-DD"T"HH24:MI:SSOF'),
-      'nota', 9, 'canal', 'tablet', 'idioma', 'pt', 'versao_questionario', '1.0.0',
-      'garcom_pin_digitado', '1234',
-      'dispositivo_id', 'cccccccc-0000-4000-8000-000000000001',
-      'itens', '[]'::jsonb, 'sorteadas', '[]'::jsonb, 'telas', '[]'::jsonb,
-      'consentimentos', '[]'::jsonb,
-      'opcoes', jsonb_build_array(
-        jsonb_build_object('tela','ROT1','dimensao','comida','fator','sabor','opcao_codigo','0'))));
-    raise exception 'A02: resposta_opcao aceitou a tela ROT1. A resposta de rotacionada voltaria a contar como mencao a um problema em vw_fator_contagem, inflando o grafico justamente onde a casa vai bem';
-  exception when check_violation then
-    null;
-  end;
-  raise notice 'ok  A02: resposta_opcao continua recusando ROT1, que e onde a poluicao entrava';
+  -- A02, na forma que ela tem DEPOIS de A19.
+  --
+  -- Antes, a tela `ROT1` em `resposta_opcao` derrubava a resposta inteira. Agora a gravacao e
+  -- resiliente, entao a garantia mudou de forma e ficou melhor: a opcao continua RECUSADA (senao a
+  -- contagem por fator volta a ser poluida por resposta de rotacionada, contando um `sim` como
+  -- mencao a um problema), e a RESPOSTA ENTRA.
+  --
+  -- As duas metades precisam ser conferidas. Conferir so a primeira deixaria passar uma regressao
+  -- que derrubasse a resposta de novo; conferir so a segunda deixaria passar a poluicao.
+  v_id := experiencia.fn_grava_resposta(jsonb_build_object(
+    'id', '99999999-9999-4999-8999-000000000a02',
+    'criado_em_cliente', to_char(now(),'YYYY-MM-DD"T"HH24:MI:SSOF'),
+    'nota', 9, 'canal', 'tablet', 'idioma', 'pt', 'versao_questionario', '1.0.0',
+    'garcom_pin_digitado', '1234',
+    'dispositivo_id', 'cccccccc-0000-4000-8000-000000000001',
+    'itens', '[]'::jsonb, 'sorteadas', '[]'::jsonb, 'telas', '[]'::jsonb,
+    'consentimentos', '[]'::jsonb,
+    'opcoes', jsonb_build_array(
+      jsonb_build_object('tela','ROT1','dimensao','comida','fator','sabor','opcao_codigo','0'))));
+
+  select count(*) into v_n from experiencia.resposta where id = v_id;
+  if v_n <> 1 then
+    raise exception 'A02/A19: a resposta foi perdida por causa de uma opcao com tela invalida';
+  end if;
+
+  select count(*) into v_n from experiencia.resposta_opcao
+   where resposta_id = v_id and tela = 'ROT1';
+  if v_n <> 0 then
+    raise exception
+      'A02: resposta_opcao aceitou a tela ROT1. A resposta de rotacionada voltaria a contar como '
+      'mencao a um problema em vw_fator_contagem, inflando o grafico justamente onde a casa vai bem';
+  end if;
+
+  select count(*) into v_n from experiencia.resposta
+   where id = v_id and diagnostico is not null;
+  if v_n <> 1 then
+    raise exception 'A02: a opcao foi descartada SEM registro no diagnostico';
+  end if;
+  raise notice 'ok  A02: ROT1 continua recusado em resposta_opcao, a resposta entra, e o descarte fica registrado';
 end
 $$;
 
@@ -1132,6 +1152,181 @@ begin
   end if;
 
   raise notice 'ok  vw_pergunta_resposta: rotulo casa com o indice, e o pulo conta em sorteadas';
+end
+$$;
+
+-- =============================================================================
+-- PARTE 15C. A gravacao resiliente (A19), e as tres contagens corrigidas.
+--
+-- A propriedade que esta parte protege e a mais importante do sistema: A NOTA NAO SE PERDE POR
+-- CAUSA DE UMA FILHA. Tres dos quatro erros mais graves do projeto foram uma filha recusada
+-- derrubando a resposta inteira.
+-- =============================================================================
+do $$
+declare
+  v_id  uuid;
+  v_r   record;
+  v_n   integer;
+begin
+  -- Uma resposta com QUATRO filhas invalidas de uma vez: tela que nao existe no dominio, par
+  -- (dimensao, fator) trocado, pergunta_banco_id que nao existe, e versao de consentimento sem
+  -- linha na tabela de textos. Antes, QUALQUER uma delas sozinha derrubava tudo.
+  v_id := experiencia.fn_grava_resposta(jsonb_build_object(
+    'id', 'cccccccc-cccc-4ccc-8ccc-000000000a19',
+    'criado_em_cliente', to_char(now(),'YYYY-MM-DD"T"HH24:MI:SSOF'),
+    'nota', 4, 'canal', 'tablet', 'idioma', 'pt', 'versao_questionario', '1.0.0',
+    'mesa_digitada', '7', 'garcom_pin_digitado', '1234',
+    'dispositivo_id', 'cccccccc-0000-4000-8000-000000000001',
+    'itens', '[]'::jsonb,
+    'opcoes', jsonb_build_array(
+      -- Valida: entra.
+      jsonb_build_object('tela','T2C','dimensao','comida','fator','sabor','opcao_codigo','comida'),
+      -- Tela fora do dominio: recusada.
+      jsonb_build_object('tela','TELA_QUE_NAO_EXISTE','dimensao','comida','opcao_codigo','x'),
+      -- Par trocado (`espera_mesa` e fator de `tempo`): recusada.
+      jsonb_build_object('tela','T3C','dimensao','comida','fator','espera_mesa','opcao_codigo','y')),
+    'sorteadas', jsonb_build_array(
+      -- Pergunta que nao existe: recusada.
+      jsonb_build_object('pergunta_banco_id','00000000-0000-4000-8000-000000000000','respondida',true)),
+    'telas', jsonb_build_array(
+      jsonb_build_object('tela','T1','entrou_em', now(), 'saiu_em', now(), 'pulou', false),
+      jsonb_build_object('tela','INVENTADA','entrou_em', now(), 'saiu_em', now(), 'pulou', false)),
+    'consentimentos', jsonb_build_array(
+      jsonb_build_object('finalidade','pesquisa','versao_texto','1','aceito_em', now()),
+      jsonb_build_object('finalidade','contato','versao_texto','versao-que-nao-existe','aceito_em', now()))));
+
+  -- A RESPOSTA ENTROU. E o que importa.
+  select * into v_r from experiencia.resposta where id = v_id;
+  if v_r.id is null then
+    raise exception 'A19: a resposta foi perdida por causa de filhas invalidas. A nota e o unico dado obrigatorio do sistema';
+  end if;
+  if v_r.nota <> 4 then raise exception 'A19: a nota chegou errada: %', v_r.nota; end if;
+
+  -- As filhas VALIDAS entraram.
+  select count(*) into v_n from experiencia.resposta_opcao where resposta_id = v_id;
+  if v_n <> 1 then raise exception 'A19: das 3 opcoes, 1 era valida e % entraram', v_n; end if;
+
+  select count(*) into v_n from experiencia.tela_evento where resposta_id = v_id;
+  if v_n <> 1 then raise exception 'A19: das 2 telas, 1 era valida e % entraram', v_n; end if;
+
+  select count(*) into v_n from experiencia.consentimento where resposta_id = v_id;
+  if v_n <> 1 then raise exception 'A19: dos 2 consentimentos, 1 era valido e % entraram', v_n; end if;
+
+  -- E o DESCARTE FICOU REGISTRADO. Sem isto, isto aqui seria engolir erro.
+  if v_r.diagnostico is null then
+    raise exception 'A19: as filhas foram descartadas SEM registro. Descarte silencioso e pior que a falha que ele evita';
+  end if;
+  if jsonb_array_length(v_r.diagnostico) <> 5 then
+    raise exception 'A19: esperava 5 filhas recusadas no diagnostico e ha %: %',
+      jsonb_array_length(v_r.diagnostico), v_r.diagnostico;
+  end if;
+
+  -- E a view que torna o registro legivel: uma tela quebrada tem de aparecer como linha subindo.
+  select count(*) into v_n from experiencia.vw_gravacao_diagnostico;
+  if v_n < 1 then raise exception 'A19: vw_gravacao_diagnostico nao mostra as recusas'; end if;
+
+  raise notice 'ok  A19: resposta preservada com 5 filhas recusadas, e as 5 registradas no diagnostico';
+end
+$$;
+
+do $$
+declare
+  v_id      uuid;
+  v_r       record;
+  v_antes   integer;
+begin
+  -- A13: resposta por QR nao tem PIN e NAO pode contar como PIN nao reconhecido.
+  --
+  -- A conferencia e a DIFERENCA, e nao o valor absoluto: o ensaio ja gravou duas respostas de
+  -- TABLET com PIN nao reconhecido (o `0000`, que nao existe, e o `9012`, da Carla inativa), e
+  -- essas duas devem contar mesmo. O que a resposta por QR nao pode fazer e somar uma terceira.
+  select coalesce(pin_nao_reconhecido, 0) into v_antes from experiencia.vw_coleta_dia
+   where dia_operacional = experiencia.fn_dia_operacional(now());
+
+  v_id := experiencia.fn_grava_resposta(jsonb_build_object(
+    'id', 'cccccccc-cccc-4ccc-8ccc-000000000a13',
+    'criado_em_cliente', to_char(now(),'YYYY-MM-DD"T"HH24:MI:SSOF'),
+    'nota', 9, 'canal', 'qr', 'idioma', 'pt', 'versao_questionario', '1.0.0',
+    'opcoes','[]'::jsonb,'itens','[]'::jsonb,'sorteadas','[]'::jsonb,'telas','[]'::jsonb,
+    'consentimentos','[]'::jsonb));
+
+  select * into v_r from experiencia.resposta where id = v_id;
+  if v_r.garcom_reconhecido then raise exception 'A13: resposta de QR nao deveria ter garcom reconhecido'; end if;
+
+  select * into v_r from experiencia.vw_coleta_dia
+   where dia_operacional = experiencia.fn_dia_operacional(now());
+  if v_r.pin_nao_reconhecido <> v_antes then
+    raise exception
+      'A13: a resposta por QR somou em pin_nao_reconhecido (era %, virou %). Com 4 respostas de QR '
+      'num dia o limiar dispara e o digest cobra um problema que nao existe, que e o jeito mais '
+      'rapido de matar a credibilidade do unico alarme do sistema.', v_antes, v_r.pin_nao_reconhecido;
+  end if;
+
+  -- E as de TABLET com PIN errado continuam contando: a correcao nao pode ter desligado o alarme
+  -- inteiro para calar o falso positivo.
+  if v_antes < 1 then
+    raise exception
+      'A13: nenhuma resposta de tablet com PIN nao reconhecido esta sendo contada. O ensaio grava '
+      'duas (PIN 0000 e o da Carla inativa), e se elas sumiram a correcao desligou o alarme.';
+  end if;
+  if v_r.respostas_qr < 1 then
+    raise exception 'A13: a resposta por QR nao apareceu na contagem de canal';
+  end if;
+  raise notice 'ok  A13: resposta por QR nao conta como PIN nao reconhecido';
+end
+$$;
+
+do $$
+declare v_r record;
+begin
+  -- A16: o dia em coleta aparece, e vem marcado como NAO fechado, com aviso.
+  select * into v_r from experiencia.vw_hoje
+   where dia_operacional = experiencia.fn_dia_operacional(now());
+  if v_r.dia_operacional is null then
+    raise exception 'A16: o dia corrente sumiu de vw_hoje. Ele deve aparecer, com rotulo honesto';
+  end if;
+  if v_r.fechado then
+    raise exception 'A16: o dia corrente veio marcado como fechado';
+  end if;
+  if v_r.aviso is null or v_r.aviso not like '%em coleta%' then
+    raise exception 'A16: o dia em coleta tem de vir com aviso, e veio com "%"', v_r.aviso;
+  end if;
+
+  -- E o dia ANTERIOR vem fechado.
+  select * into v_r from experiencia.vw_hoje
+   where dia_operacional = experiencia.fn_dia_operacional(now()) - 1;
+  if v_r.dia_operacional is not null and not v_r.fechado then
+    raise exception 'A16: o dia anterior deveria vir marcado como fechado';
+  end if;
+  raise notice 'ok  A16: vw_hoje marca o dia em coleta como nao fechado, com aviso';
+end
+$$;
+
+do $$
+declare
+  v_id uuid;
+  v_n  integer;
+begin
+  -- A28: dois itens `prefiro nao dizer` no mesmo grupo, os dois com item_cardapio_id NULO. Com a
+  -- regra padrao de UNIQUE os nulos nao colidem, entao o `on conflict` nunca disparava e a mesma
+  -- reclamacao entrava duas vezes.
+  v_id := experiencia.fn_grava_resposta(jsonb_build_object(
+    'id', 'cccccccc-cccc-4ccc-8ccc-000000000a28',
+    'criado_em_cliente', to_char(now(),'YYYY-MM-DD"T"HH24:MI:SSOF'),
+    'nota', 3, 'canal', 'tablet', 'idioma', 'pt', 'versao_questionario', '1.0.0',
+    'garcom_pin_digitado', '1234', 'dispositivo_id', 'cccccccc-0000-4000-8000-000000000001',
+    'opcoes','[]'::jsonb,'sorteadas','[]'::jsonb,'telas','[]'::jsonb,'consentimentos','[]'::jsonb,
+    'itens', jsonb_build_array(
+      jsonb_build_object('grupo','pizza'),
+      jsonb_build_object('grupo','pizza'))));
+
+  select count(*) into v_n from experiencia.resposta_item where resposta_id = v_id;
+  if v_n <> 1 then
+    raise exception
+      'A28: dois `prefiro nao dizer` do mesmo grupo geraram % linhas. Com nulos distintos, o '
+      'on conflict nunca dispara e a reclamacao daquele item dobra na contagem.', v_n;
+  end if;
+  raise notice 'ok  A28: item sem id nao duplica, porque o UNIQUE e `nulls not distinct`';
 end
 $$;
 

@@ -239,9 +239,19 @@
     "conversao_pct",
     "aviso"
   ],
+  "vw_gravacao_diagnostico": [
+    "dia_operacional",
+    "filha",
+    "erro",
+    "ocorrencias",
+    "primeira",
+    "ultima",
+    "exemplo_resposta_id"
+  ],
   "vw_hoje": [
     "dia_operacional",
     "casa_abre",
+    "fechado",
     "respostas",
     "detratores",
     "neutros",

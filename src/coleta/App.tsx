@@ -353,17 +353,30 @@ export function App(props: PropsColeta): React.ReactElement {
   }
 
   const escolheCausaDetrator = (op: Opcao) => {
-    setOpcoes((prev) => [
-      ...prev,
-      {
-        tela: 'T2C',
-        dimensao: op.dimensao,
-        opcao_codigo: op.codigo,
-        ...(op.fator !== undefined ? { fator: op.fator } : {}),
-      },
-    ])
+    // `outra` NAO vira linha em `resposta_opcao`, e isso e deliberado.
+    //
+    // A opcao esta declarada com `dimensao: 'comida'` no questionario porque a coluna nao aceita
+    // nulo, e nao porque "outra coisa" seja comida. Gravar a linha faria duas coisas erradas:
+    // poluiria a contagem de `comida` em `vw_fator_contagem` com uma reclamacao que nao e sobre
+    // comida, e faria a regra 3 de `fn_sorteia_pergunta` suprimir TODAS as perguntas de comida da
+    // rotacao daquela resposta, por achar que a dimensao ja foi coberta.
+    //
+    // O que a pessoa quis dizer nao se perde: ela segue para a T5, que e a pergunta aberta, e o
+    // texto dela e classificado. Contar `outra` como categoria propria exige uma dimensao nova, e
+    // dimensao nova entra pela folha canonica primeiro.
+    if (op.codigo !== 'outra') {
+      setOpcoes((prev) => [
+        ...prev,
+        {
+          tela: 'T2C',
+          dimensao: op.dimensao,
+          opcao_codigo: op.codigo,
+          ...(op.fator !== undefined ? { fator: op.fator } : {}),
+        },
+      ])
+    }
     registraTela('T2C', false)
-    setDimensaoDetrator(op.dimensao)
+    setDimensaoDetrator(op.codigo === 'outra' ? null : op.dimensao)
     setPasso(
       proximoPasso('T2C', {
         nota: nota ?? 0,

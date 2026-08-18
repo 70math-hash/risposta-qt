@@ -25,6 +25,7 @@ import {
   type VwDiaSemana,
   type VwDispositivoSinal,
   type VwDuracaoSemana,
+  type VwGravacaoDiagnostico,
   type VwFatorContagem,
   type VwGarcomTrimestre,
   type VwHoje,
@@ -1167,6 +1168,7 @@ function AbaSaude(): React.ReactElement {
   const { dados, erro, carregando } = useView<VwDispositivoSinal>('vw_dispositivo_sinal')
   const { dados: rotinas } = useView<VwSaudeRotina>('vw_saude_rotina')
   const { dados: incidentes } = useView<VwAlertaIncidente>('vw_alerta_incidente')
+  const { dados: diagnostico } = useView<VwGravacaoDiagnostico>('vw_gravacao_diagnostico')
   const estado = <Estado carregando={carregando} erro={erro} />
   if (estado !== null) return estado
 
@@ -1220,6 +1222,25 @@ function AbaSaude(): React.ReactElement {
           rodape="Este log vive no próprio banco porque o log do fornecedor expira em 1 dia no plano gratuito. A consulta e o envio do e-mail são passos separados: falha de e-mail não pode desligar o keep-alive do banco."
         />
       </Cartao>
+
+      {diagnostico.length > 0 ? (
+        <Cartao
+          titulo="Partes de resposta que o banco recusou"
+          acao={<Exportar nome="diagnostico" linhas={diagnostico} />}
+        >
+          <Tabela
+            colunas={['Dia', 'Parte', 'Ocorrências', 'Erro', 'Exemplo']}
+            linhas={diagnostico.slice(0, 25).map((d) => [
+              d.dia_operacional ?? '—',
+              d.filha ?? '—',
+              num(d.ocorrencias),
+              (d.erro ?? '').slice(0, 140),
+              (d.exemplo_resposta_id ?? '').slice(0, 8),
+            ])}
+            rodape="A NOTA nunca se perde por causa de uma parte: a parte recusada é descartada e registrada, e a resposta entra. Esta tabela existe para o descarte não ser silencioso — uma tela quebrada aparece aqui como uma linha subindo, e não como um número que nunca mais volta. Linha nova aqui é conserto de software, não tarefa de salão."
+          />
+        </Cartao>
+      ) : null}
 
       <Cartao titulo="Alertas de detrator" acao={<Exportar nome="incidentes" linhas={recentes} />}>
         <Tabela

@@ -394,10 +394,22 @@ export interface VwGarcomTrimestre {
   aviso: string | null
 }
 
+/** `experiencia.vw_gravacao_diagnostico`. Forma lida do banco, nao escrita a mao. */
+export interface VwGravacaoDiagnostico {
+  dia_operacional: string | null
+  filha: string | null
+  erro: string | null
+  ocorrencias: number | null
+  primeira: string | null
+  ultima: string | null
+  exemplo_resposta_id: string | null
+}
+
 /** `experiencia.vw_hoje`. Forma lida do banco, nao escrita a mao. */
 export interface VwHoje {
   dia_operacional: string | null
   casa_abre: boolean | null
+  fechado: boolean | null
   respostas: number | null
   detratores: number | null
   neutros: number | null

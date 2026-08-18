@@ -412,3 +412,48 @@ describe('o contrato da tentativa', () => {
     expect(bloco).not.toMatch(/desfecho: 'respondeu' \| 'recusou'/)
   })
 })
+
+/**
+ * Toda escrita que o cliente sabe fazer tem uma tela que a faz.
+ *
+ * A CLASSE DE DEFEITO QUE ISTO PEGA
+ *   `contato_em` tinha coluna no banco, comentario explicando que o registrador faltava, rota no
+ *   Worker (`POST /api/contato-alerta`), funcao de cliente (`registraContatoAlerta`) e NENHUM
+ *   botao. A cadeia inteira existia menos o ultimo elo (A29).
+ *
+ *   Nada acusava isso. `tsc` ve uma funcao exportada e nao se importa se alguem a chama; a suite
+ *   fica verde porque cada peca isolada esta certa; e a tela mostrava "sem registro" em todas as
+ *   linhas, o que parece dado e nao parece defeito. O painel dizia que o gerente nunca falou com
+ *   mesa nenhuma, e essa era a unica coisa que ele PODIA dizer.
+ *
+ *   Metrica que so pode dar um valor treina quem le a ignorar, e o dia em que o contato realmente
+ *   falhar sera igual a todos os outros. E por isso que a ponta solta e um defeito, e nao uma
+ *   sobra.
+ */
+describe('nenhuma escrita fica sem tela que a chame', () => {
+  const DADOS = readFileSync(join(process.cwd(), 'src', 'painel', 'dados.ts'), 'utf8')
+  const TELAS = ['Painel.tsx', 'Admin.tsx', 'Exportar.tsx']
+    .map((f) => readFileSync(join(process.cwd(), 'src', 'painel', f), 'utf8'))
+    .join('\n')
+
+  /**
+   * As exportadas de `dados.ts` que ESCREVEM ou disparam acao. `le`, `supabase` e `baixaCsv` sao
+   * utilitarios de leitura e de formato, e ficam de fora: `baixaCsv` e chamada por `dados.ts`
+   * mesmo, e `le` vive dentro de `useView`.
+   */
+  const ESCRITAS = [...DADOS.matchAll(/^export (?:const|async function|function) (\w+)/gm)]
+    .map((m) => m[1]!)
+    .filter((n) => !['le', 'supabase', 'baixaCsv'].includes(n))
+
+  it('a lista de escritas foi encontrada', () => {
+    expect(ESCRITAS.length).toBeGreaterThanOrEqual(6)
+  })
+
+  it.each(ESCRITAS)('%s é chamada por alguma tela', (nome) => {
+    expect(
+      new RegExp(`\\b${nome}\\s*\\(`).test(TELAS),
+      `\`${nome}\` existe em dados.ts e nenhuma tela a chama. A capacidade existe e a pessoa não ` +
+        'tem como usá-la, que foi exatamente o caso de `registraContatoAlerta` (A29).',
+    ).toBe(true)
+  })
+})

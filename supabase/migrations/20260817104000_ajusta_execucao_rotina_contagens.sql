@@ -32,9 +32,16 @@
 --   sao as que valem alarme; o `jsonb` guarda o resto sem obrigar migration a cada rotina.
 --
 -- COMO SE DESFAZ
+--   drop view experiencia.vw_saude_rotina;
 --   alter table experiencia.execucao_rotina drop column contagens;
---   E reaplicar 20260817096000 para a view voltar a forma anterior. Perde-se o diagnostico
---   do watcher, nao o das outras rotinas.
+--   E reaplicar 20260817099000, que e quem cria `vw_saude_rotina`.
+--   Perde-se o diagnostico do watcher, nao o das outras rotinas.
+--
+--   A versao anterior desta secao errava duas vezes (A36): mandava dar `drop column` direto, o
+--   que FALHA enquanto a view depender da coluna, e mandava reaplicar `20260817096000`, que cria
+--   a TABELA e nao a view. Quem seguisse o roteiro pararia no primeiro comando com um erro de
+--   dependencia, e o segundo comando nao teria conserto nenhum a oferecer. Instrucao de desfazer
+--   so vale se for executavel na ordem escrita.
 -- =============================================================================
 
 alter table experiencia.execucao_rotina

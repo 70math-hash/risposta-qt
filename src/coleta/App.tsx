@@ -325,15 +325,19 @@ export function App(props: PropsColeta): React.ReactElement {
   const escolheNota = (n: number) => {
     setNota(n)
     registraTela('T1', false)
-    const quantas = quantasRotacionadas(n)
-    setSorteadas([...sorteiaPerguntas(banco, quantas)])
+    // O SORTEIO NAO ACONTECE AQUI, e isso e a correcao de A21.
+    //
+    // Ele acontecia, e a regra 3 ("nao perguntar de novo sobre a dimensao que a pessoa ACABOU de
+    // marcar") era inalcancavel por construcao: em T1 ninguem marcou nada ainda, entao a lista de
+    // dimensoes cobertas estava sempre vazia. A regra existia em `sorteiaPerguntas`, com teste, e
+    // nunca era exercitada pelo aplicativo — que e a pior forma de uma regra existir, porque a
+    // suite fica verde e o comportamento nunca acontece.
+    //
+    // A ordem das telas ja resolvia isso e ninguem tinha usado: T1 leva a T2A ou T2B, e SO depois
+    // vem ROT1. Sortear na confirmacao da ramificacao da a lista de dimensoes de graca.
+    setSorteadas([])
     setMarcadasAgora([])
-    setPasso(proximoPasso('T1', { nota: n, rotacionadas: quantas }))
-  }
-
-  const proximoDepoisDaRamificacao = (de: 'T2A' | 'T2B') => {
-    // Detrator nao recebe rotacionada: a regra vive em proximoPasso, com teste proprio.
-    setPasso(proximoPasso(de, { nota: nota ?? 10, rotacionadas: sorteadas.length }))
+    setPasso(proximoPasso('T1', { nota: n, rotacionadas: quantasRotacionadas(n) }))
   }
 
   const confirmaMultipla = (tela: 'T2A' | 'T2B', lista: readonly Opcao[]) => {
@@ -349,7 +353,20 @@ export function App(props: PropsColeta): React.ReactElement {
     ])
     registraTela(tela, marcadas.length === 0)
     setMarcadasAgora([])
-    proximoDepoisDaRamificacao(tela)
+
+    // As dimensoes que esta tela acabou de cobrir alimentam a regra 3. `sorteadas` NAO e lido
+    // aqui: `setSorteadas` e assincrono, e `sorteadas.length` traria o valor da renderizacao
+    // anterior. A quantidade sai da nota, que e a mesma fonte que `quantasRotacionadas` usa.
+    const quantas = quantasRotacionadas(nota ?? 10)
+    const cobertas = marcadas.map((o) => o.dimensao)
+    const sorteio = [...sorteiaPerguntas(banco, quantas, Math.random, cobertas)]
+    setSorteadas(sorteio)
+
+    // Detrator nao recebe rotacionada: a regra vive em proximoPasso, com teste proprio. E a
+    // quantidade que decide o proximo passo e a EFETIVAMENTE sorteada, e nao a pedida: com poucas
+    // perguntas no banco, ou com a regra 3 suprimindo dimensao, o sorteio pode devolver menos que
+    // `quantas`, e mandar para ROT1 uma tela que nao tem pergunta nenhuma mostraria um quadro vazio.
+    setPasso(proximoPasso(tela, { nota: nota ?? 10, rotacionadas: sorteio.length }))
   }
 
   const escolheCausaDetrator = (op: Opcao) => {

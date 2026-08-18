@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { FATORES, fatorValido } from '../src/comum/dominio.js'
 import {
@@ -179,6 +181,58 @@ describe('sorteiaPerguntas', () => {
     const baixo = contagem.get('baixo') ?? 0
     expect(alto).toBeGreaterThan(medio)
     expect(medio).toBeGreaterThan(baixo)
+  })
+
+  it('nao sorteia a dimensao que a ramificacao ja cobriu (regra 3)', () => {
+    const cobertas = ['comida', 'atendimento']
+    for (let i = 0; i < 200; i++) {
+      const escolhidas = sorteiaPerguntas(ativas, 2, Math.random, cobertas)
+      for (const p of escolhidas) {
+        expect(cobertas).not.toContain(p.dimensao)
+      }
+    }
+  })
+
+  it('uma por dimensao, mesmo pedindo mais do que ha de dimensoes (regra 2)', () => {
+    const so2 = ativas.filter((p) => p.dimensao === 'comida' || p.dimensao === 'bebida')
+    const escolhidas = sorteiaPerguntas(so2, 5, Math.random)
+    expect(new Set(escolhidas.map((p) => p.dimensao)).size).toBe(escolhidas.length)
+  })
+})
+
+/**
+ * A regra 3 vale para o APLICATIVO, e nao so para a funcao.
+ *
+ * `sorteiaPerguntas` sempre soube suprimir dimensao coberta, e `App.tsx` sorteava em T1 — antes de
+ * a pessoa marcar qualquer coisa. A lista de cobertas chegava sempre vazia, entao a regra existia,
+ * tinha teste proprio verde, e nunca acontecia (A21).
+ *
+ * Este caso confere a ORDEM, que e o que decide: o sorteio tem de acontecer depois da tela que
+ * cobre dimensao, e nao antes. Ele le o codigo porque a alternativa seria montar a arvore de
+ * React so para observar em que momento uma funcao pura foi chamada.
+ */
+describe('o aplicativo sorteia depois da ramificacao, e nao antes', () => {
+  const APP = readFileSync(join(process.cwd(), 'src', 'coleta', 'App.tsx'), 'utf8')
+
+  it('escolheNota nao sorteia', () => {
+    const inicio = APP.indexOf('const escolheNota =')
+    const fim = APP.indexOf('const confirmaMultipla =')
+    expect(inicio).toBeGreaterThan(-1)
+    expect(fim).toBeGreaterThan(inicio)
+    expect(
+      APP.slice(inicio, fim),
+      'escolheNota voltou a sortear em T1, onde nenhuma dimensao foi coberta ainda: a regra 3 ' +
+        'volta a ser inalcancavel, e a suite continua verde porque a funcao pura segue correta.',
+    ).not.toContain('sorteiaPerguntas(')
+  })
+
+  it('confirmaMultipla sorteia passando as dimensoes marcadas', () => {
+    const inicio = APP.indexOf('const confirmaMultipla =')
+    const fim = APP.indexOf('const escolheCausaDetrator =')
+    const corpo = APP.slice(inicio, fim)
+    expect(corpo).toContain('sorteiaPerguntas(')
+    // A lista de cobertas sai das opcoes MARCADAS nesta tela, e nao de uma constante.
+    expect(corpo).toMatch(/marcadas\.map\(\(o\) => o\.dimensao\)/)
   })
 })
 

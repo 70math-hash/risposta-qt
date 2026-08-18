@@ -16,6 +16,7 @@ import {
   baixaCsv,
   enviaR3,
   le,
+  registraContatoAlerta,
   supabase,
   type ResultadoImportacao,
   type VwAlertaIncidente,
@@ -233,15 +234,32 @@ function Login(): React.ReactElement {
   )
 }
 
-/** Carrega uma view e cuida de carregando, erro e vazio num lugar so. */
+/**
+ * Carrega uma view e cuida de carregando, erro e vazio num lugar so.
+ *
+ * `recarrega` existe para as telas que ESCREVEM: depois de gravar, o certo e reler a view em vez
+ * de remendar o estado local. As views calculam coisa que o cliente nao tem — `minutos_ate_contato`
+ * e uma subtracao de duas marcas de tempo do servidor — e reproduzir a conta aqui seria uma segunda
+ * implementacao dela, do tipo que diverge sem ninguem notar.
+ */
 function useView<T>(view: string): {
   dados: T[]
   erro: string | null
   carregando: boolean
+  recarrega: () => Promise<void>
 } {
   const [dados, setDados] = useState<T[]>([])
   const [erro, setErro] = useState<string | null>(null)
   const [carregando, setCarregando] = useState(true)
+
+  const busca = useCallback(async () => {
+    try {
+      setDados(await le<T>(view))
+      setErro(null)
+    } catch (e: unknown) {
+      setErro(e instanceof Error ? e.message : 'erro desconhecido')
+    }
+  }, [view])
 
   useEffect(() => {
     let vivo = true
@@ -264,7 +282,7 @@ function useView<T>(view: string): {
     }
   }, [view])
 
-  return { dados, erro, carregando }
+  return { dados, erro, carregando, recarrega: busca }
 }
 
 const GRADE: React.CSSProperties = {
@@ -1197,8 +1215,37 @@ function AbaClientes(): React.ReactElement {
 function AbaSaude(): React.ReactElement {
   const { dados, erro, carregando } = useView<VwDispositivoSinal>('vw_dispositivo_sinal')
   const { dados: rotinas } = useView<VwSaudeRotina>('vw_saude_rotina')
-  const { dados: incidentes } = useView<VwAlertaIncidente>('vw_alerta_incidente')
+  const { dados: incidentes, recarrega } = useView<VwAlertaIncidente>('vw_alerta_incidente')
   const { dados: diagnostico } = useView<VwGravacaoDiagnostico>('vw_gravacao_diagnostico')
+
+  // O REGISTRO DE CONTATO (A29)
+  //   O dever "registrar que alguem falou com o cliente detrator" estava listado no cabecalho de
+  //   `worker/admin.ts`, tinha rota (`POST /api/contato-alerta`), tinha funcao de cliente
+  //   (`registraContatoAlerta`) e NENHUMA tela chamava. A cadeia inteira existia menos o ultimo elo,
+  //   entao a coluna `contato_em` ficava nula para sempre e este quadro dizia "sem registro" em
+  //   todas as linhas, inclusive nas noites em que o gerente foi a mesa.
+  //
+  //   Metrica que so pode dar um valor nao mede nada, e treina quem le a ignorar. O botao abaixo e
+  //   o elo que faltava.
+  const [marcando, setMarcando] = useState<string | null>(null)
+  const [erroContato, setErroContato] = useState<string>('')
+
+  const marcaContato = async (respostaId: string) => {
+    setMarcando(respostaId)
+    setErroContato('')
+    try {
+      const r = await registraContatoAlerta(respostaId)
+      if (r.ok !== true) throw new Error(r.erro ?? 'motivo não informado')
+      // Recarrega em vez de mexer no estado local: `minutos_ate_contato` e calculado pela view, e
+      // inventar o valor aqui seria uma segunda implementacao da mesma conta.
+      await recarrega()
+    } catch (e) {
+      setErroContato(e instanceof Error ? e.message : 'erro desconhecido')
+    } finally {
+      setMarcando(null)
+    }
+  }
+
   const estado = <Estado carregando={carregando} erro={erro} />
   if (estado !== null) return estado
 
@@ -1289,18 +1336,34 @@ function AbaSaude(): React.ReactElement {
                 texto={`${mostra(i.segundos_ate_envio)}s`}
               />
             ),
-            i.houve_contato === true
-              ? `${mostra(i.minutos_ate_contato)} min`
-              : <Marca key="c" estado="vazio" texto="sem registro" />,
+            i.houve_contato === true ? (
+              `${mostra(i.minutos_ate_contato)} min`
+            ) : (
+              <button
+                key="c"
+                type="button"
+                className="btn btn--secundario"
+                style={{ minHeight: 32, padding: '4px 10px', fontSize: 12 }}
+                disabled={marcando !== null || i.resposta_id === null}
+                onClick={() => void marcaContato(String(i.resposta_id))}
+              >
+                {marcando === i.resposta_id ? 'Marcando…' : 'Falei com a mesa'}
+              </button>
+            ),
             i.erro ?? '',
           ])}
           rodape="O alerta é gravado na mesma transação da resposta, e não por rotina: com duas chamadas, uma resposta poderia existir sem o aviso dela. Alerta sem destinatário configurado é gravado com o erro e reaparece no digest do dia seguinte."
         />
+        {erroContato !== '' ? (
+          <Aviso>
+            <strong>O contato não foi registrado:</strong> {erroContato}
+          </Aviso>
+        ) : null}
         {semContato > 0 ? (
           <Aviso>
             {semContato} dos últimos {recentes.length} alertas não têm contato registrado. O
             registro é manual e o campo existir vazio não prova que ninguém falou com a mesa — prova
-            que ninguém anotou.
+            que ninguém anotou. O botão na coluna <strong>Contato</strong> carimba a hora de agora.
           </Aviso>
         ) : null}
       </Cartao>

@@ -154,6 +154,14 @@ Vinte e seis tabelas. Cada linha traz o nome literal, o que a tabela guarda e o 
 |---|---|---|
 | `fila_resposta` | `IndexedDB` do PWA, com espelho append-only em `localStorage` | A resposta pendente de envio no tablet, com `status` e `tentativas_envio` |
 
+**Acrescentado depois da implementação:** o PWA cria **dois** armazenamentos locais, e não um.
+
+| Nome | Onde vive | O que guarda |
+|---|---|---|
+| `fila_tentativa` | IndexedDB do tablet | As recusas registradas na `T0`, esperando envio. Ficam separadas de `fila_resposta` porque vão para rota diferente e têm carga diferente: a recusa não tem nota |
+
+---
+
 ### 2.4 As nove decisões de nome que esta folha toma, e por quê
 
 Cada uma existe porque dois documentos da Etapa 3 usavam nomes diferentes para a mesma coisa, ou porque o
@@ -298,6 +306,24 @@ propósito, porque é o que aparece em avaliação pública negativa.
 | `status` | `sucesso`, `erro` |
 | `origem` (cliente) | `pesquisa` |
 | `rotina` | `watcher_drive`, `cron_classificador`, `cron_digest_16h`, `cron_retencao`, `backup_semanal` |
+
+**Acrescentados depois da implementação**, pelo motivo declarado na seção 6.4. Os dois primeiros são
+os que mais doeram por falta: o `CHECK` de `tela_evento.tela` aceitava `T3` e `T4`, nomes que nenhuma
+ponta do código escreve, e recusava `ROT1` e `ROT2`, que são os que o quiosque grava. Como
+`tela_evento` é inserida **dentro** de `fn_grava_resposta`, a violação derrubava a **resposta inteira**
+— cerca de 85% de tudo, porque promotor recebe 2 rotacionadas e neutro 1.
+
+| Coluna | Valores |
+|---|---|
+| `tela` (tela_evento) | `T0`, `T1`, `T2A`, `T2B`, `T2C`, `T3C`, `T3C1`, `T3C2`, `T3C3`, `ROT1`, `ROT2`, `T5`, `T6`, `T7` |
+| `tela` (resposta_opcao) | `T2A`, `T2B`, `T2C`, `T3C`, `T3C3`. **Subconjunto do anterior**, e `ROT1`/`ROT2` ficam de fora de propósito: a resposta da rotacionada vive em `resposta_pergunta_sorteada`, e contá-la aqui faria `vw_fator_contagem` ler um `sim` como menção a um problema |
+| `peso` (pergunta_banco) | `alto`, `medio`, `baixo`. Texto, e não número: o fator de foco converte para 4, 2 e 1 dentro de `fn_sorteia_pergunta` |
+| `origem` (execucao_importacao) | `watcher_drive`, `painel` |
+| `passo` (execucao_rotina) | `consulta`, `envio`. O digest separa os dois porque falha de e-mail não pode desligar o keep-alive do banco |
+
+**`ROT1` e `ROT2`, e não `T3` e `T4`.** A tela **é** a primeira e a segunda pergunta rotacionada, e não
+uma tela fixa: `T3` fixo seria mentira, porque o conteúdo muda a cada resposta por sorteio. E
+`vw_tela_pulo` mostra a taxa de pulo por nome de tela, onde `ROT1` diz o que é.
 
 **Não existe** coluna de nota de sentimento de 0 a 100, e **não existe** valor de turno `manha`, `tarde`
 ou `noite` em lugar nenhum do sistema.
@@ -461,6 +487,17 @@ quando ela faz parte do sentido (`_dia`, `_semana`, `_trimestre`, `_mes`).
 | `vw_saude_rotina` | `/painel/saude` | As últimas 30 execuções de cada rotina, com hora e status | Uma execução |
 | `vw_custo_prato` | `/painel/pratos` | Custo por prato numa data de referência, com `WITH RECURSIVE`, lendo as tabelas de custo em modo somente leitura | Um prato por data de referência |
 
+**Acrescentadas depois da implementação**, pelo mesmo motivo declarado na seção 6.4: a folha estava
+atrás do SQL, e folha atrasada tem precedência e mente. As quatro nasceram de dado que era **gravado
+e nunca lido**, que é trabalho pedido ao cliente sem retorno nenhum.
+
+| View | Tela | O que devolve | Por que ela existe |
+|---|---|---|---|
+| `vw_pergunta_resposta` | `/painel/coleta` | A distribuição das respostas das rotacionadas, com o **rótulo** de cada opção ao lado do índice | `resposta_pergunta_sorteada.opcao_indice` era gravada e nenhuma view a devolvia. A pergunta era feita a cada promotor, todas as noites, e a resposta não podia ser vista |
+| `vw_importacao` | `/painel/coleta` | O log das importações de R3, com os dias que cada arquivo cobriu e quem subiu | `dias_lidos` e `importado_por` tinham o mesmo problema. Sem leitura, "qual dia este arquivo cobriu" exigia abrir o arquivo, e "quem subiu esta planilha" — a primeira pergunta quando um faturamento não fecha — não tinha resposta |
+| `vw_exclusao_pedido` | `/painel/admin` | Os pedidos de titular, abertos primeiro, com os dias em aberto e o prazo interno de 7 dias | `exclusao_pedido` tinha índice para os pedidos abertos e nenhuma leitura: o índice servia uma consulta que ninguém escreveu |
+| `vw_texto_a_classificar` | nenhuma | Os textos de um dia ainda não classificados | View de **trabalho** da rotina `cron_classificador`, que a consultava desde que foi escrita. Ela nunca havia sido criada: a rotina rodaria todo dia e devolveria 404 |
+
 ### 6.3 As views de exportação
 
 | View | O que exporta |
@@ -474,15 +511,36 @@ quando ela faz parte do sentido (`_dia`, `_semana`, `_trimestre`, `_mes`).
 
 **Regra que vale em todas:** toda linha agregada exportada carrega o `n`. Sem exceção.
 
+**E elas têm tela.** As seis existiam desde a primeira migration e nenhuma tela as lia: a promessa de
+portabilidade estava escrita, o SQL estava escrito, e não havia como um humano baixar nada — que é o
+mesmo que não existir, para quem precisa levar o dado embora. A aba `/painel/exportar` baixa as seis.
+
+**A leitura pagina e confere.** O PostgREST hospedado corta em 1000 linhas por resposta **sem erro e
+sem aviso**, e um ano de coleta passa disso com folga. A leitura do painel pagina até o fim e compara
+o total lido com a contagem do servidor; se divergir, o arquivo **não** é gerado e a tela mostra o
+motivo. Exportação truncada em silêncio vira decisão errada; exportação que falha vira tentativa de
+novo.
+
 ### 6.4 As funções
+
+**Atualizado depois da implementação.** A versão anterior desta seção listava cinco funções, e o SQL
+criava onze. A regra 2 da seção 0 diz que nome que falta entra por edição desta folha **primeiro**, e
+essa regra foi violada durante a construção — o que se conserta aqui, e não deixando a folha
+desatualizada, porque folha desatualizada é pior que folha ausente: ela tem precedência e mente.
 
 | Função | O que faz |
 |---|---|
-| `fn_dia_operacional(timestamptz) returns date` | O corte às 6h. É a única definição do dia operacional do sistema |
+| `fn_dia_operacional(timestamptz) returns date` | O corte às 6h. É a única definição do dia operacional do sistema. **`immutable` de verdade**: usa `at time zone interval '-03:00'` e não o nome do fuso, porque `at time zone <texto>` é `stable` e a coluna gerada exige imutabilidade |
 | `fn_faixa_nps(smallint) returns text` | Devolve `detrator`, `neutro` ou `promotor` |
+| `fn_fator_valido(text, text) returns boolean` | O par (dimensão, fator) da seção 3.3. Sustenta o `CHECK` de `resposta_opcao`, `classificacao_texto` e `pergunta_banco` |
 | `fn_casa_abre(date) returns boolean` | Padrão semanal (fecha segunda) com `calendario_operacao` sobrepondo. É o que faz o digest escrever `casa fechada` em vez de `nenhuma resposta coletada` |
 | `fn_sorteia_pergunta(uuid, text) returns setof uuid` | As sete regras de sorteio do banco, em código, nunca em planilha |
-| `fn_grava_resposta(jsonb) returns uuid` | O único caminho de escrita do PWA, com escopo restrito. O tablet não tem `INSERT` direto e não lê a base de clientes |
+| `fn_grava_resposta(jsonb) returns uuid` | O único caminho de escrita do PWA para resposta, com escopo restrito. O tablet não tem `INSERT` direto e não lê a base de clientes |
+| `fn_registra_sinal(jsonb) returns void` | O heartbeat do aparelho. É escrita **sem resposta associada**, e por isso não cabe em `fn_grava_resposta`. Não cria linha: aparelho desconhecido é ignorado, porque o cadastro dos 5 tablets é ato humano e não efeito de heartbeat |
+| `fn_mascara_contato(text) returns text` | A varredura de telefone, e-mail e CPF em texto livre (`D4`). Sem ela, os 12 meses de retenção são contornados pelo próprio texto que se pretende preservar |
+| `fn_aplica_retencao(integer) returns jsonb` | A rotina **mensal**: anonimiza quem passou de 12 meses da última visita e varre o texto. `UPDATE` para nulo, nunca `DELETE` |
+| `fn_atende_exclusao(uuid, text) returns jsonb` | O pedido **individual** de titular. Anonimiza e carimba o pedido na mesma transação: em duas chamadas existiria um estado com o pedido atendido e o dado ainda no banco |
+| `fn_grava_resposta` e `fn_registra_sinal` | são as **duas, e só duas**, que o PWA chama |
 
 ### 6.5 Os papéis do banco
 
@@ -490,9 +548,22 @@ quando ela faz parte do sentido (`_dia`, `_semana`, `_trimestre`, `_mes`).
 |---|---|
 | `experiencia_app` | Escrita **só** no schema `experiencia`, mais `SELECT` nas cinco tabelas de custo em `public`. Tentativa de `INSERT` em tabela fiscal tem que falhar, e isso é critério de aceite |
 | `experiencia_leitura` | `SELECT` no schema `experiencia`, para o painel |
+| `authenticated` | Recebe **diretamente** o mesmo `SELECT` de `experiencia_leitura`, e não por herança. Os papéis do Supabase são `noinherit`, então `grant experiencia_leitura to authenticated` não transporta privilégio nenhum e o painel não leria uma linha |
+| `authenticator` | O papel de conexão do PostgREST. É membro de `experiencia_app`, o que permite ao Worker escrever **com o papel restrito** em vez de com `service_role` |
 
-RLS habilitado em **todas** as tabelas de `experiencia`, sem exceção, e a chave de serviço nunca no bundle
-publicado do PWA.
+**O papel com que o Worker escreve decide se esta tabela vale.** Com `service_role`, que tem
+`BYPASSRLS` e privilégio no `public` do sistema fiscal, nada aqui vale. O Worker assina um JWT curto
+com `role: experiencia_app` quando `SUPABASE_JWT_SECRET` está configurado, e `GET /api/saude`
+responde qual dos dois está ativo. **NÃO VERIFICADO** até a primeira implantação: se o PostgREST
+hospedado aceita papel custom no claim `role`, e se o projeto tem o segredo HS256 legado.
+
+RLS habilitado em **todas** as tabelas de `experiencia`, sem exceção, e a chave de serviço nunca no
+bundle publicado do PWA.
+
+**Append-only por permissão, e não por comentário.** Nove tabelas não têm `UPDATE` nem `DELETE` para
+`experiencia_app`: `resposta` e as cinco filhas, `tentativa`, `consentimento`, `consentimento_texto` e
+`convite_clique`. Uma invariante no fim da migration de RLS derruba a aplicação se alguma delas
+ganhar `UPDATE`, ou se a política `app_update` reaparecer nelas.
 
 ---
 

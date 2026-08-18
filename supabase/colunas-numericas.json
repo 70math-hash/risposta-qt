@@ -1,0 +1,85 @@
+{
+  "vw_alerta_incidente": [
+    "segundos_ate_envio",
+    "minutos_ate_contato"
+  ],
+  "vw_cliente_mes": [
+    "taxa_contato_pct"
+  ],
+  "vw_coleta_dia": [
+    "conversao_casa_pct",
+    "conversao_tentativa_pct",
+    "suspeitas_pct"
+  ],
+  "vw_custo_prato": [
+    "custo_total",
+    "preco_venda",
+    "cmv_meta",
+    "cmv_pct",
+    "margem_bruta",
+    "desvio_do_cmv_meta"
+  ],
+  "vw_dia_semana": [
+    "media_respostas_4",
+    "media_detratores_4",
+    "ocorrencias_comparadas"
+  ],
+  "vw_dispositivo_sinal": [
+    "horas_sem_sinal"
+  ],
+  "vw_duracao_semana": [
+    "mediana_s",
+    "p90_s"
+  ],
+  "vw_exclusao_pedido": [
+    "dias_em_aberto"
+  ],
+  "vw_exportacao_venda": [
+    "unidades",
+    "valor_liquido"
+  ],
+  "vw_garcom_trimestre": [
+    "nps",
+    "conversao_pct"
+  ],
+  "vw_hoje": [
+    "conversao_pct"
+  ],
+  "vw_importacao": [
+    "duracao_s"
+  ],
+  "vw_item_trimestre": [
+    "media_reclamacoes_cardapio",
+    "unidades_vendidas",
+    "reclamacoes_por_100"
+  ],
+  "vw_nps_janela": [
+    "nps",
+    "erro_padrao",
+    "faixa_95",
+    "diferenca_minima_detectavel"
+  ],
+  "vw_pergunta_desempenho": [
+    "respondidas_pct"
+  ],
+  "vw_pergunta_resposta": [
+    "respostas_pct",
+    "pulo_pct"
+  ],
+  "vw_satisfacao_venda_dia": [
+    "faturamento",
+    "unidades",
+    "ticket_medio_por_mesa"
+  ],
+  "vw_saude_rotina": [
+    "duracao_s"
+  ],
+  "vw_tela_pulo": [
+    "pulo_pct"
+  ],
+  "vw_venda_dia": [
+    "faturamento",
+    "unidades",
+    "ticket_medio_por_mesa"
+  ]
+}

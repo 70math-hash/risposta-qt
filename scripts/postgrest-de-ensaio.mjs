@@ -35,6 +35,28 @@ import pg from 'pg'
 const PORTA = Number(process.argv[2] ?? 8788)
 const BANCO = process.env.BANCO ?? 'qt_ensaio'
 
+/**
+ * `date` sai como TEXTO, e nao como `Date` do JavaScript.
+ *
+ * FIDELIDADE, E O QUE A INFIDELIDADE ESCONDIA
+ *   O PostgREST devolve `date` como `"2026-08-17"`. O `node-postgres`, por padrao, PARSEIA `date`
+ *   para um `Date`, e `JSON.stringify` disso vira `"2026-08-17T00:00:00.000Z"`.
+ *
+ *   A diferenca nao e cosmetica. `rotuloDiaOperacional` faz `dia.split('-')` e le o terceiro
+ *   pedaco como o dia do mes: com a forma do PostgREST ele acha `"17"`, e com a forma parseada ele
+ *   acha `"17T00:00:00.000Z"`. O painel escrevia `UNDEFINED 17T00:00:00.000Z/08`.
+ *
+ *   Este substituto existe para NAO aprovar o que o PostgREST recusaria, e vale o inverso: ele nao
+ *   pode reprovar o que o PostgREST aceitaria, nem entregar uma forma que o servidor de verdade
+ *   nao entrega. Substituto infiel gasta o tempo de quem depura corrigindo codigo que estava certo.
+ *
+ * O QUE CONTINUA DIFERENTE, DECLARADO
+ *   `timestamptz` sai daqui como `"2026-08-17T20:00:00.000Z"` e do PostgREST como
+ *   `"2026-08-17T20:00:00+00:00"`. As duas sao ISO-8601 com `T`, e o painel corta com `slice`, que
+ *   funciona nas duas. Nao e igualdade, e esta escrito em vez de suposto.
+ */
+pg.types.setTypeParser(1082, (v) => v)
+
 const pool = new pg.Pool({
   host: '/var/run/postgresql',
   database: BANCO,

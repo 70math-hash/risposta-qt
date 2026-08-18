@@ -437,13 +437,18 @@ describe('nenhuma escrita fica sem tela que a chame', () => {
     .join('\n')
 
   /**
-   * As exportadas de `dados.ts` que ESCREVEM ou disparam acao. `le`, `supabase` e `baixaCsv` sao
-   * utilitarios de leitura e de formato, e ficam de fora: `baixaCsv` e chamada por `dados.ts`
-   * mesmo, e `le` vive dentro de `useView`.
+   * As exportadas de `dados.ts` que ESCREVEM ou disparam acao.
+   *
+   * Ficam de fora os utilitarios de BORDA, que nenhuma tela chama por nome porque eles vivem
+   * dentro do proprio `dados.ts`: `le` (usada por `useView`), `supabase` (o cliente), `baixaCsv`
+   * (chamada pela aba de exportacao atraves de `le`) e `converteNumericos` (a conversao de
+   * `numeric`/`bigint` que `le` aplica na entrada). Sao exportadas para poderem ser CONFERIDAS em
+   * teste, e nao para serem usadas por tela.
    */
+  const DE_BORDA = ['le', 'supabase', 'baixaCsv', 'converteNumericos']
   const ESCRITAS = [...DADOS.matchAll(/^export (?:const|async function|function) (\w+)/gm)]
     .map((m) => m[1]!)
-    .filter((n) => !['le', 'supabase', 'baixaCsv'].includes(n))
+    .filter((n) => !DE_BORDA.includes(n))
 
   it('a lista de escritas foi encontrada', () => {
     expect(ESCRITAS.length).toBeGreaterThanOrEqual(6)

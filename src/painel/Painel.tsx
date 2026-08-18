@@ -291,13 +291,32 @@ const GRADE: React.CSSProperties = {
   gap: 'var(--u2)',
 }
 
-function Estado({
-  carregando,
-  erro,
-}: {
-  carregando: boolean
-  erro: string | null
-}): React.ReactElement | null {
+/**
+ * O quadro de carregando/erro de uma aba, ou `null` quando ha o que mostrar.
+ *
+ * E FUNCAO, E NAO COMPONENTE, E ISSO E A CORRECAO DE UM DEFEITO QUE APAGAVA O PAINEL INTEIRO
+ *   Antes isto era o componente `Estado`, e as abas faziam:
+ *
+ *     const estado = estadoDaView(carregando, erro)
+ *     if (estado !== null) return estado
+ *
+ *   `<Estado ... />` e um ELEMENTO React — um objeto — e objeto nunca e `null`. A comparacao era
+ *   verdadeira em toda renderizacao, entao TODA aba retornava cedo, e o que ela retornava era um
+ *   elemento cujo resultado, ja carregado e sem erro, e `null`. As sete abas de leitura do painel
+ *   mostravam cabecalho, abas e NADA.
+ *
+ *   `tsc` nao pega: o tipo do componente e `ReactElement | null`, mas o tipo da EXPRESSAO JSX e
+ *   `JSX.Element`, que nunca e nulo. Comparar isso com `null` e sempre verdadeiro e nao e erro de
+ *   tipo. Nenhum teste pegava porque nenhum teste renderizava componente — a lacuna que o README
+ *   nomeava em "o que ainda nao e verificado por nada".
+ *
+ *   Como funcao, o `null` e um valor de verdade, e `estado !== null` volta a significar o que o
+ *   codigo dizia que significava.
+ */
+export function estadoDaView(
+  carregando: boolean,
+  erro: string | null,
+): React.ReactElement | null {
   if (carregando) return <p className="ajuda">Carregando…</p>
   if (erro !== null)
     return (
@@ -428,7 +447,7 @@ function AbaHoje(): React.ReactElement {
   const { dados: janelas } = useView<VwNpsJanela>('vw_nps_janela')
   const { dados: fatores } = useView<VwFatorContagem>('vw_fator_contagem')
 
-  const estado = <Estado carregando={carregando} erro={erro} />
+  const estado = estadoDaView(carregando, erro)
   if (estado !== null) return estado
 
   const d = dados.find((x) => x.dia_operacional === dia) ?? ultimoDia(dados)
@@ -534,7 +553,7 @@ function AbaTendencia(): React.ReactElement {
   const { dados, erro, carregando } = useView<VwSatisfacaoVendaDia>('vw_satisfacao_venda_dia')
   const { dados: semanas } = useView<VwSemanaDetrator>('vw_semana_detrator')
   const { dados: diasSemana } = useView<VwDiaSemana>('vw_dia_semana')
-  const estado = <Estado carregando={carregando} erro={erro} />
+  const estado = estadoDaView(carregando, erro)
   if (estado !== null) return estado
 
   const ultimos = porData(dados, 'dia_operacional').slice(-28)
@@ -647,7 +666,7 @@ function AbaTendencia(): React.ReactElement {
 
 function AbaGarcons(): React.ReactElement {
   const { dados, erro, carregando } = useView<VwGarcomTrimestre>('vw_garcom_trimestre')
-  const estado = <Estado carregando={carregando} erro={erro} />
+  const estado = estadoDaView(carregando, erro)
   if (estado !== null) return estado
 
   const trimestres = [...new Set(dados.map((g) => g.trimestre).filter((t) => t !== null))].sort()
@@ -713,7 +732,7 @@ function AbaPratos(): React.ReactElement {
   const { dados, erro, carregando } = useView<VwItemTrimestre>('vw_item_trimestre')
   const { dados: custos, erro: erroCusto } = useView<VwCustoPrato>('vw_custo_prato')
   const { dados: suspeitos } = useView<VwCustoInsumoSuspeito>('vw_custo_insumo_suspeito')
-  const estado = <Estado carregando={carregando} erro={erro} />
+  const estado = estadoDaView(carregando, erro)
   if (estado !== null) return estado
 
   const trimestres = [...new Set(dados.map((i) => i.trimestre).filter((t) => t !== null))].sort()
@@ -969,7 +988,7 @@ function AbaColeta(): React.ReactElement {
   const { dados: perguntas } = useView<VwPerguntaDesempenho>('vw_pergunta_desempenho')
   const { dados: respostasPergunta } = useView<VwPerguntaResposta>('vw_pergunta_resposta')
   const { dados: importacoes } = useView<VwImportacao>('vw_importacao')
-  const estado = <Estado carregando={carregando} erro={erro} />
+  const estado = estadoDaView(carregando, erro)
   if (estado !== null) return estado
 
   const ultimos = porData(dados, 'dia_operacional').slice(-14)
@@ -1181,7 +1200,7 @@ function AbaColeta(): React.ReactElement {
 
 function AbaClientes(): React.ReactElement {
   const { dados, erro, carregando } = useView<VwClienteMes>('vw_cliente_mes')
-  const estado = <Estado carregando={carregando} erro={erro} />
+  const estado = estadoDaView(carregando, erro)
   if (estado !== null) return estado
 
   const meses = porData(dados, 'mes').slice(-18)
@@ -1246,7 +1265,7 @@ function AbaSaude(): React.ReactElement {
     }
   }
 
-  const estado = <Estado carregando={carregando} erro={erro} />
+  const estado = estadoDaView(carregando, erro)
   if (estado !== null) return estado
 
   const recentes = [...incidentes]

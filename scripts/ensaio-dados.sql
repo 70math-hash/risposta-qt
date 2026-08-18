@@ -1095,7 +1095,21 @@ begin
 
   -- A faixa de 95% e 1,96 erros padrao. Se este fator mudar, toda leitura de tendencia do
   -- painel muda de significado sem ninguem perceber.
-  if v_r.faixa_95 <> round(1.96 * v_r.erro_padrao, 1) then
+  --
+  -- A TOLERANCIA DE 0,11 NAO E FROUXIDAO, E O ARREDONDAMENTO DA VIEW ESTAR CERTO
+  --   A view arredonda UMA VEZ, a partir do erro padrao cru: `faixa_95 = round(1,96 x cru, 1)`.
+  --   O `erro_padrao` que ela devolve ja veio arredondado para exibicao, entao recalcular
+  --   `1,96 x erro_padrao` aqui e arredondar DE NOVO, sobre um valor que ja perdeu casas.
+  --
+  --   Com erro padrao cru de 33,47: a view da `round(65,60) = 65,6`, e esta conta daria
+  --   `round(1,96 x 33,5) = 65,7`. Os dois estao certos; o que nao pode e exigir igualdade entre
+  --   um arredondamento e dois.
+  --
+  --   A versao anterior exigia igualdade exata e passava, porque os dados de ensaio caiam longe de
+  --   qualquer fronteira de arredondamento. Passou a falhar quando a janela do dia mudou e o
+  --   numero caiu em cima de uma — ou seja, o teste tinha um resultado que dependia do dia em que
+  --   rodasse. A conferencia da diferenca minima logo abaixo ja usava 0,11, pelo mesmo motivo.
+  if abs(v_r.faixa_95 - round(1.96 * v_r.erro_padrao, 1)) > 0.11 then
     raise exception 'faixa_95 deu % e 1,96 x erro padrao da %', v_r.faixa_95, round(1.96 * v_r.erro_padrao, 1);
   end if;
 

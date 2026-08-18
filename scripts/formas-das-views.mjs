@@ -57,10 +57,29 @@ for (const [view, coluna, tipo] of linhas) {
 }
 
 /**
+ * Os tipos que o PostgREST entrega como STRING, e nao como numero JSON.
+ *
+ * `numeric` e `bigint` nao cabem em `double` sem perder precisao, entao o PostgREST os serializa
+ * entre aspas. `int8` de contagem, `numeric` de NPS, de percentual e de dinheiro: todos chegam
+ * como `"-100.0"`, e nao como `-100.0`.
+ *
+ * Isto aqui foi uma suposicao ERRADA deste arquivo, escrita com todas as letras: "numeric vira
+ * number e nao string, porque o supabase-js entrega numero". Ele nao entrega. A suposicao gerou
+ * `number | null` para 43 colunas em 20 views, o painel chamou `.toFixed()` num string e TODA aba
+ * de leitura morria com `v.toFixed is not a function` — tela branca, no primeiro carregamento,
+ * contra o Supabase de verdade.
+ *
+ * O tipo gerado continua sendo `number`, e agora ele e VERDADE, porque `le()` converte estas
+ * colunas na entrada usando a lista abaixo. Corrigir na borda, uma vez, em vez de espalhar
+ * `Number(...)` por cada leitura de cada tela.
+ */
+const VEM_COMO_TEXTO = new Set(['numeric', 'bigint'])
+
+/**
  * De tipo Postgres para tipo TypeScript.
  *
- * `numeric` vira `number` e nao `string`, porque o supabase-js entrega numero. `date` e
- * `timestamptz` viram `string`, que e como chegam no JSON.
+ * `numeric` vira `number` porque `le()` converte na borda, e nao porque chega numero. `date` e
+ * `timestamptz` viram `string`, que e como chegam no JSON e como sao usados.
  */
 function ts(tipo) {
   switch (tipo) {
@@ -101,9 +120,12 @@ function nomeInterface(view) {
 }
 
 const retrato = {}
+const numericas = {}
 const saida = []
 for (const [view, colunas] of [...views].sort()) {
   retrato[view] = colunas.map((c) => c.coluna)
+  const texto = colunas.filter((c) => VEM_COMO_TEXTO.has(c.tipo)).map((c) => c.coluna)
+  if (texto.length > 0) numericas[view] = texto
   saida.push(`/** \`experiencia.${view}\`. Forma lida do banco, nao escrita a mao. */`)
   saida.push(`export interface ${nomeInterface(view)} {`)
   for (const { coluna, tipo } of colunas) {
@@ -118,5 +140,16 @@ writeFileSync(
   `${JSON.stringify(retrato, null, 2)}\n`,
 )
 
+// A lista das colunas que chegam entre aspas. `le()` a le para converter na borda, e o teste de
+// contrato a confere contra o banco: coluna numerica nova entra aqui sozinha ou o teste cai.
+writeFileSync(
+  new URL('../supabase/colunas-numericas.json', import.meta.url),
+  `${JSON.stringify(numericas, null, 2)}\n`,
+)
+
 process.stdout.write(saida.join('\n'))
-process.stderr.write(`\n${views.size} views, retrato escrito em supabase/formas-das-views.json\n`)
+const totalNum = Object.values(numericas).reduce((t, c) => t + c.length, 0)
+process.stderr.write(
+  `\n${views.size} views, retrato escrito em supabase/formas-das-views.json\n` +
+    `${totalNum} colunas chegam como texto (numeric/bigint), em supabase/colunas-numericas.json\n`,
+)

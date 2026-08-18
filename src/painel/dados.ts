@@ -11,6 +11,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js'
+import COLUNAS_NUMERICAS from '../../supabase/colunas-numericas.json'
 
 const URL_SUPABASE = import.meta.env.VITE_SUPABASE_URL as string | undefined
 const CHAVE_PUBLICA = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
@@ -42,6 +43,53 @@ export function supabase(): ReturnType<typeof cria> {
  * o teto garante que uma pagina cheia signifique "tem mais", e nao "o servidor cortou".
  */
 const PAGINA = 500
+
+/**
+ * `numeric` e `bigint` chegam do PostgREST como STRING, e nao como numero JSON.
+ *
+ * POR QUE, E POR QUE ISSO NAO E UM DETALHE
+ *   Os dois tipos nao cabem em `double` sem perder precisao, entao o PostgREST os serializa entre
+ *   aspas: o NPS vem `"-100.0"`, o percentual vem `"16.8"`, a contagem `bigint` vem `"12"`.
+ *
+ *   As interfaces deste arquivo dizem `number | null` para essas colunas — 43 delas, em 20 views —
+ *   porque o gerador assumiu, por escrito, que "o supabase-js entrega numero". Ele nao entrega. O
+ *   resultado era `v.toFixed is not a function` na primeira renderizacao: TODA aba de leitura do
+ *   painel morria com tela branca contra o Supabase de verdade.
+ *
+ *   `tsc` nao pega, porque `as T[]` sobre a resposta da rede e uma afirmacao de quem escreveu, e
+ *   nao uma verificacao. E nenhum teste pegava porque nenhum teste renderizava componente.
+ *
+ * A CONVERSAO VIVE AQUI, NA BORDA, E SO AQUI
+ *   Espalhar `Number(...)` por cada leitura de cada tela daria o mesmo resultado hoje e voltaria a
+ *   divergir amanha, na primeira coluna nova. Convertendo na entrada, a interface gerada passa a
+ *   ser VERDADE, e todo o resto do painel — inclusive soma, ordenacao e grafico — recebe numero.
+ *
+ *   A lista de colunas e GERADA do banco (`scripts/formas-das-views.mjs`), e nao escrita a mao,
+ *   pelo mesmo motivo que as interfaces sao: escrita a mao, ela envelhece na primeira view nova.
+ *
+ * O QUE ELA NAO FAZ
+ *   Nao adivinha. So converte coluna que o BANCO declara `numeric` ou `bigint`. Texto que parece
+ *   numero — o PIN `0123`, o `id_altec` `ALT-100`, a mesa digitada — passa intacto, que e o ponto
+ *   de usar a lista do catalogo em vez de uma heuristica sobre o valor.
+ */
+export function converteNumericos<T>(view: string, linhas: T[]): T[] {
+  const colunas = (COLUNAS_NUMERICAS as Record<string, string[]>)[view]
+  if (colunas === undefined) return linhas
+
+  for (const linha of linhas) {
+    const registro = linha as Record<string, unknown>
+    for (const coluna of colunas) {
+      const valor = registro[coluna]
+      if (typeof valor !== 'string') continue
+      const n = Number(valor)
+      // String que nao vira numero NAO vira `NaN` em silencio: `NaN` se propaga por toda conta
+      // seguinte e aparece na tela como `NaN%`, que parece defeito de formatacao e nao de dado.
+      // Nulo aparece como travessao, que e o que o painel ja sabe mostrar.
+      registro[coluna] = valor.trim() === '' || Number.isNaN(n) ? null : n
+    }
+  }
+  return linhas
+}
 
 /**
  * Le uma view INTEIRA, paginando ate o fim. Sem construtor de consulta: as views ja entregam o
@@ -77,7 +125,7 @@ export async function le<T>(view: string): Promise<T[]> {
     if (error !== null) throw new Error(`${view}: ${error.message}`)
     if (count !== null && count !== undefined) total = count
 
-    const pagina = (data ?? []) as T[]
+    const pagina = converteNumericos(view, (data ?? []) as T[])
     tudo.push(...pagina)
 
     if (pagina.length < PAGINA) break

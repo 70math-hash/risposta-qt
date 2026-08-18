@@ -274,7 +274,31 @@ const servidor = createServer((req, res) => {
       }
 
       if (req.method === 'PATCH') {
-        throw new NaoSuportado('PATCH')
+        const campos = JSON.parse((await corpoDe(req)) || '{}')
+        const nomes = Object.keys(campos)
+        if (nomes.length === 0) throw new NaoSuportado('PATCH sem campo')
+
+        // O `where` reusa o montador do GET, pelo mesmo caminho: filtro do PATCH e filtro do GET no
+        // PostgREST, e ter duas traducoes faria o UPDATE atingir um conjunto diferente do que o
+        // SELECT mostraria.
+        const { sql: selecao, valores: valoresDoFiltro } = montaSelect(alvo, url.searchParams, schema)
+        const onde = selecao.includes(' where ') ? selecao.slice(selecao.indexOf(' where ')) : ''
+        if (onde === '') {
+          // PATCH sem filtro atualizaria a tabela inteira. O PostgREST hospedado tambem recusa.
+          throw new NaoSuportado('PATCH sem filtro')
+        }
+
+        // Os parametros do SET vem primeiro e os do filtro depois, com os indices deslocados.
+        const valores = nomes.map((n) => paraParametro(campos[n]))
+        const ondeDeslocado = onde.replace(/\$(\d+)/g, (_, n) => `$${Number(n) + valores.length}`)
+        const sql =
+          `update ${cita(schema)}.${cita(alvo)} set ` +
+          nomes.map((n, i) => `${cita(n)} = $${i + 1}`).join(', ') +
+          ondeDeslocado +
+          (String(req.headers.prefer ?? '').includes('return=representation') ? ' returning *' : '')
+
+        const r = await pool.query(sql, [...valores, ...valoresDoFiltro])
+        return responde(200, r.rows)
       }
 
       return responde(405, { message: `metodo ${req.method}` })

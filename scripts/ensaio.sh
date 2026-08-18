@@ -107,17 +107,39 @@ if [[ "${1:-}" == "--dados" ]]; then
   # ---------------------------------------------------------------------------
   if [[ -d "$RAIZ/node_modules/pg" ]]; then
     echo "== o Worker contra este banco =="
-    PGUSER="${PGUSER_ENSAIO:-root}" node "$RAIZ/scripts/postgrest-de-ensaio.mjs" 8788 &
+
+    # Porta LIVRE escolhida pelo proprio sistema, e nao um numero fixo. Com porta fixa, uma
+    # instancia esquecida de uma execucao anterior fazia a nova morrer com EADDRINUSE, e os testes
+    # rodavam contra a instancia velha — que aponta para o mesmo banco mas roda o codigo antigo do
+    # substituto. O sintoma eram tres testes falhando por motivo nenhum, e a causa levava tempo
+    # para achar porque a resposta vinha, so vinha de outro processo.
+    PORTA="$(python3 -c 'import socket; s=socket.socket(); s.bind(("127.0.0.1",0)); print(s.getsockname()[1]); s.close()')"
+    export PGREST_ENSAIO="http://127.0.0.1:$PORTA"
+
+    PGUSER="${PGUSER_ENSAIO:-root}" node "$RAIZ/scripts/postgrest-de-ensaio.mjs" "$PORTA" &
     PGREST=$!
-    # Espera o socket abrir, em vez de dormir um tempo fixo: `sleep` curto demais faz o teste pular
-    # em silencio, e pulado nao e aprovado.
+
+    # Espera o socket abrir, em vez de dormir um tempo fixo.
+    PRONTO=0
     for _ in $(seq 1 40); do
-      if curl -sS -m 1 -o /dev/null "http://127.0.0.1:8788/rest/v1/mesa?select=numero&limit=1" \
+      if curl -sS -m 1 -o /dev/null "$PGREST_ENSAIO/rest/v1/mesa?select=numero&limit=1" \
         -H 'accept-profile: experiencia' 2>/dev/null; then
+        PRONTO=1
         break
       fi
+      # Se o processo morreu, nao ha o que esperar.
+      kill -0 "$PGREST" 2>/dev/null || break
       sleep 0.25
     done
+
+    # DERRUBA aqui, e nao deixa vitest rodar. Sem esta guarda, o substituto fora do ar fazia os 27
+    # casos pularem (ou pior, falharem contra outra instancia), e um harness que confunde
+    # "nao subiu" com "o codigo esta errado" custa mais tempo que o bug que ele deveria achar.
+    if [[ $PRONTO -ne 1 ]]; then
+      echo "  o substituto de PostgREST NAO subiu em $PGREST_ENSAIO"
+      kill "$PGREST" 2>/dev/null || true
+      exit 1
+    fi
 
     npx vitest run tests/worker-integracao.test.ts
     RESULTADO=$?

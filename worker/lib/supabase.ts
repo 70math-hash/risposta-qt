@@ -133,6 +133,31 @@ export async function insere<T>(
 }
 
 /**
+ * Atualiza linhas que casam com um filtro do PostgREST, e devolve as atualizadas.
+ *
+ * Devolve a representacao SEMPRE, e nao por opcao: quem chama precisa saber se o filtro casou com
+ * alguma linha. Sem isso, atualizar um id que nao existe responderia sucesso, e a tela diria
+ * "salvo" sobre um registro que nao foi tocado — que e o pior resultado possivel numa tela de
+ * cadastro, porque a pessoa vai embora achando que resolveu.
+ */
+export async function atualiza<T>(
+  env: Ambiente,
+  relacao: string,
+  filtro: string,
+  campos: Record<string, unknown>,
+  schema = 'experiencia',
+): Promise<T[]> {
+  const resp = await chama(env, `/${relacao}?${filtro}`, {
+    method: 'PATCH',
+    body: JSON.stringify(campos),
+    headers: { prefer: 'return=representation' },
+    schema,
+  })
+  const texto = await resp.text()
+  return (texto === '' ? [] : JSON.parse(texto)) as T[]
+}
+
+/**
  * As contagens que uma rotina devolve.
  *
  * Cinco chaves tem COLUNA PROPRIA em `execucao_rotina`, porque sao as que o digest e o painel

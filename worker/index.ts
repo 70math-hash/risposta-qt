@@ -25,6 +25,14 @@ import { rodaRetencao } from './rotinas/retencao.js'
 import { rodaWatcherDrive } from './rotinas/watcher-drive.js'
 import { importaR3, jaImportado, sha256 } from './rotinas/importa.js'
 import { SemSessao, usuarioDaRequisicao } from './lib/sessao.js'
+import {
+  catalogoDeEntidades,
+  corpoDeDesligamento,
+  ENTIDADES,
+  ErroAdmin,
+  validaCorpo,
+} from './admin.js'
+import { atualiza, insere } from './lib/supabase.js'
 
 const CORS: Record<string, string> = {
   'access-control-allow-origin': '*',
@@ -279,12 +287,192 @@ async function postImportaR3(req: Request, env: Ambiente): Promise<Response> {
   }
 }
 
+/**
+ * As escritas administrativas: os cinco deveres humanos que sao escrita.
+ *
+ * `POST   /api/admin/<entidade>`            cria ou atualiza (upsert quando ha chave natural)
+ * `POST   /api/admin/<entidade>/<id>`       atualiza aquele registro
+ * `DELETE /api/admin/<entidade>/<id>`       desliga, pela estrategia declarada da entidade
+ * `GET    /api/admin`                       o catalogo de entidades, para a tela montar os campos
+ *
+ * TODAS exigem sessao. A lista branca de `worker/admin.ts` e a fronteira: o Worker tem a chave de
+ * servico, que passa por cima de RLS, entao sem lista branca uma sessao valida daria poder sobre o
+ * banco inteiro — incluindo `resposta` e as tabelas do sistema fiscal em `public`.
+ *
+ * Nenhuma entidade de resposta esta na lista, e nunca deve estar: resposta nasce completa e nao se
+ * edita. Corrigir uma resposta e coletar outra.
+ */
+async function rotaAdmin(
+  req: Request,
+  env: Ambiente,
+  partes: readonly string[],
+): Promise<Response> {
+  // Sessao ANTES de qualquer coisa, inclusive antes de olhar o caminho.
+  try {
+    await usuarioDaRequisicao(req, env)
+  } catch (e) {
+    if (e instanceof SemSessao) return erro(e.motivo, 401)
+    return erro(e instanceof Error ? e.message : 'erro desconhecido', 500)
+  }
+
+  // `GET /api/admin`: o catalogo. A tela monta os formularios a partir DELE, e nao de uma copia da
+  // lista em TypeScript do front: duas listas divergiriam, e a divergencia apareceria como campo
+  // que a tela mostra e o servidor recusa.
+  if (partes.length === 0) {
+    if (req.method !== 'GET') return erro('use GET para ler o catalogo', 405)
+    return json({ ok: true, entidades: catalogoDeEntidades() })
+  }
+
+  const nome = partes[0]!
+  const entidade = ENTIDADES[nome]
+  if (entidade === undefined) {
+    return erro(
+      `entidade desconhecida: ${nome}. Conhecidas: ${Object.keys(ENTIDADES).join(', ')}`,
+      404,
+    )
+  }
+  const id = partes[1]
+
+  try {
+    if (req.method === 'DELETE') {
+      if (id === undefined) return erro('DELETE exige o id do registro', 422)
+      const linhas = await atualiza(env, entidade.tabela, `id=eq.${id}`, corpoDeDesligamento(entidade))
+      if (linhas.length === 0) return erro(`nao achei ${nome} com id ${id}`, 404)
+      return json({ ok: true, desligado: linhas[0] })
+    }
+
+    if (req.method !== 'POST') return erro(`metodo ${req.method} nao vale aqui`, 405)
+
+    let corpo: Record<string, unknown>
+    try {
+      corpo = (await req.json()) as Record<string, unknown>
+    } catch {
+      return erro('corpo nao e JSON valido', 400)
+    }
+
+    const limpo = validaCorpo(entidade, corpo, id === undefined)
+
+    if (id !== undefined) {
+      const linhas = await atualiza(env, entidade.tabela, `id=eq.${id}`, limpo)
+      if (linhas.length === 0) return erro(`nao achei ${nome} com id ${id}`, 404)
+      return json({ ok: true, salvo: linhas[0] })
+    }
+
+    // Sem id: cria. Com chave natural, faz upsert por ela, porque quem informa duas vezes esta
+    // corrigindo, e a correcao tem de SUBSTITUIR. Sem a chave, o segundo envio das mesas atendidas
+    // criaria uma segunda linha e a conversao do dia passaria a ter dois denominadores.
+    const linhas = await insere<Record<string, unknown>>(
+      env,
+      entidade.tabela,
+      [limpo],
+      'experiencia',
+      entidade.chaveNatural === undefined ? {} : { on_conflict: entidade.chaveNatural },
+    )
+    return json({ ok: true, salvo: linhas[0] ?? null })
+  } catch (e) {
+    if (e instanceof ErroAdmin) return erro(e.message, e.status)
+    if (e instanceof ErroBanco) return erro(`banco: ${e.detalhe}`, 502)
+    return erro(e instanceof Error ? e.message : 'erro desconhecido', 500)
+  }
+}
+
+/**
+ * Registra que alguem falou com o cliente detrator.
+ *
+ * Rota propria, e nao entidade da lista branca, porque `alerta_detrator` NAO e cadastro: a unica
+ * coluna que uma pessoa pode tocar ali e `contato_em`, e o resto e escrito por
+ * `fn_grava_resposta` e pelo envio do alerta. Uma entidade generica com uma coluna so seria mais
+ * confusa que uma rota que diz o que faz.
+ *
+ * `contato_em` e o que separa "o alerta chegou" de "alguem fez algo". Sem ele, o painel mostra
+ * alertas enviados e ninguem sabe se a mesa foi atendida — e o campo vazio nao prova que ninguem
+ * falou com o cliente, prova que ninguem anotou.
+ */
+async function postContatoAlerta(req: Request, env: Ambiente): Promise<Response> {
+  try {
+    await usuarioDaRequisicao(req, env)
+  } catch (e) {
+    if (e instanceof SemSessao) return erro(e.motivo, 401)
+    return erro(e instanceof Error ? e.message : 'erro desconhecido', 500)
+  }
+
+  let corpo: { resposta_id?: string; contato_em?: string }
+  try {
+    corpo = (await req.json()) as typeof corpo
+  } catch {
+    return erro('corpo nao e JSON valido', 400)
+  }
+  if (corpo.resposta_id === undefined || corpo.resposta_id === '') {
+    return erro('resposta_id e obrigatorio', 422)
+  }
+
+  try {
+    const linhas = await atualiza(env, 'alerta_detrator', `resposta_id=eq.${corpo.resposta_id}`, {
+      contato_em: corpo.contato_em ?? new Date().toISOString(),
+    })
+    if (linhas.length === 0) return erro('nao existe alerta para esta resposta', 404)
+    return json({ ok: true, salvo: linhas[0] })
+  } catch (e) {
+    if (e instanceof ErroBanco) return erro(`banco: ${e.detalhe}`, 502)
+    return erro(e instanceof Error ? e.message : 'erro desconhecido', 500)
+  }
+}
+
+/**
+ * Atende um pedido de exclusao de titular (LGPD).
+ *
+ * Rota propria pelo mesmo motivo da anterior, e tambem porque atender NAO e editar uma linha: e
+ * anonimizar o cliente e carimbar o pedido, e as duas coisas tem de acontecer juntas. Quem faz as
+ * duas numa transacao e `fn_atende_exclusao`, no banco: dividir isso entre Worker e banco criaria
+ * um estado em que o pedido esta atendido e o dado continua la.
+ */
+async function postAtendeExclusao(req: Request, env: Ambiente): Promise<Response> {
+  let usuario
+  try {
+    usuario = await usuarioDaRequisicao(req, env)
+  } catch (e) {
+    if (e instanceof SemSessao) return erro(e.motivo, 401)
+    return erro(e instanceof Error ? e.message : 'erro desconhecido', 500)
+  }
+
+  let corpo: { pedido_id?: string }
+  try {
+    corpo = (await req.json()) as typeof corpo
+  } catch {
+    return erro('corpo nao e JSON valido', 400)
+  }
+  if (corpo.pedido_id === undefined || corpo.pedido_id === '') {
+    return erro('pedido_id e obrigatorio', 422)
+  }
+
+  try {
+    const r = await rpc<Record<string, unknown>>(env, 'fn_atende_exclusao', {
+      p_pedido_id: corpo.pedido_id,
+      p_atendido_por: usuario.email,
+    })
+    return json({ ok: true, ...r })
+  } catch (e) {
+    if (e instanceof ErroBanco) return erro(`banco: ${e.detalhe}`, 502)
+    return erro(e instanceof Error ? e.message : 'erro desconhecido', 500)
+  }
+}
+
 export default {
   async fetch(req: Request, env: Ambiente): Promise<Response> {
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS })
 
     const url = new URL(req.url)
     const rota = `${req.method} ${url.pathname}`
+
+    // As rotas administrativas tem caminho variavel (`/api/admin/<entidade>/<id>`), entao elas sao
+    // resolvidas antes do `switch`, que casa caminho exato.
+    if (url.pathname === '/api/admin' || url.pathname.startsWith('/api/admin/')) {
+      const partes = url.pathname
+        .slice('/api/admin'.length)
+        .split('/')
+        .filter((p) => p !== '')
+      return rotaAdmin(req, env, partes)
+    }
 
     switch (rota) {
       case 'POST /api/resposta':
@@ -297,6 +485,10 @@ export default {
         return getCatalogo(env)
       case 'POST /api/importa-r3':
         return postImportaR3(req, env)
+      case 'POST /api/contato-alerta':
+        return postContatoAlerta(req, env)
+      case 'POST /api/atende-exclusao':
+        return postAtendeExclusao(req, env)
       case 'GET /api/saude':
         // Sonda simples, sem tocar o banco: responde se o Worker esta no ar.
         return ok()

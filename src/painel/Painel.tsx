@@ -39,6 +39,7 @@ import {
   type VwTelaPulo,
 } from './dados.js'
 import { Aviso, Barra, Cartao, Marca, Numero, Proporcao, Tabela } from './componentes.jsx'
+import { Admin } from './Admin.jsx'
 
 const ABAS = [
   { id: '', nome: 'Hoje' },
@@ -48,6 +49,8 @@ const ABAS = [
   { id: 'coleta', nome: 'Coleta' },
   { id: 'clientes', nome: 'Clientes' },
   { id: 'saude', nome: 'Saúde' },
+  // A ultima, e nao a primeira: e a unica que escreve, e o painel e sobretudo leitura.
+  { id: 'admin', nome: 'Administração' },
 ] as const
 
 type AbaId = (typeof ABAS)[number]['id']
@@ -157,6 +160,7 @@ export function Painel(): React.ReactElement {
       {aba === 'coleta' ? <AbaColeta /> : null}
       {aba === 'clientes' ? <AbaClientes /> : null}
       {aba === 'saude' ? <AbaSaude /> : null}
+      {aba === 'admin' ? <Admin /> : null}
     </div>
   )
 }

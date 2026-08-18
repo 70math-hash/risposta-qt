@@ -461,3 +461,235 @@ describe('as rotas que nao existem', () => {
     expect(r.headers.get('access-control-allow-methods')).toContain('POST')
   })
 })
+
+describe('as escritas administrativas', () => {
+  /**
+   * A lista branca de `worker/admin.ts` e a FRONTEIRA DE SEGURANCA destas rotas.
+   *
+   * O Worker tem a chave de servico, que passa por cima de RLS. Uma rota administrativa generica
+   * daria, a quem tivesse uma sessao, poder sobre o banco inteiro — incluindo `resposta` e as cinco
+   * tabelas do sistema fiscal em `public`. Estes casos giram a maçaneta em cada porta que tem de
+   * estar fechada, em vez de conferir a lista por leitura.
+   */
+  const admin = (caminho: string, corpo?: unknown, token = 'sessao-boa-admin') =>
+    new Request(`https://exemplo.invalid/api/admin${caminho}`, {
+      method: corpo === undefined ? 'GET' : 'POST',
+      ...(corpo === undefined ? {} : { body: JSON.stringify(corpo) }),
+      headers: {
+        'content-type': 'application/json',
+        ...(token === '' ? {} : { authorization: `Bearer ${token}` }),
+      },
+    })
+
+  it.skipIf(!noAr)('sem sessao, nada abre', async () => {
+    const r = await trabalhador.fetch(admin('/garcom', { nome: 'X', pin: '1' }, ''), env)
+    expect(r.status).toBe(401)
+  })
+
+  it.skipIf(!noAr)('o catalogo lista as entidades e as colunas de cada uma', async () => {
+    const r = await trabalhador.fetch(admin(''), env)
+    const corpo = (await r.json()) as { ok: boolean; entidades: Record<string, { colunas: string[] }> }
+    expect(corpo.ok).toBe(true)
+    expect(Object.keys(corpo.entidades)).toContain('mesa_atendida_dia')
+    expect(corpo.entidades['garcom']!.colunas).toContain('pin')
+    // Nenhuma entidade de resposta, nunca: resposta nasce completa e nao se edita.
+    for (const proibida of ['resposta', 'resposta_opcao', 'tentativa', 'consentimento']) {
+      expect(
+        Object.keys(corpo.entidades),
+        `${proibida} nao pode ser entidade administrativa`,
+      ).not.toContain(proibida)
+    }
+  })
+
+  it.skipIf(!noAr)('entidade fora da lista devolve 404, e nao escreve', async () => {
+    // O caso que importa: o nome de uma tabela que EXISTE no banco, mas nao esta na lista branca.
+    for (const alvo of ['resposta', 'tentativa', 'consentimento', 'pratos', 'insumos_master']) {
+      const r = await trabalhador.fetch(admin(`/${alvo}`, { nota: 0 }), env)
+      expect(r.status, `${alvo} deveria ser 404`).toBe(404)
+    }
+  })
+
+  it.skipIf(!noAr)('coluna fora da lista e RECUSADA, e nao ignorada em silencio', async () => {
+    // Ignorar faria a tela dizer "salvo" sobre um campo que nao foi gravado.
+    const r = await trabalhador.fetch(
+      admin('/mesa', { numero: '99', area: 'salao', capacidade: 4, id: 'tentativa-de-forcar-id' }),
+      env,
+    )
+    expect(r.status).toBe(422)
+    expect(((await r.json()) as { erro: string }).erro).toContain('id')
+  })
+
+  it.skipIf(!noAr)('campo obrigatorio faltando na criacao devolve 422', async () => {
+    const r = await trabalhador.fetch(admin('/garcom', { nome: 'Sem PIN' }), env)
+    expect(r.status).toBe(422)
+    expect(((await r.json()) as { erro: string }).erro).toContain('pin')
+  })
+
+  it.skipIf(!noAr)('o dever diario: informar mesas atendidas, e corrigir sem duplicar', async () => {
+    const dia = '2026-02-10'
+    const primeiro = await trabalhador.fetch(admin('/mesa_atendida_dia', { dia_operacional: dia, mesas: 15 }), env)
+    expect(((await primeiro.json()) as { ok: boolean }).ok).toBe(true)
+
+    // De novo, com outro numero: e correcao, e tem de SUBSTITUIR. Sem o upsert pela chave natural, o
+    // dia passaria a ter dois denominadores e a conversao da casa ficaria ambigua.
+    const segundo = await trabalhador.fetch(admin('/mesa_atendida_dia', { dia_operacional: dia, mesas: 18 }), env)
+    expect(((await segundo.json()) as { ok: boolean }).ok).toBe(true)
+
+    const linhas = (await (
+      await fetch(`${BASE}/rest/v1/mesa_atendida_dia?select=mesas&dia_operacional=eq.${dia}`, {
+        headers: { 'accept-profile': 'experiencia' },
+      })
+    ).json()) as { mesas: number }[]
+    expect(linhas.length, 'informar duas vezes criou duas linhas').toBe(1)
+    expect(linhas[0]!.mesas).toBe(18)
+  })
+
+  it.skipIf(!noAr)('desligar garcom preserva o historico, e nao apaga a linha', async () => {
+    // PIN unico por execucao: `garcom` tem UNIQUE em `pin`, e o banco de ensaio sobrevive entre
+    // execucoes do vitest. Com PIN fixo, a segunda execucao batia no UNIQUE e o teste falhava com
+    // `salvo` indefinido, que nao diz nada sobre a causa.
+    const pin = String(900000 + Math.floor(Math.random() * 99999))
+    const criado = await trabalhador.fetch(admin('/garcom', { nome: `Temporario ${pin}`, pin }), env)
+    const corpoCriado = (await criado.json()) as { salvo?: { id: string }; erro?: string }
+    expect(corpoCriado.erro ?? null, `nao criou: ${String(corpoCriado.erro)}`).toBeNull()
+    const salvo = corpoCriado.salvo
+    expect(salvo?.id).toBeTypeOf('string')
+
+    const r = await trabalhador.fetch(
+      new Request(`https://exemplo.invalid/api/admin/garcom/${salvo!.id}`, {
+        method: 'DELETE',
+        headers: { authorization: 'Bearer sessao-boa-admin' },
+      }),
+      env,
+    )
+    const corpoDel = (await r.json()) as { ok: boolean; erro?: string }
+    expect(corpoDel.erro ?? null, `nao desligou: ${String(corpoDel.erro)}`).toBeNull()
+    expect(corpoDel.ok).toBe(true)
+
+    const linhas = (await (
+      await fetch(`${BASE}/rest/v1/garcom?select=nome,removido_em&id=eq.${salvo!.id}`, {
+        headers: { 'accept-profile': 'experiencia' },
+      })
+    ).json()) as { nome: string; removido_em: string | null }[]
+    // A LINHA continua: garcom removido segue nas respostas dele, e apagar deixaria a resposta
+    // apontando para nada.
+    expect(linhas.length).toBe(1)
+    expect(linhas[0]!.removido_em).not.toBeNull()
+  })
+
+  it.skipIf(!noAr)('o dever mensal: rotacionar a pergunta em foco', async () => {
+    const perguntas = (await (
+      await fetch(`${BASE}/rest/v1/pergunta_banco?select=id&numero=eq.3`, {
+        headers: { 'accept-profile': 'experiencia' },
+      })
+    ).json()) as { id: string }[]
+    const id = perguntas[0]!.id
+
+    const r = await trabalhador.fetch(
+      admin(`/pergunta_banco/${id}`, { em_foco: true, em_foco_desde: '2026-02-01' }),
+      env,
+    )
+    expect(((await r.json()) as { ok: boolean; erro?: string }).ok).toBe(true)
+
+    // E o texto NAO se muda por aqui: mudar o texto faz a contagem de um mes deixar de ser
+    // comparavel com a do outro, e isso passa por migration com numero novo.
+    const proibido = await trabalhador.fetch(
+      admin(`/pergunta_banco/${id}`, { texto_pt: 'outra pergunta' }),
+      env,
+    )
+    expect(proibido.status).toBe(422)
+  })
+
+  it.skipIf(!noAr)('registrar contato com o detrator', async () => {
+    // A resposta de nota 2 gravada mais acima gerou alerta.
+    const alertas = (await (
+      await fetch(`${BASE}/rest/v1/alerta_detrator?select=resposta_id&nota=eq.2&limit=1`, {
+        headers: { 'accept-profile': 'experiencia' },
+      })
+    ).json()) as { resposta_id: string }[]
+    expect(alertas.length, 'esperava um alerta de nota 2 das gravacoes anteriores').toBe(1)
+
+    const r = await trabalhador.fetch(
+      new Request('https://exemplo.invalid/api/contato-alerta', {
+        method: 'POST',
+        body: JSON.stringify({ resposta_id: alertas[0]!.resposta_id }),
+        headers: { 'content-type': 'application/json', authorization: 'Bearer sessao-boa-admin' },
+      }),
+      env,
+    )
+    expect(((await r.json()) as { ok: boolean; erro?: string }).ok).toBe(true)
+
+    const depois = (await (
+      await fetch(
+        `${BASE}/rest/v1/alerta_detrator?select=contato_em&resposta_id=eq.${alertas[0]!.resposta_id}`,
+        { headers: { 'accept-profile': 'experiencia' } },
+      )
+    ).json()) as { contato_em: string | null }[]
+    expect(depois[0]!.contato_em).not.toBeNull()
+  })
+
+  it.skipIf(!noAr)('atender pedido de exclusao anonimiza e carimba, e e idempotente', async () => {
+    // Um cliente com contato, e um pedido citando o e-mail dele.
+    const cliente = (await (
+      await fetch(`${BASE}/rest/v1/cliente`, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'content-profile': 'experiencia',
+          prefer: 'return=representation',
+        },
+        body: JSON.stringify([
+          { nome: 'Titular', email: 'titular@exemplo.invalid', ultima_visita_em: new Date().toISOString() },
+        ]),
+      })
+    ).json()) as { id: string }[]
+
+    const pedido = (await (
+      await fetch(`${BASE}/rest/v1/exclusao_pedido`, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'content-profile': 'experiencia',
+          prefer: 'return=representation',
+        },
+        body: JSON.stringify([{ contato_informado: 'titular@exemplo.invalid' }]),
+      })
+    ).json()) as { id: string }[]
+
+    const pede = () =>
+      trabalhador.fetch(
+        new Request('https://exemplo.invalid/api/atende-exclusao', {
+          method: 'POST',
+          body: JSON.stringify({ pedido_id: pedido[0]!.id }),
+          headers: { 'content-type': 'application/json', authorization: 'Bearer sessao-boa-admin' },
+        }),
+        env,
+      )
+
+    const r1 = (await (await pede()).json()) as {
+      ok: boolean
+      ja_atendido?: boolean
+      clientes_anonimizados?: number
+      erro?: string
+    }
+    expect(r1.erro ?? null, `nao atendeu: ${String(r1.erro)}`).toBeNull()
+    expect(r1.ja_atendido).toBe(false)
+    expect(r1.clientes_anonimizados).toBe(1)
+
+    // O dado pessoal saiu e a LINHA ficou: `anonimizado_em` e a prova de que o pedido foi atendido.
+    const depois = (await (
+      await fetch(`${BASE}/rest/v1/cliente?select=email,nome,anonimizado_em&id=eq.${cliente[0]!.id}`, {
+        headers: { 'accept-profile': 'experiencia' },
+      })
+    ).json()) as { email: string | null; nome: string | null; anonimizado_em: string | null }[]
+    expect(depois.length, 'a linha do cliente foi apagada, e deveria ter sido anonimizada').toBe(1)
+    expect(depois[0]!.email).toBeNull()
+    expect(depois[0]!.nome).toBeNull()
+    expect(depois[0]!.anonimizado_em).not.toBeNull()
+
+    // Idempotente: um duplo clique na tela nao pode gerar um segundo carimbo com data diferente.
+    const r2 = (await (await pede()).json()) as { ja_atendido?: boolean; clientes_anonimizados?: number }
+    expect(r2.ja_atendido).toBe(true)
+    expect(r2.clientes_anonimizados).toBe(0)
+  })
+})

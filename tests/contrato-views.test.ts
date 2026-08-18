@@ -65,10 +65,10 @@ function camposDaInterface(nome: string): string[] | null {
 const SO_DE_TRABALHO = new Set(['vw_texto_a_classificar'])
 
 describe('o retrato das views foi gerado e tem conteudo', () => {
-  it('tem as 28 views do projeto, 27 de leitura e 1 de trabalho', () => {
+  it('tem as 29 views do projeto, 28 de leitura e 1 de trabalho', () => {
     // Se este numero cair, ou uma migration deixou de criar view, ou o retrato ficou velho.
     // Regerar com: scripts/ensaio.sh && node scripts/formas-das-views.mjs
-    expect(Object.keys(RETRATO).length).toBe(28)
+    expect(Object.keys(RETRATO).length).toBe(29)
     for (const v of SO_DE_TRABALHO) {
       expect(RETRATO[v], `${v} deveria existir no retrato`).toBeDefined()
     }

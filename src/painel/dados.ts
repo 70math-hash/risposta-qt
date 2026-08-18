@@ -192,6 +192,19 @@ export interface VwDuracaoSemana {
   p90_acima_do_teto: boolean | null
 }
 
+/** `experiencia.vw_exclusao_pedido`. Forma lida do banco, nao escrita a mao. */
+export interface VwExclusaoPedido {
+  id: string | null
+  contato_informado: string | null
+  cliente_id: string | null
+  pedido_em: string | null
+  atendido_em: string | null
+  resultado: string | null
+  aberto: boolean | null
+  dias_em_aberto: number | null
+  atrasado: boolean | null
+}
+
 /** `experiencia.vw_exportacao_cliente`. Forma lida do banco, nao escrita a mao. */
 export interface VwExportacaoCliente {
   cliente_id: string | null
@@ -596,3 +609,86 @@ export async function enviaR3(arquivo: File, dia?: string): Promise<ResultadoImp
   }
   return corpo
 }
+
+// -----------------------------------------------------------------------------
+// As escritas administrativas.
+//
+// Passam pelo Worker, e nao pelo banco direto, porque o painel entra como `authenticated`, que so
+// tem SELECT. Isso e desenho e nao falta: a chave publica vai no bundle publicado, e um bundle com
+// permissao de escrita e uma permissao de escrita publicada.
+//
+// A lista de entidades e de colunas NAO e copiada para ca. Ela vem de `GET /api/admin`, que a le da
+// lista branca do Worker. Duas listas divergiriam, e a divergencia apareceria como campo que a tela
+// mostra e o servidor recusa — depois de a pessoa ter preenchido.
+// -----------------------------------------------------------------------------
+
+export interface EntidadeAdmin {
+  colunas: string[]
+  obrigatorias: string[]
+  desligar: 'removido_em' | 'ativo' | 'nenhuma'
+  chaveNatural?: string
+}
+
+export interface RespostaAdmin {
+  ok: boolean
+  salvo?: Record<string, unknown>
+  desligado?: Record<string, unknown>
+  erro?: string
+  /** Campos de `fn_atende_exclusao`. */
+  ja_atendido?: boolean
+  resultado?: string
+  clientes_anonimizados?: number
+}
+
+async function comSessao(
+  caminho: string,
+  metodo: 'GET' | 'POST' | 'DELETE',
+  corpo?: unknown,
+): Promise<RespostaAdmin> {
+  const { data } = await supabase().auth.getSession()
+  const token = data.session?.access_token
+  if (token === undefined) {
+    return { ok: false, erro: 'sessão expirada. Entre no painel de novo.' }
+  }
+  const base = (import.meta.env.VITE_API_BASE as string | undefined) ?? ''
+  const resp = await fetch(`${base}${caminho}`, {
+    method: metodo,
+    headers: {
+      authorization: `Bearer ${token}`,
+      ...(corpo === undefined ? {} : { 'content-type': 'application/json' }),
+    },
+    ...(corpo === undefined ? {} : { body: JSON.stringify(corpo) }),
+  })
+  const json = (await resp.json().catch(() => ({}))) as RespostaAdmin
+  if (!resp.ok) return { ok: false, erro: json.erro ?? `o servidor devolveu ${resp.status}` }
+  return json
+}
+
+/** O catalogo de entidades, com as colunas que cada uma aceita. */
+export async function leCatalogoAdmin(): Promise<Record<string, EntidadeAdmin>> {
+  const r = (await comSessao('/api/admin', 'GET')) as RespostaAdmin & {
+    entidades?: Record<string, EntidadeAdmin>
+  }
+  if (r.ok !== true) throw new Error(r.erro ?? 'não foi possível ler o catálogo')
+  return r.entidades ?? {}
+}
+
+/** Cria, ou atualiza quando `id` vem. Faz upsert quando a entidade tem chave natural. */
+export const salvaAdmin = (
+  entidade: string,
+  campos: Record<string, unknown>,
+  id?: string,
+): Promise<RespostaAdmin> =>
+  comSessao(`/api/admin/${entidade}${id === undefined ? '' : `/${id}`}`, 'POST', campos)
+
+/** Desliga pela estrategia da entidade: `removido_em` ou `ativo = false`. Nunca DELETE. */
+export const desligaAdmin = (entidade: string, id: string): Promise<RespostaAdmin> =>
+  comSessao(`/api/admin/${entidade}/${id}`, 'DELETE')
+
+/** Registra que alguem falou com o cliente detrator. */
+export const registraContatoAlerta = (respostaId: string): Promise<RespostaAdmin> =>
+  comSessao('/api/contato-alerta', 'POST', { resposta_id: respostaId })
+
+/** Atende um pedido de exclusao de titular: anonimiza e carimba, na mesma transacao. */
+export const atendeExclusao = (pedidoId: string): Promise<RespostaAdmin> =>
+  comSessao('/api/atende-exclusao', 'POST', { pedido_id: pedidoId })

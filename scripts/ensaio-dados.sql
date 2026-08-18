@@ -857,10 +857,10 @@ begin
   -- Vinte e cinco de leitura mais `vw_texto_a_classificar`, que e view de trabalho da rotina do
   -- classificador. Numero fixo de proposito: view que deixa de ser criada tem de derrubar isto,
   -- e nao passar como "contei as que existem".
-  if v_total <> 28 then
-    raise exception 'esperava 28 views executaveis e contei %', v_total;
+  if v_total <> 29 then
+    raise exception 'esperava 29 views executaveis e contei %', v_total;
   end if;
-  raise notice 'ok  as 28 views executam contra dado, e nenhuma levanta erro';
+  raise notice 'ok  as 29 views executam contra dado, e nenhuma levanta erro';
 end
 $$;
 

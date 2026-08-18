@@ -108,6 +108,17 @@
     "p90_s",
     "p90_acima_do_teto"
   ],
+  "vw_exclusao_pedido": [
+    "id",
+    "contato_informado",
+    "cliente_id",
+    "pedido_em",
+    "atendido_em",
+    "resultado",
+    "aberto",
+    "dias_em_aberto",
+    "atrasado"
+  ],
   "vw_exportacao_cliente": [
     "cliente_id",
     "nome",

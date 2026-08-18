@@ -1,0 +1,332 @@
+{
+ "resumo": "Levantamento do padrão de mercado de pesquisa de satisfação em restaurante, com 12 tópicos, baseado em 12 buscas (português e inglês) e 17 páginas lidas via WebFetch, das quais 15 retornaram conteúdo real. O padrão dominante das melhores ferramentas do mundo (Ovation, Tattle, Yumpingo/BBI, TruRating, Delighted) NÃO é o questionário longo com NPS na frente. É: uma pergunta de abertura visual e binária/emoji com fricção quase zero, ramificação condicional pela nota, e coleta de detalhe por categoria operacional decomposta em fatores. Números duros verificados: Survicate mediu 21.863 pesquisas em 2025 e achou 85,7% de conclusão com 1 pergunta, 80,7% com 2, 77,4% com 3, 72,7% com 4, 69,4% com 6; pesquisas de 2 a 3 perguntas tiveram mediana de resposta de 15,97% contra 6,87% em pesquisas com 7 ou mais. Ovation declara na própria página 97% de conclusão e até 20% de take rate por SMS contra 0,1% em pesquisa longa. Tattle declara até 55 pontos de dado por pesquisa com 94,5% de conclusão. ACSI 2025 (16.381 entrevistas, escala 0 a 100): full-service 82, quick-service 79, e pizza com Papa Johns 79, Pizza Hut 79, Domino's 78, Little Caesars 77. npsBench 2025 aponta NPS de restaurantes caindo de 34 para 32, mas por NLP sobre reviews públicos, não por pesquisa. NÃO EXISTE benchmark de NPS de restaurante brasileiro com amostra e metodologia publicadas que eu tenha conseguido verificar, e Retently removeu restaurantes do benchmark 2026 por falta de base. O ponto mais crítico do relatório é o tópico 8: a linha do Google é o CONDICIONAMENTO. A política diz textualmente que é proibido \"Discourage or prohibit negative reviews, or selectively solicit positive reviews from customers\". Convidar todo mundo para o Google, independente da nota, é permitido. Convidar só quem deu nota alta é review gating e hoje o risco declarado inclui remoção de todas as avaliações, não só as viciadas. Não inventei nenhum preço: Ovation, Tattle, Yumpingo e TruRating não publicam preço, e isso está marcado como NAO PUBLICO.",
+ "topicos": [
+  {
+   "tema": "1. Formato de questionário que maximiza taxa de resposta em restaurante presencial",
+   "conclusao": "O padrão de mercado é uma pergunta de abertura única, visual, respondida em um toque, e depois ramificação. Ovation declara na página oficial que usa pesquisa de 2 perguntas, com a primeira sendo literalmente \"How was your experience?\" em escala de emoji (raiva, triste, neutro, feliz, coração), e reporta \"97% survey completion rate\", \"99% response rate\" e \"up to a 20% take rate\" contra \"0.1% of guests take traditional long-form surveys\". Tattle vai por outro caminho: coleta \"55+ data points per survey\" com \"94.5% completion rate\", mas o que faz isso funcionar é que cada toque abre só o próximo nível de detalhe da categoria já apontada, e não uma lista plana de 55 perguntas. A evidência quantitativa mais sólida sobre abandono por pergunta adicional é o estudo Survicate de 2025 sobre 21.863 pesquisas em mais de 50 setores: conclusão de 85,7% com 1 pergunta, 80,7% com 2, 77,4% com 3, 72,7% com 4, 72,5% com 5, 69,4% com 6, 72,7% com 10 e 68,7% com 20, com o pior trecho (vale da morte) entre 21 e 40 perguntas, em 70,5%. Ou seja: o custo marginal é brutal nas 3 primeiras perguntas (cerca de 4 a 5 pontos percentuais por pergunta) e depois achata. Sobre taxa de RESPOSTA (não conclusão), a compilação da TruRating cita Survicate 2025: \"2–3 questions had a median response rate of 15.97%, compared with 6.87% for surveys with seven or more questions\", ou seja, mais que o dobro. Sobre ordem, NPS primeiro ou CSAT primeiro: a MeasuringU testou empiricamente em dois estudos (n=2.674 e n=501) e não achou efeito de ordem na média (8,8 contra 8,9, p=0,9; e 8,26 contra 8,25), mas achou que o poder explicativo do modelo cai quando o item de recomendação vem depois (R² ajustado de 40,2% com o item primeiro contra 32,6% com ele depois). Conclusão prática para a QT: comece com CSAT visual de um toque (não com NPS de 0 a 10, que é escala numérica de 11 pontos e exige mais carga cognitiva no salão), use lógica condicional para ramificar em nota baixa, e trave o questionário em 3 a 5 telas no caminho normal. Recomendação de estrutura para 22 mesas: tela 1 = CSAT emoji de 5 pontos; tela 2 = seleção múltipla de categoria (só aparece o bloco relevante conforme a nota); tela 3 = fator dentro da categoria; tela 4 = aberta opcional; tela 5 = identificação opcional (WhatsApp) e convite ao Google para todos.",
+   "viabilidade": "viavel",
+   "custo": "GRATIS",
+   "confianca": "alta para os números de Survicate, Ovation e Tattle (lidos nas páginas oficiais e no estudo original). Média para a interpretação de que 3 a 5 telas é o ótimo em restaurante presencial, que é inferência a partir dos dados de conclusão.",
+   "fontes": [
+    "https://survicate.com/blog/how-many-questions-should-surveys-have/",
+    "https://trurating.com/blog/response-rate-for-customer-satisfaction-surveys/",
+    "https://ovationup.com/",
+    "https://ovationup.com/platform/feedback/",
+    "https://get.tattleapp.com/features/feedback-collection/",
+    "https://measuringu.com/nps-order/"
+   ],
+   "limites": [
+    "O estudo Survicate é multissetorial e não segmenta restaurante presencial. Não existe corte por food service nesses dados.",
+    "Os números da Ovation (97%, 99%, 20% de take rate) são autodeclarados pelo fornecedor na própria página de marketing, sem metodologia, amostra ou período divulgados.",
+    "Tattle declara 94,5% em um lugar da página e \"97%+\" em outro, e no blog declara 94,7%. A inconsistência entre os próprios materiais indica número de marketing, não medição auditada.",
+    "Os estudos da MeasuringU sobre ordem do NPS foram feitos em pesquisas longas de software (40 a 72 itens), não em pesquisa curta de restaurante. Extrapolar para 3 telas é inferência."
+   ],
+   "risco": "O erro mais comum é achar que \"mais dados por resposta\" é grátis. Não é: cada pergunta a mais nas 3 primeiras custa de 4 a 5 pontos percentuais de conclusão. Com 50 a 200 respostas por mês, perder 15 pontos de conclusão significa perder de 7 a 30 respostas por mês, o que inviabiliza qualquer corte por prato ou por garçom.",
+   "alternativa": "Se o objetivo for volume máximo, uma pergunta única (85,7% de conclusão). Se o objetivo for acionabilidade, o modelo Tattle de árvore condicional (categoria e fator) entrega muito mais informação por respondente sem cobrar o preço de um formulário plano longo."
+  },
+  {
+   "tema": "2. NPS versus CSAT versus estrelas em food service, e a pergunta canônica do NPS em português",
+   "conclusao": "Nenhuma das quatro ferramentas líderes que eu consegui ler usa o NPS clássico de 0 a 10 como pergunta principal no ponto de venda. Ovation abre com CSAT em emoji: \"How was your experience?\". Yumpingo/BBI usa recomendação binária (positivo ou negativo) mais quatro atributos, e o Food Score é ponderado com Overall Recommendation valendo 60% e Look, Taste, Portion e Value valendo 10% cada, com faixas de leitura \"More than 90 is green\", \"80-89 is amber\", \"Less than 79 will be red\". TruRating trabalha no ponto de pagamento com \"One tap\". E Tattle critica o NPS de forma explícita e publicada: diz que ele é \"too vague\" e que \"tend to leave behind the vast majority of your customer base who don't fall on the extremes\", propondo no lugar a pesquisa por causação (categoria operacional decomposta em fatores). O motivo técnico por trás dessa convergência é simples: em restaurante presencial a pesquisa é respondida em pé, com o celular na mão ou num tablet na mesa, em 10 a 30 segundos. Escala de 11 pontos numérica é caríssima nesse contexto; escala visual de 5 pontos é de um toque. O NPS continua útil, mas como métrica de acompanhamento longitudinal e para comparar com o mercado, não como porta de entrada. Pergunta canônica do NPS em português, na formulação usada no mercado brasileiro de restaurantes: \"Em uma escala de 0 a 10, quanto você recomendaria nosso restaurante para um amigo ou familiar?\" (formulação verificada na página da Goomer). A origem é Frederick Reichheld, da Bain & Company, no artigo \"The One Number You Need to Grow\" na Harvard Business Review, com classificação em promotores 9 e 10, neutros 7 e 8, detratores 0 a 6. Recomendação para a QT: CSAT emoji de 5 pontos como pergunta 1 em toda visita, e a pergunta canônica de NPS aplicada de forma amostral (por exemplo, em 1 de cada 3 respostas, ou só no fim do mês) para manter comparabilidade externa sem pagar o custo de conversão em todas as mesas.",
+   "viabilidade": "viavel",
+   "custo": "GRATIS",
+   "confianca": "alta para o que cada ferramenta usa (lido nas páginas oficiais de Ovation, Yumpingo support e Tattle). Média para a pergunta canônica em português, porque a formulação exata varia entre fontes brasileiras e não existe tradução oficial da Bain que eu tenha conseguido ler.",
+   "fontes": [
+    "https://ovationup.com/platform/feedback/",
+    "https://support.yumpingo.com/support/solutions/articles/35000220945-yumpingo-food-score",
+    "https://get.tattleapp.com/blog/when-it-comes-to-guest-surveys-restaurants-are-asking-the-wrong-questions/",
+    "https://trurating.com/",
+    "https://goomer.com.br/blog/net-promoter-score-restaurantes",
+    "https://blog.opinionbox.com/pesquisa-nps-como-fazer/"
+   ],
+   "limites": [
+    "Não consegui ler a página oficial da Bain (netpromotersystem.com) nesta sessão, então a atribuição a Reichheld e ao artigo da HBR vem de fontes brasileiras secundárias.",
+    "A página de suporte da Yumpingo confirma os pesos do Food Score mas NÃO publica o texto exato das perguntas feitas ao cliente para Look, Taste, Portion e Value. Isso está DESCONHECIDO.",
+    "A crítica da Tattle ao NPS é conteúdo de marketing de um concorrente do NPS, e deve ser lida como posicionamento comercial, ainda que o argumento técnico seja válido."
+   ],
+   "risco": "Adotar NPS de 0 a 10 como primeira pergunta no tablet da mesa por ser \"o padrão\" é justamente o que as melhores ferramentas deixaram de fazer. O risco é combinar o pior dos dois mundos: baixa conversão do NPS e nenhuma acionabilidade.",
+   "alternativa": "Escala de 5 estrelas em vez de emoji. Funciona igual em conversão e tem o benefício de mapear mentalmente para o Google, o que ajuda no convite ao review público. O custo é que estrela é menos sensível a nuance emocional que emoji."
+  },
+  {
+   "tema": "3. Benchmark de NPS de restaurantes e de pizzarias, Brasil e mundo",
+   "conclusao": "Existem números publicados, mas quase nenhum é NPS de pesquisa própria com metodologia auditável, e ISSO É O ACHADO MAIS IMPORTANTE DESTE TÓPICO. O que existe de concreto: (a) npsBench, publicado em 29/09/2025, diz que o NPS do setor de restaurantes caiu de 34 para 32, uma queda de 2 pontos, mas a metodologia declarada é agregar reviews públicos de Google, TripAdvisor e Yelp via API multifonte, normalizar linguagem com NLP e calcular um NPS derivado. Não é NPS de pesquisa, e o tamanho da amostra não é divulgado. Pizza e pizzaria não são mencionadas em nenhum ponto. (b) ACSI Restaurant and Food Delivery Study 2025, que é a fonte mais sólida que encontrei, com 16.381 entrevistas completas coletadas entre abril de 2024 e março de 2025, escala de 0 a 100 (é CSAT, não NPS): full-service 82 (queda de 2%), quick-service 79 (estável), food delivery 74 (alta de 1%). E o dado de pizzaria: Papa Johns 79, Pizza Hut 79, Domino's 78, Little Caesars 77 (alta de 3%). (c) Retently, que publica um dos benchmarks de NPS mais citados do mundo, REMOVEU restaurantes e hospitalidade do benchmark de 2026, declarando que são \"companies which diminished in number and therefore are no longer recurrent in the Retently NPS benchmark\". Isso é uma evidência forte de que benchmark confiável de NPS de restaurante é escasso, e não que ninguém procurou. (d) Brasil: NÃO ENCONTREI nenhum benchmark de NPS de restaurante brasileiro com amostra, período e metodologia publicados. O que circula são FAIXAS GENÉRICAS de NPS, não benchmark setorial medido: a Goomer publica acima de 70 excelente, 50 a 70 bom, 30 a 50 razoável, 0 a 30 ruim, e afirma que casual e fast food \"costumam ficar entre os 40 e 60 de NPS\" sem citar fonte; o Risposta, que é justamente a ferramenta que a QT paga hoje, publica as zonas crítica de -100 a 0, aperfeiçoamento de 1 a 50, qualidade de 51 a 70 e excelência de 76 a 100, mas escreve textualmente \"não recomendamos se fixar ao NPS desses tipos de empresas\" e recomenda comparar com estabelecimentos similares na mesma faixa de preço. Consequência prática para a QT: o benchmark externo utilizável é ACSI para pizza (77 a 79 em escala 0 a 100) e npsBench 32 como referência frouxa de setor. O benchmark que realmente importa para uma pizzaria de um salão é a própria série temporal, com corte por dia da semana e por turno, e a meta deve ser variação contra o próprio mês anterior, não contra número de internet.",
+   "viabilidade": "viavel com ressalva",
+   "custo": "GRATIS",
+   "confianca": "alta para ACSI (li o release oficial com amostra e período) e alta para o fato de a Retently ter removido restaurantes. Média para npsBench (li a página, mas a amostra não é divulgada e a metodologia é NPS derivado de review, não pesquisa). Baixa para todas as faixas brasileiras, que são zonas genéricas sem fonte primária.",
+   "fontes": [
+    "https://theacsi.com/news-and-resources/press-releases/2025/06/17/press-release-restaurant-and-food-delivery-study-2025/",
+    "https://npsbench.com/blog/benchmark/restaurant-nps-benchmark-2025",
+    "https://www.retently.com/blog/good-net-promoter-score/",
+    "https://goomer.com.br/blog/net-promoter-score-restaurantes",
+    "https://www.risposta.app/guia-completo-nps-net-promoter-score-em-bares-e-restaurantes/"
+   ],
+   "limites": [
+    "ACSI é escala 0 a 100 de satisfação e NÃO é convertível para NPS. Comparar 79 do Papa Johns com 32 do npsBench é erro grosseiro.",
+    "ACSI é mercado americano, cadeias grandes, cliente contatado por e-mail. Não representa pizzaria independente de salão no Rio de Janeiro.",
+    "npsBench não divulga amostra e usa NPS inferido de texto de review, que tem viés conhecido de sobrerrepresentação de extremos.",
+    "Benchmark de NPS de restaurante no Brasil: DESCONHECIDO. Não encontrei fonte primária. Track.co, que seria a candidata natural, não tem relatório público indexado com esse corte que eu tenha conseguido acessar.",
+    "Benchmark de NPS especificamente de pizzaria: DESCONHECIDO no mundo e no Brasil. O único número setorial de pizza verificável é CSAT ACSI."
+   ],
+   "risco": "Colocar no relatório da QT uma meta do tipo \"NPS 70 é excelente\" apoiada em faixa genérica brasileira sem fonte. Isso é exatamente o tipo de número inventado que destrói a credibilidade do produto. O próprio Risposta desaconselha isso na página deles.",
+   "alternativa": "Em vez de benchmark de setor, usar benchmark interno com corte: NPS ou CSAT por dia da semana, por turno e por garçom, com o mês anterior como referência, mais alerta de variação estatística mínima (com 50 a 200 respostas por mês, variações abaixo de 8 a 10 pontos de NPS provavelmente são ruído)."
+  },
+  {
+   "tema": "4. Benchmark de taxa de resposta por canal: tablet na mesa, QR Code na conta, SMS pós-visita, e-mail, comanda impressa",
+   "conclusao": "Números verificados, com a fonte de cada um. E-MAIL é o pior canal e está piorando: e-commerce por e-mail 3,24%, NPS por e-mail 4,5%, CSAT por e-mail 9,76% (todos Retently 2025), e o e-mail caiu de 4,09% no Q1 de 2025 para 2,50% no Q4 de 2025. MOBILE (link no celular, que é o mais próximo de QR Code): mediana de 18,69% (Survicate 2025). WIDGET NO SITE: 7,64%. IN-APP: 27,52% de média (Refiner 2025), com in-app NPS em 21,71% e in-app CSAT em 26,29%. PONTO DE PAGAMENTO: 84% de média, que é o benchmark declarado pela própria TruRating, ferramenta que coleta na maquininha com \"One tap\". Efeito do tamanho no mesmo dado: 2 a 3 perguntas dão mediana de 15,97% contra 6,87% com 7 ou mais. Do lado de SMS pós-visita em restaurante, a Ovation declara na própria página \"up to a 20% take rate\" contra \"0.1% of guests take traditional long-form surveys\", e clientes citados falam de 18x e 24x mais feedback. TABLET NA MESA: DESCONHECIDO. Não encontrei nenhum benchmark com metodologia publicada para tablet na mesa em restaurante. O melhor proxy honesto é a família ponto de pagamento e in-app, ou seja, entre 27% e 84%, porque compartilham a característica decisiva: o dispositivo já está na frente do cliente e não exige que ele saque o celular. COMANDA IMPRESSA (survey impresso no cupom com URL ou código): DESCONHECIDO com metodologia. Números de 40 a 60% para QR Code circulam em blogs de fornecedores sem amostra, período nem metodologia, e eu classifico isso como não confiável. Recomendação para a QT: tablet na mesa entregue pelo garçom junto com a conta é o canal de maior conversão possível no cenário dela, e o QR Code na conta é o segundo (com expectativa realista de 15% a 20%, não de 40% a 60%). Com 20 mesas por dia e 6 dias por semana, são cerca de 520 mesas por mês; a meta de 50 a 200 respostas equivale a 10% a 38% de conversão, o que é perfeitamente compatível com tablet na mesa e desafiador para QR Code.",
+   "viabilidade": "viavel",
+   "custo": "DESCONHECIDO para SMS. Não pesquisei preço de SMS ou de API de WhatsApp no Brasil nesta sessão e não vou estimar. Tablet e QR Code: GRATIS em custo recorrente de canal (só o hardware do tablet, que é custo único e DESCONHECIDO aqui porque não pesquisei modelo nem preço).",
+   "confianca": "média. Os números por canal foram lidos em uma compilação da TruRating que cita corretamente as fontes primárias (Retently 2025, Survicate 2025, Refiner 2025), mas eu não abri cada relatório primário. Alta apenas para o 20% de take rate da Ovation e para o 84% da TruRating, que são declarações nas páginas oficiais dos próprios fornecedores, com o viés que isso implica.",
+   "fontes": [
+    "https://trurating.com/blog/response-rate-for-customer-satisfaction-surveys/",
+    "https://survicate.com/blog/how-many-questions-should-surveys-have/",
+    "https://ovationup.com/",
+    "https://trurating.com/"
+   ],
+   "limites": [
+    "Tablet na mesa em restaurante: benchmark DESCONHECIDO. Qualquer número que eu colocasse seria invenção.",
+    "Comanda impressa: benchmark DESCONHECIDO.",
+    "QR Code na conta em restaurante: os números de 40 a 60% que aparecem em buscas vêm de blogs de fornecedores de QR Code sem metodologia. NÃO devem entrar no relatório do cliente como benchmark.",
+    "O 84% da TruRating é benchmark do próprio fornecedor sobre a própria base, no ponto de pagamento com uma pergunta. Não é comparável com pesquisa de 4 telas.",
+    "Nenhum desses números é do Brasil. Todos são de base majoritariamente americana e europeia."
+   ],
+   "risco": "Prometer 40% a 60% de resposta com QR Code na conta com base em blog de fornecedor. Se a QT entregar 15%, o produto novo parece pior que o Risposta.",
+   "alternativa": "Canal híbrido, que é o que a Ovation e a Tattle fazem: tablet na mesa como principal, e QR Code impresso na conta como resgate para quem já foi embora ou não quis o tablet. Isso protege o volume mensal sem depender de SMS pago."
+  },
+  {
+   "tema": "5. Dimensões canônicas que as melhores ferramentas medem em restaurante, e como perguntam cada uma",
+   "conclusao": "A lista canônica existe e é convergente, mas o diferencial das melhores ferramentas não é a lista de dimensões: é a DECOMPOSIÇÃO de cada dimensão em fatores acionáveis. A Tattle publica o modelo com nome e tudo (causation-based survey) e os fatores literais: em Food Quality, \"texture, flavor, temperature, presentation and freshness\"; em Accuracy, \"entrees, sides, special instructions, incomplete order and allergy requests\"; em Hospitality, \"friendliness, greeting, farewell, eye contact and smiles\"; e Speed of Service como categoria (fatores não detalhados na página). A Yumpingo mede no nível do PRATO, não do restaurante, com cinco métricas ponderadas: Overall Recommendation 60%, Look 10%, Taste 10%, Portion 10% e Value 10%, com respostas que \"can only be positive or negative\", e leitura por semáforo (>90 verde, 80 a 89 âmbar, <79 vermelho). A ACSI, no lado da medição independente, usa atributos que são efetivamente a lista canônica do setor e publica nota por atributo: em quick-service, precisão do pedido 85, qualidade da bebida 84, cortesia e prestatividade da equipe 84, qualidade da comida 84; em full-service, precisão do pedido 88, qualidade da bebida 86, desempenho do garçom 86. Note que a ACSI mede bebida como atributo separado, o que confirma que bebida merece linha própria e não deve ser embutida em comida. Os templates de mercado (SmartSurvey, QuestionPro, 7shifts, Zonka) convergem em seis blocos: comida, atendimento e comportamento da equipe, atmosfera e ambiente, limpeza e higiene, custo-benefício, e delivery/retirada, com escala 1 a 5 e 10 a 15 perguntas agrupadas por tema. Lista canônica consolidada para a QT, com o modo de perguntar de cada uma: COMIDA (perguntar por fator, não em geral: temperatura, sabor, ponto da massa, apresentação, frescor), BEBIDA (linha própria: temperatura, tempo de chegada, qualidade), TEMPO (decompor em tempo até o atendimento, tempo até a bebida, tempo até a pizza, tempo até a conta, porque em pizzaria o gargalo é o forno e o relatório precisa dizer QUAL tempo), ATENDIMENTO (simpatia, saudação, atenção durante, despedida, conhecimento do cardápio), AMBIENTE (ruído, temperatura do salão, iluminação, conforto), LIMPEZA (salão, mesa, banheiro, separados: banheiro é o que aparece em review negativo), PREÇO E VALOR (não perguntar \"o preço está bom\", perguntar \"valeu o que você pagou\", que é a formulação de Value da Yumpingo), SOBREMESA (linha própria, e no caso da QT com QTmisu, Tartelette Cartola e as outras, faz sentido perguntar no nível do item). Formato recomendado: em nota alta, só confirmar o que brilhou (múltipla escolha rápida). Em nota baixa, ramificar categoria e depois fator, no modelo Tattle.",
+   "viabilidade": "viavel",
+   "custo": "GRATIS",
+   "confianca": "alta para os fatores da Tattle (lidos no blog oficial deles), para os pesos da Yumpingo (lidos na base de conhecimento oficial) e para os atributos e notas da ACSI (lidos no release oficial). Média para a lista consolidada e para o modo de perguntar cada uma, que é síntese minha a partir dessas fontes.",
+   "fontes": [
+    "https://get.tattleapp.com/blog/when-it-comes-to-guest-surveys-restaurants-are-asking-the-wrong-questions/",
+    "https://get.tattleapp.com/features/feedback-collection/",
+    "https://support.yumpingo.com/support/solutions/articles/35000220945-yumpingo-food-score",
+    "https://theacsi.com/news-and-resources/press-releases/2025/06/17/press-release-restaurant-and-food-delivery-study-2025/",
+    "https://www.smartsurvey.com/templates/surveys/hospitality/restaurant-satisfaction-survey-template",
+    "https://www.questionpro.com/survey-templates/fast-food-restaurant/"
+   ],
+   "limites": [
+    "A Tattle não publica a lista completa de fatores de Speed of Service, Ambiance, Cleanliness e Value. Só publica os fatores de Food Quality, Accuracy e Hospitality. O resto é DESCONHECIDO.",
+    "A Yumpingo não publica o texto literal das perguntas de Look, Taste, Portion e Value. DESCONHECIDO.",
+    "A ACSI mede por entrevista de painel por e-mail com cadeias grandes americanas. Os atributos servem como lista canônica, mas as notas não servem de meta para pizzaria independente.",
+    "A recomendação de decompor TEMPO em quatro momentos é inferência minha aplicada ao caso da pizzaria, não padrão publicado por nenhum fornecedor."
+   ],
+   "risco": "Perguntar as oito dimensões em nota alta. Isso transforma uma pesquisa de 3 telas em formulário de 10 perguntas e derruba a conclusão de cerca de 80% para cerca de 70%, pelos dados do Survicate.",
+   "alternativa": "Modelo Yumpingo puro: em vez de dimensões do restaurante, perguntar no nível do prato consumido (aparência, sabor, porção, valeu o preço). Para pizzaria, com cardápio curto e forte, isso liga direto na engenharia de cardápio do tópico 10. O custo é que dimensões de salão (limpeza, ruído, banheiro) ficam de fora e essas são as que geram review negativo."
+  },
+  {
+   "tema": "6. Perguntas abertas: quando pedir, como pedir para maximizar resposta útil, e como as ferramentas classificam o texto depois",
+   "conclusao": "O padrão de mercado é: aberta SEMPRE opcional, SEMPRE no fim, SEMPRE ancorada na nota que a pessoa acabou de dar, e no máximo uma por pesquisa em contexto presencial. A razão quantitativa é que pergunta aberta tem cerca de 18% de não resposta contra 1% a 2% em fechada, então colocar aberta no meio do fluxo transfere esse abandono para todas as perguntas seguintes. A técnica que mais aumenta a utilidade do texto é a ancoragem condicional: depois da nota, perguntar especificamente sobre o que aquela nota implica. Em nota baixa, \"o que podemos melhorar?\"; em nota alta, \"o que funcionou bem?\". Perguntar \"algum comentário?\" genérico é o pior formato porque devolve texto vazio ou \"tudo ótimo\". A segunda técnica é o tamanho da caixa: caixa pequena sinaliza que se espera duas frases e converte melhor que caixa gigante em branco, e ela pode crescer conforme a pessoa digita. Terceira: até cerca de 5 a 6 abertas a taxa de resposta se mantém razoável, e depois disso o abandono e a resposta em branco disparam, o que reforça que uma aberta é o certo em restaurante. Sobre a classificação depois, é aqui que as ferramentas se diferenciam de verdade. A Tattle resolve o problema ANTES do texto, e essa é a sacada: como a pesquisa já capturou categoria e fator estruturados (Food Quality e dentro dela temperatura, por exemplo), o texto aberto é complemento, não fonte primária de classificação, e a Tattle anunciou um \"AI Coach\" para converter feedback em \"immediate action items\". A Yumpingo/BBI opera pelo Food Score estruturado por item. As ferramentas de survey genéricas (Qualtrics, Caplena) fazem o caminho oposto: coletam texto livre e depois aplicam marcação por regra mais análise de sentimento e agrupamento por tema. Recomendação para a QT: capture a categoria e o fator de forma ESTRUTURADA (toque, não texto), e use a aberta única e opcional só como fonte de citação literal para o dono ler e como rede de segurança para o que a taxonomia não previu. Para classificar as 50 a 200 abertas por mês, LLM em batch é suficiente e barato; com esse volume, não precisa de pipeline de NLP nem de treino de modelo.",
+   "viabilidade": "viavel",
+   "custo": "GRATIS para a coleta e para a estrutura. Classificação por LLM das 50 a 200 abertas por mês: custo real DESCONHECIDO aqui porque não calculei tokens nem consultei preço nesta sessão, mas é ordem de grandeza de centavos a poucos reais por mês nesse volume.",
+   "confianca": "média. O 18% de não resposta em abertas e as regras de posicionamento vêm de fontes secundárias de fornecedores de pesquisa (Sopact, SurveyLegend, SurveyMonkey), não de estudo primário que eu tenha lido. Alta apenas para o fato de a Tattle capturar categoria e fator de forma estruturada e ter anunciado o AI Coach, que li nas páginas deles.",
+   "fontes": [
+    "https://www.sopact.com/use-case/open-ended-questions-in-surveys",
+    "https://www.surveymonkey.com/learn/survey-best-practices/comparing-closed-ended-and-open-ended-questions/",
+    "https://www.surveylegend.com/types-of-survey-questions/how-to-get-people-to-answer-open-ended-survey-questions/",
+    "https://get.tattleapp.com/blog/when-it-comes-to-guest-surveys-restaurants-are-asking-the-wrong-questions/",
+    "https://www.restaurantnews.com/tattle-unveils-upcoming-ai-coach-to-turn-guest-feedback-into-immediate-action-items-for-restaurants-121124/",
+    "https://caplena.com/en/blog/using-open-ends-for-better-insights"
+   ],
+   "limites": [
+    "Não encontrei estudo primário com amostra que quantifique o ganho de resposta pela ancoragem condicional da aberta. É boa prática documentada, não número medido.",
+    "O 18% de não resposta em aberta é citado por fonte secundária sem link para o estudo original.",
+    "Nenhuma das ferramentas publica como exatamente o classificador delas funciona (taxonomia, acurácia, revisão humana). DESCONHECIDO.",
+    "Não há dado específico de restaurante presencial sobre abertas. Tudo é de pesquisa genérica."
+   ],
+   "risco": "Depender do texto aberto como fonte principal de diagnóstico. Com 50 a 200 respostas por mês e cerca de 18% de não resposta na aberta, sobram poucas dezenas de textos por mês, muitos deles \"tudo ótimo\". É exatamente disso que nasce o relatório raso que o cliente reclama.",
+   "alternativa": "Áudio ou voz em vez de texto digitado, que reduz o esforço de resposta e depois é transcrito e classificado. Não encontrei nenhuma das ferramentas líderes de restaurante publicando isso como recurso, então é território não validado."
+  },
+  {
+   "tema": "7. Mecânica de recuperação de cliente insatisfeito (service recovery): tempo de alerta, quem alerta, o que se oferece, e efeito medido",
+   "conclusao": "O padrão de mercado é claro no QUE fazer e muito mal documentado no QUANTO isso rende, e é importante ser honesto com o cliente sobre essa assimetria. O que é padrão publicado: alerta em tempo real disparado no momento da resposta negativa, direto para o gerente ou dono, com possibilidade de contato imediato com o hóspede pelo próprio canal da pesquisa. A Ovation chama isso de \"Real-time Guest Recovery\", promete \"Resolve guest issues instantly through direct communication\" e diz que o time responde \"in just two clicks\". Os números que a Ovation publica na home são de resultado agregado de clientes, não de mecânica: \"1,029 customers saved\", \"506 reviews per month (up 83%)\", um caso Dave's Hot Chicken com \"87% increase in online review volume\" e \"average online rating of 4.6 — up 0.5 stars with Ovation\". O TEMPO EXATO de alerta não é publicado por nenhuma das ferramentas que eu li: Ovation, Tattle e Yumpingo falam de tempo real e de durante o turno, mas não publicam SLA em minutos. Isso é NAO PUBLICO. Sobre o efeito medido no retorno do cliente, e aqui está o alerta mais importante deste tópico: os números que aparecem em busca (resposta em menos de 2 horas gerando 15% a 20% mais recuperação; 95% dos clientes dando segunda chance; benchmark da National Restaurant Association de menos de 4 horas para review negativo) vêm de blogs de fornecedores de automação sem estudo, sem amostra e sem link para fonte primária. Eu NÃO consegui verificar nenhum deles e NÃO recomendo usar no relatório. O que a literatura acadêmica realmente diz é mais sóbrio: o paradoxo da recuperação de serviço tem resultados mistos, e a conclusão recorrente é que na maioria dos cenários a satisfação pós-recuperação não fica significativamente ABAIXO da pré-falha, o que significa que a recuperação é indispensável para não perder o cliente, mas não deve ser tratada como oportunidade de encantar. Recomendação de mecânica para a QT, aproveitando que ela é uma pizzaria de UM salão só no jantar: o alerta deve chegar ENQUANTO O CLIENTE AINDA ESTÁ NA MESA, o que é o único ativo competitivo real que ela tem contra as ferramentas grandes. Nota baixa no tablet dispara notificação no celular do gerente de salão com número da mesa, e a recuperação é presencial em segundos, não por SMS em horas. O que se oferece é o padrão do setor: reconhecimento, desculpa nominal, correção do item na hora, e cortesia (sobremesa ou couvert) quando a falha for de execução. Não oferecer desconto em troca de mudar avaliação, o que é proibido pelo Google e cai no tópico 8.",
+   "viabilidade": "viavel",
+   "custo": "GRATIS para o mecanismo de alerta (push ou WhatsApp para o próprio celular do gerente). O custo real é a cortesia oferecida, que é DESCONHECIDO aqui porque depende da política que a QT definir e do CMV de cada item.",
+   "confianca": "alta apenas para o que a Ovation publica na própria página (recursos e números autodeclarados). Baixa para todos os números de efeito sobre retorno do cliente, que não consegui verificar em fonte primária. Média para a conclusão acadêmica sobre o paradoxo da recuperação.",
+   "fontes": [
+    "https://ovationup.com/",
+    "https://ovationup.com/platform/feedback/",
+    "https://www.researchgate.net/publication/247523658_Mixed_Findings_on_the_Service_Recovery_Paradox",
+    "https://www.comops.com/hubfs/Our%20Insights/service-recovery-paradox.pdf?hsLang=en",
+    "https://www.academia.edu/117337460/Recovery_Strategies_for_Service_Failure_and_Customers_Return_Intention_in_Classified_Restaurants"
+   ],
+   "limites": [
+    "SLA de alerta em minutos das ferramentas líderes: NAO PUBLICO. Nenhuma das páginas oficiais que eu li publica isso.",
+    "Efeito medido sobre retorno do cliente após recuperação em restaurante: DESCONHECIDO com fonte confiável. Os percentuais que circulam (15% a 20%, 95%) não foram verificados e não devem ser usados.",
+    "O benchmark atribuído ao \"National Restaurant Association 2025 Digital Guest Experience Report\" apareceu apenas em resumo de busca e eu NÃO consegui abrir o relatório. Trate como não verificado.",
+    "Os números da Ovation (1.029 clientes salvos, 506 reviews por mês) são de clientes específicos deles, sem base nem período, e não são generalizáveis para uma pizzaria de 20 mesas por dia."
+   ],
+   "risco": "Vender para o cliente uma promessa de retorno quantificada (\"recupera 70% dos insatisfeitos\") apoiada em número de blog. Além de ser invenção, é a promessa mais fácil de o cliente cobrar e não ver.",
+   "alternativa": "Em vez de prometer efeito, MEDIR o efeito na própria operação: registrar cada recuperação (data, mesa, motivo, ação, quem atendeu) e cruzar depois com retorno do cliente identificado. Com 6 a 12 meses a QT terá o próprio número, que vale mais que qualquer benchmark."
+  },
+  {
+   "tema": "8. Pedido de avaliação pública no Google após nota alta, e onde exatamente está a linha do review gating",
+   "conclusao": "A LINHA É O CONDICIONAMENTO. Não é o convite, não é o QR Code, não é a pesquisa interna: é fazer o convite ao Google DEPENDER da nota. A política de conteúdo do Google diz textualmente que o comerciante não deve \"Discourage or prohibit negative reviews, or selectively solicit positive reviews from customers\". Essa é a frase exata e é o centro de tudo. A mesma política também proíbe \"require or pressure users to leave ratings or write reviews while on the premises\", o que é relevante para a QT porque ela quer pedir avaliação no salão com tablet: convidar é permitido, PRESSIONAR ou exigir dentro do estabelecimento não é. E a política diz o que É permitido, também textualmente: \"Solicit or encourage the posting of content that does represent a genuine experience, without offering incentives\". No lado do Google Business Profile, a página oficial confirma que se pode \"ask customers to visit a Google link or scan a QR code\" e proíbe incentivo: \"Offering incentives, like free or discounted goods or services, in exchange for customers to post reviews, change reviews, or remove negative reviews is considered fake & misleading content and is strictly prohibited\". Traduzindo para desenho de produto, o que é PERMITIDO: (1) pesquisa interna com todas as perguntas que quiser; (2) alerta e recuperação privada do insatisfeito; (3) convite ao Google exibido para TODOS os respondentes, com o mesmo texto e a mesma proeminência, independente da nota. O que é PROIBIDO e caracteriza review gating: (1) mostrar o link do Google só para quem deu nota alta; (2) desviar quem deu nota baixa para um formulário interno EM VEZ DE oferecer o mesmo caminho público; (3) usar a nota como filtro, mesmo que implícito, por exemplo botão do Google maior ou primeiro só para promotor; (4) oferecer sobremesa, desconto ou brinde em troca da avaliação. O risco de execução mudou de patamar e isso precisa estar no relatório: relatos de 2025 indicam que o Google passou a atacar as próprias ferramentas que facilitam gating, e que a penalidade pode ser a remoção de TODAS as avaliações do perfil, não só as viciadas. No lado americano há um agravante que serve de precedente concreto: a FTC multou a Fashion Nova em US$ 4,2 milhões em 2022 porque a empresa suprimiu avaliações abaixo de 4 estrelas por cerca de 4 anos e afirmou que as avaliações exibidas refletiam a visão de todos os compradores. Foi o primeiro caso da FTC sobre ocultação de avaliações negativas. Já a regra final da FTC de 2024 (16 CFR Part 465) NÃO proíbe gating de forma explícita: ela proíbe review falsa, incentivo condicionado a sentimento específico, review de insider sem divulgação, e supressão via \"unfounded or groundless legal threats, physical threats, intimidation, or certain false public accusations\". Portanto, para a QT: o risco real de gating é a política do Google e a remoção das avaliações, não a FTC. DESENHO CORRETO PARA A QT: uma tela final igual para todos, com o texto \"Se quiser, deixe sua avaliação no Google\" e o botão, exibida em 100% das respostas, incluindo as notas baixas, e o alerta interno de recuperação disparando em paralelo sem alterar aquela tela. Isso entrega o mesmo resultado prático que o gating (quem está satisfeito é que clica) sem violar nada, porque a seleção passa a ser do CLIENTE e não do sistema.",
+   "viabilidade": "viavel",
+   "custo": "GRATIS",
+   "confianca": "alta. Li a política oficial de conteúdo do Google e a página oficial do Google Business Profile, e li o release oficial da FTC sobre a regra final e o caso Fashion Nova.",
+   "fontes": [
+    "https://support.google.com/contributionpolicy/answer/7400114",
+    "https://support.google.com/business/answer/3474122",
+    "https://www.ftc.gov/news-events/news/press-releases/2024/08/federal-trade-commission-announces-final-rule-banning-fake-reviews-testimonials",
+    "https://www.ftc.gov/news-events/news/press-releases/2022/01/fashion-nova-will-pay-42-million-part-settlement-ftc-allegations-it-blocked-negative-reviews",
+    "https://www.soci.ai/knowledge-articles/review-gating/",
+    "https://birdeye.com/blog/google-review-policy/"
+   ],
+   "limites": [
+    "A afirmação de que o Google passou a punir com remoção de TODAS as avaliações e a atacar as ferramentas que facilitam gating vem de blogs de fornecedores de reputação (SOCi, Birdeye, Wiserreview), NÃO da página oficial do Google. Trate a mecânica de punição como média confiança; a proibição em si é alta confiança porque está na política oficial.",
+    "A FTC é jurisdição americana. Não pesquisei nesta sessão o equivalente brasileiro (CDC, CONAR, Lei de Defesa do Consumidor) para gating de avaliação. Isso é uma LACUNA e deveria ser levantada antes de o produto ir ao ar no Brasil.",
+    "A página do Google Business Profile que eu li não repetiu a proibição de solicitação seletiva; ela está na política de conteúdo contribuído. As duas páginas precisam ser lidas juntas."
+   ],
+   "risco": "CRÍTICO. Se a QT construir a ferramenta com a lógica \"nota 9 ou 10 vai para o Google, nota 0 a 6 vai para o formulário interno\", que é o desenho mais comum e mais intuitivo, ela está construindo exatamente a violação nomeada pelo Google, e o risco é perder o histórico inteiro de avaliações do perfil da pizzaria. Para um restaurante de um salão só, o perfil do Google é ativo de aquisição principal. Esse é o item de maior risco de todo o projeto.",
+   "alternativa": "Convite ao Google desacoplado da pesquisa: QR Code fixo na conta ou no balcão apontando direto para o Google, sem passar pela pesquisa nem pela nota. Zero risco de gating porque não existe nota no caminho. O custo é perder o timing do momento de satisfação."
+  },
+  {
+   "tema": "9. Indicadores que geram ação em operação de restaurante versus indicadores de vaidade",
+   "conclusao": "O diagnóstico do cliente está correto e tem nome. A definição clássica é de Eric Ries: métricas de vaidade são \"good for feeling awesome, but bad for action\", enquanto métricas acionáveis são as que o time usa para decidir. Em pesquisa de restaurante, os indicadores de VAIDADE são: NPS agregado do mês sem corte, média geral de estrelas, total de respostas coletadas, \"satisfação geral 4,3\", e gráfico de tendência de nota geral. Todos têm a mesma falha estrutural: são médias sobre populações misturadas, então nunca apontam para uma ação nem para um responsável. Os indicadores ACIONÁVEIS seguem três regras que dão para extrair do desenho das ferramentas líderes: (1) precisam ter um SUJEITO (turno, garçom, dia da semana, prato, mesa), (2) precisam ter um FATOR causal e não uma categoria vaga, e (3) precisam vir em CONTAGEM ABSOLUTA e não só em percentual, porque com 50 a 200 respostas por mês percentual sozinho engana. A Tattle é a que materializa isso melhor: coleta \"55+ data points per survey\" justamente para poder decompor categoria em fator no nível da loja, e anunciou um \"AI Coach\" para virar isso em \"immediate action items\". Do lado da gestão diária, a Restaurant365 recomenda monitorar um conjunto PEQUENO de métricas de alto sinal por dia, incluindo feedback do hóspede junto com vendas e mão de obra, e destaca que métrica de turno revela como cada período executa contra o esperado. Lista concreta que eu recomendo para o relatório da QT, para substituir o relatório raso atual: CONTAGEM de detratores por turno e por dia da semana (não percentual), com número absoluto e comparação com a semana anterior; FREQUÊNCIA de cada fator (temperatura da pizza, tempo até a pizza, erro de pedido, limpeza do banheiro) com contagem e delta; NOTA POR PRATO com n mínimo declarado ao lado; TEMPO ATÉ O PRIMEIRO CONTATO DE RECUPERAÇÃO em minutos, por incidente; TAXA DE RECUPERAÇÃO (insatisfeitos contatados dividido por insatisfeitos detectados); NOTA POR GARÇOM com n mínimo, para conversa de desenvolvimento e não para punição; DISTRIBUIÇÃO da nota (quantos 1 e 2, quantos 5) em vez da média, porque em 22 mesas a média esconde os dois clientes que vão para o Google; e VOLUME DE RESPOSTA POR CANAL para saber se o problema é a operação ou é a coleta. Regra de ouro para o relatório: toda linha do relatório precisa terminar em uma frase que um gerente possa executar no próximo turno. Se não termina, é vaidade.",
+   "viabilidade": "viavel",
+   "custo": "GRATIS",
+   "confianca": "média. A distinção vaidade versus acionável é conceito consolidado com fonte primária (Ries). A lista específica de 8 indicadores para a QT é síntese minha a partir do desenho da Tattle e das recomendações de gestão diária da Restaurant365, e não é uma lista canônica publicada por nenhum fornecedor.",
+   "fontes": [
+    "https://tim.blog/2009/05/19/vanity-metrics-vs-actionable-metrics/",
+    "https://get.tattleapp.com/features/feedback-collection/",
+    "https://get.tattleapp.com/blog/when-it-comes-to-guest-surveys-restaurants-are-asking-the-wrong-questions/",
+    "https://www.restaurant365.com/blog/7-operations-metrics-every-restaurant-should-monitor-daily/",
+    "https://www.restaurant365.com/blog/the-definitive-playbook-for-smb-operators-monitoring-daily-restaurant-performance/",
+    "https://www.nowbookit.com/en-us/tools-and-tips/restaurant-metrics-that-matter-daily-kpis-every-owner-should-monitor/"
+   ],
+   "limites": [
+    "Não existe lista canônica publicada de \"indicadores acionáveis de pesquisa de satisfação em restaurante\". A minha lista é derivada, não copiada de um padrão de mercado documentado.",
+    "Nenhuma fonte quantifica o ganho de decisão ao trocar métrica de vaidade por acionável em restaurante. DESCONHECIDO.",
+    "Com 50 a 200 respostas por mês, vários desses cortes (nota por garçom, nota por prato) terão n muito baixo. Isso é limite estatístico real e o relatório precisa mostrar o n ao lado de cada número, senão o indicador acionável se torna um indicador enganoso, que é pior que vaidade."
+   ],
+   "risco": "Trocar um relatório raso por um relatório denso mas estatisticamente inválido. Com 20 mesas por dia e 6 dias por semana, cortar por garçom E por dia da semana E por prato ao mesmo tempo produz células com 1 ou 2 respostas. Sem n visível e sem faixa de incerteza, o dono vai demitir garçom por ruído.",
+   "alternativa": "Relatório em duas camadas: camada de turno (diária, contagem absoluta, sem estatística, só \"o que aconteceu ontem e o que fazer hoje\") e camada de tendência (mensal ou trimestral, com n mínimo e comparação). Isso resolve o problema de volume sem abrir mão de profundidade."
+  },
+  {
+   "tema": "10. Engenharia de cardápio cruzando satisfação com margem: existe ferramenta que faz isso hoje?",
+   "conclusao": "Resposta curta e importante: existe ferramenta que mede satisfação NO NÍVEL DO PRATO, e existe ferramenta que faz engenharia de cardápio por margem e popularidade, mas eu NÃO ENCONTREI nenhum fornecedor que publique um produto cruzando nota do cliente COM margem de contribuição no mesmo quadrante. Essa é uma lacuna real de mercado e é provavelmente a maior oportunidade de diferenciação do projeto da QT. O que existe hoje: a matriz clássica é de Michael Kasavana e Donald Smith, Michigan State University, 1982, com dois eixos, margem de contribuição e popularidade, gerando quatro quadrantes: Stars (popular e rentável), Puzzles (rentável e impopular), Plow Horses (popular e pouco rentável) e Dogs (nem popular nem rentável). Do lado da satisfação por prato, a Yumpingo é a referência mundial: ela pede ao cliente para avaliar CADA prato consumido em vez de a refeição como um todo, e consolida isso num Food Score com Overall Recommendation valendo 60% e Look, Taste, Portion e Value valendo 10% cada, com respostas positivas ou negativas e leitura por semáforo (acima de 90 verde, 80 a 89 âmbar, abaixo de 79 vermelho). A Tattle também lançou feedback e analytics no nível do item de menu. Mas nenhuma das duas publica cruzamento com CMV ou margem. Como combinar, concretamente, para a QT: manter a matriz 2x2 de Kasavana-Smith no eixo X e Y (margem de contribuição em reais por item no eixo vertical, unidades vendidas no horizontal) e usar a NOTA DO CLIENTE como terceira dimensão visual (cor do ponto, ou tamanho). Isso transforma quatro quadrantes em oito decisões, e as regras de ação ficam assim: PUZZLE com nota alta significa produto bom que ninguém pede, então a ação é comunicação (reposicionar no cardápio, treinar sugestão do garçom, foto); PUZZLE com nota baixa significa produto ruim e caro de vender, então tira ou reformula a ficha técnica; PLOW HORSE com nota alta é o clássico item âncora, e a ação é engenharia de custo na ficha técnica ou aumento cirúrgico de preço, nunca mexer na receita; PLOW HORSE com nota baixa é o pior caso escondido, porque vende muito e decepciona muito, e é o principal gerador de review negativo, então é prioridade número um de reformulação; DOG com nota baixa sai do cardápio; DOG com nota alta é candidato a virar sazonal ou item de assinatura; STAR com nota CAINDO é alerta de consistência de produção, e é o indicador mais valioso de todos porque pega desvio de execução antes de virar queda de venda. Para uma pizzaria com cardápio curto como a QT (Margherita, Pomodori, Burrata, Carbonara, Rúcola, Caprese, mais entradas e sobremesas), isso é totalmente viável e a QT já tem a metade difícil pronta, que é ficha técnica e CMV.",
+   "viabilidade": "viavel com ressalva",
+   "custo": "GRATIS",
+   "confianca": "alta para a matriz Kasavana-Smith de 1982 e para os pesos e as faixas do Food Score da Yumpingo (li a base de conhecimento oficial). Alta para o fato de a Tattle ter lançado feedback no nível do item. Média para a afirmação de que nenhum fornecedor cruza satisfação com margem, porque é ausência de evidência: eu não achei, mas não posso provar que não existe. Baixa para as regras de ação dos oito casos, que são derivação minha e não padrão publicado.",
+   "fontes": [
+    "https://support.yumpingo.com/support/solutions/articles/35000220945-yumpingo-food-score",
+    "https://yumpingo.com/product/customer-experience-management",
+    "https://www.restaurantmagazine.com/tattle-continues-innovation-with-upgraded-menu-item-level-feedback-and-analytics-dashboard/",
+    "https://www.getmeez.com/blog/menu-engineering-matrix",
+    "https://www.researchgate.net/figure/Menu-Engineering-Model-Kasavana-and-Smith-1982_fig2_332591712",
+    "https://www.foodics.com/menu-engineering-matrix-for-restaurants/"
+   ],
+   "limites": [
+    "Não achei fornecedor que publique cruzamento de satisfação com margem. Isso é DESCONHECIDO, não é \"não existe\".",
+    "A Yumpingo não publica o texto das perguntas por prato nem o mínimo de respostas que ela exige por item antes de mostrar um Food Score. Esse limiar é a informação mais importante que falta e está NAO PUBLICO.",
+    "Preço da Yumpingo, da Tattle e da Ovation: NAO PUBLICO. Todas exigem contato comercial.",
+    "LIMITE ESTATÍSTICO GRAVE PARA A QT: com 50 a 200 respostas por mês e um cardápio com mais de 15 itens, a nota por prato terá poucas respostas por item por mês. Nota por prato só será confiável em janela trimestral, ou se a pesquisa perguntar sobre o prato específico consumido (o que exige integração com o PDV Altec/Next para saber o que a mesa pediu)."
+   ],
+   "risco": "Decidir tirar prato do cardápio com base em nota de prato apoiada em 3 ou 4 respostas. A matriz fica bonita no relatório e a decisão fica errada. A margem já é dado censitário (vem do PDV), mas a nota é amostral e pequena, e misturar os dois eixos sem mostrar isso é o erro que mata o produto.",
+   "alternativa": "Se a integração com o Altec/Next para saber o que a mesa consumiu for difícil, uma alternativa mais barata é perguntar só \"qual pizza você comeu?\" na própria pesquisa (uma tela de seleção com as pizzas do cardápio) e cruzar isso com a margem que a QT já tem na ficha técnica. Perde precisão em pedidos de mesa compartilhada, mas remove a dependência de integração."
+  },
+  {
+   "tema": "11. Previsão de recompra e churn em restaurante: sinais usados e o que é possível com 20 mesas por dia",
+   "conclusao": "Os sinais que o mercado usa são RFM: Recência (quando foi a última visita), Frequência (com que frequência vem) e Valor Monetário (quanto gasta por visita ou por mês), tipicamente com score de 1 a 5 em cada dimensão e combinação em perfis. A literatura é consistente em que RECÊNCIA é o preditor mais forte de churn, e o perfil típico do cliente que abandona é recência baixa, frequência consistentemente menor e valor menor. A camada de machine learning que aparece nos papers (LSTM, GRU, XGBoost, redes híbridas com clusterização) opera em bases de e-commerce com dezenas de milhares de clientes, e um dos papers reporta 99,5% de acurácia com GRU em conjuntos menores, mas \"menor\" nesse contexto ainda significa milhares de registros. Agora a resposta honesta para a QT: com 22 mesas, até 20 mesas atendidas por dia, 6 dias por semana, dá cerca de 500 a 520 mesas por mês, e apenas 50 a 200 respostas de pesquisa por mês. NÃO É VIÁVEL treinar modelo supervisionado de churn nesse volume. Qualquer coisa nesse sentido vai overfitar e produzir número bonito e falso. O QUE É VIÁVEL e entrega valor real: (1) RFM por regra, com a recência calibrada pelo intervalo mediano OBSERVADO entre visitas da própria base, e não por uma janela arbitrária de 90 dias copiada de varejo; (2) sinal composto de risco, que é o cruzamento mais valioso e o que quase ninguém faz: cliente identificado que foi DETRATOR e reclamou de fator crítico e NÃO voltou dentro do intervalo mediano dele; (3) coorte simples de retorno, medindo qual percentual dos clientes de cada mês voltou em 30, 60 e 90 dias, o que com 500 mesas por mês já dá base suficiente para ler tendência; (4) taxa de retorno de recuperados versus não recuperados, que é o único jeito de a QT ter o próprio número do tópico 7. O BLOQUEIO REAL, e ele é mais importante que qualquer modelo: sem identificador do cliente, nada disso funciona. Mesa não é cliente. É preciso capturar telefone ou WhatsApp na pesquisa (opcional, com consentimento LGPD) ou puxar identificador do PDV Altec/Next. Sem isso, tudo que a QT consegue medir é satisfação agregada, e recompra e churro ficam impossíveis, não difíceis.",
+   "viabilidade": "dificil",
+   "custo": "GRATIS para RFM por regra e coortes (é SQL sobre a base que já existe). Modelo de ML: inviável por volume, não por custo.",
+   "confianca": "média. Os sinais RFM e a primazia da recência estão consolidados na literatura que consultei via busca, mas eu não li os papers primários completos, só resumos e abstracts. Alta apenas para a conclusão de inviabilidade de ML no volume da QT, que é inferência direta e segura a partir do tamanho de amostra.",
+   "fontes": [
+    "https://www.rockstardata.ai/en/rfm-segmentation-in-restaurants/",
+    "https://link.springer.com/article/10.1007/s10479-023-05259-9",
+    "https://www.nature.com/articles/s41598-026-53220-0",
+    "https://www.sciencedirect.com/science/article/abs/pii/S0957417425020846",
+    "https://support.sas.com/resources/papers/proceedings17/1131-2017.pdf"
+   ],
+   "limites": [
+    "Não li nenhum paper primário completo. As afirmações sobre poder preditivo da recência e sobre acurácia de GRU vêm de resumos de busca e abstracts.",
+    "Nenhuma das fontes é de restaurante presencial independente de pequeno porte. Todas são e-commerce ou varejo com volume alto.",
+    "Não encontrei nenhuma ferramenta de guest experience de restaurante que publique como faz previsão de churno. A Ovation fala de Retention Marketing como tier de produto, mas o método é NAO PUBLICO.",
+    "Não pesquisei os requisitos de LGPD para captura e retenção de telefone de cliente em pesquisa. Isso é LACUNA e precisa ser levantado antes de coletar identificador.",
+    "Taxa de identificação do cliente na pesquisa (quantos por cento aceitam dar o telefone): DESCONHECIDO. Isso muda tudo no volume final utilizável e precisa ser medido em piloto."
+   ],
+   "risco": "Prometer previsão de churno com IA em cima de 50 a 200 respostas por mês. É a promessa mais fácil de vender e a mais garantida de não funcionar. Um modelo treinado nesse volume vai gerar listas de \"clientes em risco\" que são ruído puro, e o dono vai gastar cortesia em cliente que ia voltar de qualquer jeito.",
+   "alternativa": "Trocar previsão por DETECÇÃO. Em vez de prever quem vai sair, sinalizar quem JÁ saiu do padrão dele (passou do intervalo mediano de visita e tinha frequência estabelecida). Não precisa de modelo, funciona com 500 mesas por mês, e a ação é a mesma."
+  },
+  {
+   "tema": "12. Design de tela de pesquisa em tablet: toque, contraste, tempo de tela, timeout e reinício automático",
+   "conclusao": "Aqui o padrão vem de norma, não de fornecedor, e isso é bom porque é verificável. TAMANHO DE TOQUE: o WCAG 2.2, critério 2.5.8 Target Size (Minimum), Nível AA, exige que \"The size of the target for pointer inputs is at least 24 by 24 CSS pixels\". O critério 2.5.5 Target Size (Enhanced), Nível AAA, sobe para \"at least 44 by 44 CSS pixels\". Para tablet em salão de restaurante, com cliente em pé ou sentado de lado, com celular na outra mão e possivelmente com taça na mesa, o certo é mirar o AAA de 44 por 44 CSS pixels como MÍNIMO e usar alvos bem maiores nas telas de nota (os 5 emojis ou as 5 estrelas devem ocupar a largura útil da tela, com 60 a 80 pixels de lado cada um e espaçamento generoso). A justificativa está no próprio documento do WCAG: \"A finger is larger than a mouse pointer, and generally obstructs the user's view of the precise location on the screen that is being touched/activated\". CONTRASTE: o parâmetro de referência é o WCAG 1.4.3 Contrast (Minimum), com 4,5:1 para texto normal e 3:1 para texto grande, e em ambiente de jantar com luz baixa (que é o caso da QT, aberta só no jantar) vale sobrecumprir, porque brilho de tela alto em ambiente escuro cansa e reduz conversão. TEMPO DE TELA E TIMEOUT: o padrão de mercado em quiosque é timeout de inatividade entre 30 e 90 segundos, com recomendação mais comum de 30 a 60 segundos, sempre com contagem visível e opção de cancelar, no formato \"esta tela será reiniciada em 30 segundos\", nunca expirando de surpresa. No timeout o dispositivo deve voltar para a tela inicial E LIMPAR os dados da sessão, e o fluxo deve entrar em loop automático após a conclusão para o próximo cliente. Transição entre telas abaixo de 2 segundos. Referências de mercado indicam que respondente presencial dá de 15 a 30 segundos de atenção, o que é coerente com o desenho de 3 a 5 telas do tópico 1. RECOMENDAÇÕES ESPECÍFICAS PARA A QT: (1) modo quiosque de verdade no sistema operacional do tablet, para o cliente não conseguir sair do app nem acessar dados de outra mesa; (2) timeout de 45 segundos com contagem visível a partir dos 15 segundos finais; (3) tela de agradecimento com auto-reset em 8 a 10 segundos, para o garçom não precisar tocar no tablet entre mesas; (4) offline first com fila local de envio, porque WiFi de salão cai e perder resposta é perder amostra que já é pequena; (5) uma pergunta por tela, sem rolagem, porque rolagem em pesquisa de quiosque é onde o abandono acontece; (6) modo escuro como padrão, por causa do jantar; (7) nenhum campo de teclado no caminho obrigatório, deixando teclado só para a aberta opcional e para o telefone opcional.",
+   "viabilidade": "viavel",
+   "custo": "GRATIS para o desenho. Hardware de tablet: DESCONHECIDO, não pesquisei modelo nem preço nesta sessão.",
+   "confianca": "alta para os critérios do WCAG 2.5.8 e 2.5.5, que li nas páginas oficiais do W3C com o texto normativo. Média para o contraste 4,5:1, que é conhecimento do WCAG 1.4.3 mas cuja página eu NÃO abri nesta sessão. Média para o timeout de 30 a 90 segundos, que vem de fontes de indústria de quiosque e de fornecedores, não de norma. Baixa para os 15 a 30 segundos de atenção do respondente presencial, que vem de resumo de busca sem estudo.",
+   "fontes": [
+    "https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html",
+    "https://www.w3.org/WAI/WCAG22/Understanding/target-size-enhanced.html",
+    "https://kioskindustry.org/kiosk-ux-ui-how-to-design-checklist/",
+    "https://www.kioskmarketplace.com/blogs/kiosk-idle-timeout-what-happens-when-they-walk-away/",
+    "https://www.zonkafeedback.com/survey-app-features/customer-feedback-survey-kiosk",
+    "https://support.kioskgroup.com/article/991-idle-time-limit"
+   ],
+   "limites": [
+    "Apple Human Interface Guidelines: NÃO CONSEGUI LER. As páginas de Layout e de Accessibility do developer.apple.com retornaram só o título porque o conteúdo é renderizado por JavaScript. O valor de 44 por 44 pontos da Apple é amplamente conhecido, mas eu NÃO o verifiquei em fonte oficial nesta sessão e por isso não o cito como citação oficial. Use o WCAG 2.5.5 (44 por 44 CSS pixels) que eu verifiquei de fato.",
+    "Material Design 3: NÃO CONSEGUI LER pelo mesmo motivo. O valor de 48dp é DESCONHECIDO como citação verificada aqui.",
+    "Documentação oficial de quiosque da Delighted (help.delighted.com): retornou HTTP 410 Gone. O comportamento oficial de timeout e reset dela é DESCONHECIDO.",
+    "O timeout de 30 a 90 segundos não é norma. É convenção de indústria de quiosque, e nenhuma fonte publica teste A/B com número de conversão por duração de timeout.",
+    "O WCAG foi escrito para web em geral, não para quiosque de restaurante em ambiente de luz baixa. Aplicar o AAA em vez do AA é decisão minha, não exigência."
+   ],
+   "risco": "Desenhar o tablet como se fosse um site em desktop: alvos pequenos, rolagem, múltiplas perguntas por tela, sem timeout. Cada um desses itens derruba conversão, e a QT não tem margem de amostra para perder conversão.",
+   "alternativa": "Em vez de tablet dedicado, PWA no celular do cliente via QR Code, o que elimina custo de hardware, elimina o problema de higiene do dispositivo compartilhado, elimina timeout e reset, e resolve a identificação do cliente com mais facilidade. O custo é conversão mais baixa (mediana mobile de 18,69% contra a família ponto de pagamento de 27% a 84%) e perda da recuperação com o cliente ainda na mesa."
+  }
+ ],
+ "fontes": [
+  "https://survicate.com/blog/how-many-questions-should-surveys-have/",
+  "https://trurating.com/blog/response-rate-for-customer-satisfaction-surveys/",
+  "https://trurating.com/",
+  "https://ovationup.com/",
+  "https://ovationup.com/platform/feedback/",
+  "https://get.tattleapp.com/features/feedback-collection/",
+  "https://get.tattleapp.com/blog/when-it-comes-to-guest-surveys-restaurants-are-asking-the-wrong-questions/",
+  "https://www.restaurantmagazine.com/tattle-continues-innovation-with-upgraded-menu-item-level-feedback-and-analytics-dashboard/",
+  "https://www.restaurantnews.com/tattle-unveils-upcoming-ai-coach-to-turn-guest-feedback-into-immediate-action-items-for-restaurants-121124/",
+  "https://support.yumpingo.com/support/solutions/articles/35000220945-yumpingo-food-score",
+  "https://yumpingo.com/product/customer-experience-management",
+  "https://measuringu.com/nps-order/",
+  "https://theacsi.com/news-and-resources/press-releases/2025/06/17/press-release-restaurant-and-food-delivery-study-2025/",
+  "https://npsbench.com/blog/benchmark/restaurant-nps-benchmark-2025",
+  "https://www.retently.com/blog/good-net-promoter-score/",
+  "https://goomer.com.br/blog/net-promoter-score-restaurantes",
+  "https://www.risposta.app/guia-completo-nps-net-promoter-score-em-bares-e-restaurantes/",
+  "https://blog.opinionbox.com/pesquisa-nps-como-fazer/",
+  "https://support.google.com/contributionpolicy/answer/7400114",
+  "https://support.google.com/business/answer/3474122",
+  "https://www.ftc.gov/news-events/news/press-releases/2024/08/federal-trade-commission-announces-final-rule-banning-fake-reviews-testimonials",
+  "https://www.ftc.gov/news-events/news/press-releases/2022/01/fashion-nova-will-pay-42-million-part-settlement-ftc-allegations-it-blocked-negative-reviews",
+  "https://www.soci.ai/knowledge-articles/review-gating/",
+  "https://birdeye.com/blog/google-review-policy/",
+  "https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html",
+  "https://www.w3.org/WAI/WCAG22/Understanding/target-size-enhanced.html",
+  "https://kioskindustry.org/kiosk-ux-ui-how-to-design-checklist/",
+  "https://www.kioskmarketplace.com/blogs/kiosk-idle-timeout-what-happens-when-they-walk-away/",
+  "https://support.kioskgroup.com/article/991-idle-time-limit",
+  "https://www.zonkafeedback.com/survey-app-features/customer-feedback-survey-kiosk",
+  "https://tim.blog/2009/05/19/vanity-metrics-vs-actionable-metrics/",
+  "https://www.restaurant365.com/blog/7-operations-metrics-every-restaurant-should-monitor-daily/",
+  "https://www.restaurant365.com/blog/the-definitive-playbook-for-smb-operators-monitoring-daily-restaurant-performance/",
+  "https://www.nowbookit.com/en-us/tools-and-tips/restaurant-metrics-that-matter-daily-kpis-every-owner-should-monitor/",
+  "https://www.getmeez.com/blog/menu-engineering-matrix",
+  "https://www.researchgate.net/figure/Menu-Engineering-Model-Kasavana-and-Smith-1982_fig2_332591712",
+  "https://www.foodics.com/menu-engineering-matrix-for-restaurants/",
+  "https://www.rockstardata.ai/en/rfm-segmentation-in-restaurants/",
+  "https://link.springer.com/article/10.1007/s10479-023-05259-9",
+  "https://www.nature.com/articles/s41598-026-53220-0",
+  "https://www.sciencedirect.com/science/article/abs/pii/S0957417425020846",
+  "https://support.sas.com/resources/papers/proceedings17/1131-2017.pdf",
+  "https://www.researchgate.net/publication/247523658_Mixed_Findings_on_the_Service_Recovery_Paradox",
+  "https://www.comops.com/hubfs/Our%20Insights/service-recovery-paradox.pdf?hsLang=en",
+  "https://www.academia.edu/117337460/Recovery_Strategies_for_Service_Failure_and_Customers_Return_Intention_in_Classified_Restaurants",
+  "https://www.sopact.com/use-case/open-ended-questions-in-surveys",
+  "https://www.surveymonkey.com/learn/survey-best-practices/comparing-closed-ended-and-open-ended-questions/",
+  "https://www.surveylegend.com/types-of-survey-questions/how-to-get-people-to-answer-open-ended-survey-questions/",
+  "https://caplena.com/en/blog/using-open-ends-for-better-insights",
+  "https://www.smartsurvey.com/templates/surveys/hospitality/restaurant-satisfaction-survey-template",
+  "https://www.questionpro.com/survey-templates/fast-food-restaurant/",
+  "https://www.7shifts.com/blog/restaurant-survey/",
+  "https://www.zonkafeedback.com/blog/restaurant-survey-questions-for-guest-feedback"
+ ]
+}

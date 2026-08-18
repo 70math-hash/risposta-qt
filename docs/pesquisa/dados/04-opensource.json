@@ -1,0 +1,1262 @@
+{
+ "resumo": "Mapeei 27 alternativas entre software de código aberto, plataformas SaaS com plano grátis e infraestrutura de custo zero, lendo 26 páginas oficiais (preços, docs, licenças, limites de plataforma). Conclusão central: NENHUMA ferramenta de código aberto autohospedada da lista atinge custo de infraestrutura zero, porque todas exigem VPS com Docker/Postgres (Formbricks, LimeSurvey, Typebot, Metabase, Superset, Redash, NocoDB, Baserow, Appsmith, Budibase, n8n, Activepieces, Node-RED, Umami, PostHog, OpnForm). O custo apenas migra de licença para servidor, tipicamente US$5 a US$10/mês de VPS, ou seja R$30 a R$60/mês. O caminho verdadeiramente zero passa por camadas gratuitas de plataformas gerenciadas mais bibliotecas MIT dentro do próprio Next.js. Três achados decisivos: (1) o plano Vercel Hobby PROÍBE explicitamente uso comercial e limita cron a uma vez por dia com imprecisão de mais ou menos 59 minutos, o que o desqualifica para uma pizzaria; (2) Cloudflare Workers e Pages no plano grátis dão 100.000 requisições/dia, 5 cron triggers com precisão de minuto e D1 com 5 GB, sem cláusula anticomercial, e sem pausar por inatividade como o Supabase, que pausa projetos grátis após 1 semana; (3) o volume da QT (200 respostas/mês, ~36 MB em 10 anos) é três ordens de magnitude abaixo de qualquer camada gratuita, então a restrição real do projeto é tempo de desenvolvimento, nunca infraestrutura. Como atalhos de construção, os que realmente valem são SurveyJS Form Library (MIT, grátis, roda dentro do Next.js), Recharts ou Tremor para o dashboard, e Tally (respostas ILIMITADAS no plano grátis) como coletor externo via webhook se a prioridade for velocidade. Formbricks e LimeSurvey só valem se o cliente aceitar pagar VPS e assumir manutenção de Docker, banco e backup.",
+ "vendors": [
+  {
+   "nome": "Formbricks (Community Edition, autohospedado)",
+   "pais": "Alemanha (conhecimento geral, nao confirmado em pagina oficial nesta pesquisa)",
+   "site": "https://formbricks.com",
+   "descricao": "Plataforma de pesquisa e experience management de codigo aberto, alternativa ao Typeform e Qualtrics. Nucleo em AGPLv3, autohospedavel via Docker. Resolve COLETA e VISUALIZACAO no mesmo produto, com surveys por link, em site e in-app. E o candidato mais proximo de um substituto direto do Risposta em termos de escopo funcional.",
+   "features": [
+    "Nucleo licenciado em AGPLv3, codigo no GitHub, autohospedagem via Docker sem assinatura",
+    "Community Edition sem limite artificial de surveys, respostas ou usuarios",
+    "Surveys por link, em website e in-app (in-product)",
+    "Todos os tipos de pergunta e logica condicional disponiveis ate no plano gratuito da nuvem",
+    "Acesso a API em todos os planos",
+    "Setup one-click inclui Docker, PostgreSQL, Traefik como reverse proxy e RustFS como object storage embutido",
+    "Suporta object storage externo compativel com S3"
+   ],
+   "preco": "Autohospedado (Community Edition): US$ 0 de licenca. Nuvem: Hobby US$ 0 com 250 respostas/mes e 1 workspace; Pro US$ 74/mes com 2.000 respostas/mes e 3 workspaces; Scale US$ 325/mes com 5.000 respostas/mes e 5 workspaces. Faturamento anual da 2 meses gratis. Licenca Enterprise on-premise: preco NAO PUBLICO (apenas trial gratuito por solicitacao). Requisitos minimos de hardware do servidor: NAO PUBLICO na documentacao de self-hosting.",
+   "modelo_cobranca": "Licenca gratuita AGPLv3 para o nucleo autohospedado; assinatura mensal por faixa de respostas na nuvem; licenca Enterprise separada e paga para SSO, gestao de papeis e targeting avancado",
+   "publico_alvo": "Times de produto e CX que querem controle total dos dados; empresas com exigencia de residencia de dados",
+   "integracoes": [
+    "API REST em todos os planos",
+    "SDKs (a partir do plano Pro na nuvem)",
+    "Integracoes completas e follow-up por e-mail apenas a partir do Pro na nuvem",
+    "Docker e Docker Compose para deploy",
+    "Object storage compativel com S3"
+   ],
+   "canais_coleta": [
+    "Link de pesquisa (serve QR code impresso na mesa)",
+    "Pesquisa embutida em website",
+    "Pesquisa in-app via SDK"
+   ],
+   "diferencial": "Unico da lista que entrega coleta, logica condicional e dashboard de analise em um so pacote de codigo aberto, com AGPLv3 no nucleo e sem limite de respostas quando autohospedado. E o substituto funcional mais direto do Risposta.",
+   "fraquezas": [
+    "Nao existe caminho de custo zero: exige VPS com Docker, PostgreSQL, Traefik e object storage, tipicamente US$5 a US$10/mes",
+    "Documentacao de self-hosting nao publica requisitos minimos de RAM e CPU, o que dificulta dimensionar o VPS mais barato",
+    "Recursos de time (SSO, papeis, dashboards customizados, rotulagem por IA de topicos) ficam atras de licenca Enterprise paga",
+    "AGPLv3 obriga abrir modificacoes se o sistema for oferecido como servico em rede a terceiros",
+    "Manutencao recorrente: atualizacao de container, backup de Postgres, renovacao de certificado",
+    "Sem integracao nativa com PDV Altec/Next, seria necessario construir a ponte via API"
+   ],
+   "confianca": "alta",
+   "fontes": [
+    "https://formbricks.com/pricing",
+    "https://formbricks.com/docs/self-hosting/setup/one-click",
+    "https://formbricks.com/docs/self-hosting/advanced/license",
+    "https://github.com/formbricks/formbricks"
+   ]
+  },
+  {
+   "nome": "LimeSurvey Community Edition (CE)",
+   "pais": "Alemanha (conhecimento geral, nao confirmado em pagina oficial nesta pesquisa)",
+   "site": "https://community.limesurvey.org/",
+   "descricao": "Plataforma de pesquisa madura em PHP, distribuida sob GNU GPL v2 ou posterior. Resolve COLETA e traz analise basica de resultados. Muito poderosa em tipos de pergunta e logica, mas com interface datada e stack PHP/MySQL que nao encaixa em arquitetura serverless de custo zero.",
+   "features": [
+    "Licenciada sob GNU GPL v2.0 com opcao de qualquer versao GPL posterior",
+    "Uso, modificacao e distribuicao livres para fins comerciais, privados e educacionais; nome e logo sao marca registrada e ficam de fora",
+    "Download do software em varios formatos de arquivo para instalar em servidor proprio ou computador local",
+    "CE nao possui avisos de limite de respostas nem de armazenamento; a unica limitacao e o espaco alocado no servidor pessoal",
+    "Nuvem (LimeSurvey Cloud) possui limites de resposta e armazenamento no plano gratuito, com avisos de uso"
+   ],
+   "preco": "LimeSurvey CE: US$ 0 de licenca, totalmente gratuito sob GPL, mas exige servidor web proprio. ComfortUpdate (atualizacao assistida) e planos premium de CE que dao acesso a versoes antigas e templates de design: preco exato NAO PUBLICO na pagina do manual consultada. LimeSurvey Cloud: precos NAO PUBLICOS na pagina consultada.",
+   "modelo_cobranca": "Licenca gratuita GPL v2 para CE; assinatura paga para nuvem e para o add-on ComfortUpdate",
+   "publico_alvo": "Academia, institutos de pesquisa, orgaos publicos e empresas que precisam de tipos de pergunta e logica muito avancados",
+   "integracoes": [
+    "Instalacao em servidor LAMP proprio",
+    "Exportacao de dados em multiplos formatos",
+    "API disponivel (detalhes nao verificados nesta pesquisa)"
+   ],
+   "canais_coleta": [
+    "Link de pesquisa",
+    "Formulario embutido",
+    "E-mail com convites e tokens"
+   ],
+   "diferencial": "O motor de pesquisa mais completo em tipos de pergunta e logica entre os de codigo aberto, com licenca GPL v2 permissiva para uso comercial e mais de 20 anos de historico.",
+   "fraquezas": [
+    "Stack PHP e MySQL exige servidor tradicional, incompativel com custo zero em serverless",
+    "Interface e experiencia de resposta datadas para um cliente final de restaurante em celular",
+    "ComfortUpdate, o mecanismo de atualizacao confortavel, e pago mesmo na CE, e o preco nao esta publico na pagina consultada",
+    "Complexidade muito acima do necessario para uma pesquisa de 8 a 12 perguntas em mesa de pizzaria",
+    "Sem dashboard executivo moderno pronto; a analise nativa e relatorio estatistico, nao painel de gestao"
+   ],
+   "confianca": "alta",
+   "fontes": [
+    "https://community.limesurvey.org/licence-trademark/",
+    "https://www.limesurvey.org/manual/LimeSurvey_PRO_vs_LimeSurvey_CE",
+    "https://github.com/LimeSurvey/LimeSurvey"
+   ]
+  },
+  {
+   "nome": "SurveyJS (Form Library MIT + Creator/Dashboard proprietarios)",
+   "pais": "DESCONHECIDO (nao verificado nesta pesquisa)",
+   "site": "https://surveyjs.io",
+   "descricao": "Conjunto de bibliotecas JavaScript para formularios e pesquisas. A Form Library e MIT e gratuita, suporta React (logo Next.js), Angular, Vue 3 e JS puro. Resolve apenas a camada de COLETA no front-end; o construtor visual e o dashboard sao produtos proprietarios pagos por desenvolvedor. E o melhor atalho tecnico para quem vai construir em Next.js.",
+   "features": [
+    "Form Library sob licenca MIT, com liberdade de usar, modificar e distribuir sem restricao",
+    "Suporta React, Angular, Vue 3 e JavaScript puro",
+    "Formularios dinamicos, wizards multi-etapa e aplicacoes de pesquisa",
+    "Survey Creator (construtor visual), PDF Generator e Dashboard sao proprietarios e nao liberados para uso comercial gratuito",
+    "Licenca de desenvolvedor e compra unica que permite usar os componentes para sempre; os 12 primeiros meses de assinatura de manutencao vem inclusos",
+    "Licencas royalty-free: nao ha cobranca extra pela distribuicao do software que usa as bibliotecas"
+   ],
+   "preco": "Form Library: US$ 0 (MIT). Tier Essential: gratuito, inclui a Form Library com recursos basicos. Basic: US$ 569 por desenvolvedor (Form Library + Survey Creator), inclui updates e suporte por 12 meses, renovacao US$ 229/ano. PRO: US$ 1.029 por desenvolvedor (Form Library + Survey Creator + Dashboard + PDF Generator), renovacao US$ 409/ano. Enterprise: a partir de US$ 2.299, renovacao a partir de US$ 919/ano.",
+   "modelo_cobranca": "MIT gratuito para a Form Library; compra unica perpetua por desenvolvedor para os modulos proprietarios, com assinatura anual opcional de manutencao e suporte",
+   "publico_alvo": "Desenvolvedores que constroem produto proprio e precisam do motor de formulario sem reescrever renderizacao, validacao e logica condicional",
+   "integracoes": [
+    "React e Next.js",
+    "Angular",
+    "Vue 3",
+    "JavaScript puro",
+    "Definicao de pesquisa em JSON, facil de guardar em Postgres ou D1"
+   ],
+   "diferencial": "Para o cenario da QT, e o unico item da lista que se encaixa dentro do proprio Next.js sem adicionar um unico centavo de infraestrutura: a Form Library MIT renderiza a pesquisa e devolve JSON, e o dashboard voce faz com Recharts. Elimina 60 a 70 por cento do trabalho de front do formulario com custo zero.",
+   "fraquezas": [
+    "O construtor visual de pesquisa (Survey Creator) custa a partir de US$ 569 por desenvolvedor; sem ele, mudar perguntas exige editar JSON no codigo",
+    "O modulo Dashboard tambem e pago, entao a visualizacao precisa ser feita com biblioteca de grafico gratuita",
+    "Nao resolve backend, banco, autenticacao, envio de e-mail nem hospedagem",
+    "Nao e um produto pronto: exige desenvolvimento"
+   ],
+   "confianca": "alta",
+   "fontes": [
+    "https://surveyjs.io/pricing",
+    "https://github.com/surveyjs/survey-library/blob/master/LICENSE",
+    "https://surveyjs.io/licensing",
+    "https://surveyjs.io/form-library"
+   ]
+  },
+  {
+   "nome": "Typebot",
+   "pais": "Franca (conhecimento geral, nao confirmado em pagina oficial nesta pesquisa)",
+   "site": "https://typebot.io",
+   "descricao": "Construtor de chatbots conversacionais autohospedavel, sob AGPLv3. Resolve COLETA em formato de conversa, que costuma converter melhor que formulario tradicional em celular. Visualizacao e limitada; nao substitui o dashboard analitico do Risposta.",
+   "features": [
+    "Codigo aberto sob GNU AGPLv3, autohospedagem sem taxa alguma",
+    "Coleta em formato conversacional, passo a passo, boa para telas de celular",
+    "Licenca comercial disponivel para quem quiser usar sem abrir o codigo modificado (remove restricoes de copyleft)",
+    "Deploy possivel em Vercel (existe fork comunitario preparado para isso)"
+   ],
+   "preco": "Autohospedado: US$ 0 de licenca, sem taxas; custo real e o de VPS, estimado por terceiro em cerca de US$ 10/mes. Nuvem: modelo de uso comecando gratis e chegando a US$ 89/mes (dado de terceiro, nao lido em pagina oficial). Licenca comercial para remover copyleft: preco NAO PUBLICO.",
+   "modelo_cobranca": "AGPLv3 gratuito no autohospedado; assinatura por uso na nuvem; licenca comercial paga para uso sem copyleft",
+   "publico_alvo": "Times que querem captar dados em formato de conversa em vez de formulario, especialmente via WhatsApp e web",
+   "integracoes": [
+    "Webhooks",
+    "Deploy em Vercel e Docker",
+    "Integracoes com bancos e ferramentas de automacao (detalhes nao verificados)"
+   ],
+   "canais_coleta": [
+    "Link de chat (serve QR code na mesa)",
+    "Bubble embutido em site",
+    "Integracao com canais de mensagem"
+   ],
+   "diferencial": "Formato conversacional aumenta taxa de resposta em pesquisa de mesa, onde o cliente esta com o celular na mao e nao quer ver um formulario longo. Se a QT quiser subir a conversao dos 38 por cento atuais, o formato de Typebot e o melhor argumento da lista.",
+   "fraquezas": [
+    "Nao resolve visualizacao: nao tem dashboard analitico comparavel ao do Risposta",
+    "Precos da nuvem so foram encontrados em fonte de terceiros, nao em pagina oficial (confianca media nesse dado)",
+    "Autohospedagem exige Docker e PostgreSQL, logo VPS",
+    "AGPLv3 impoe copyleft de rede se houver modificacao oferecida como servico"
+   ],
+   "confianca": "media",
+   "fontes": [
+    "https://docs.typebot.com/self-hosting/get-started",
+    "https://community.typebot.io/selfhosted-pricing-xxwS44h62j22",
+    "https://libreselfhosted.com/project/typebot/",
+    "https://github.com/davidbrandpro/typebot.io-Vercel"
+   ]
+  },
+  {
+   "nome": "Tally",
+   "pais": "Belgica (conhecimento geral, nao confirmado em pagina oficial nesta pesquisa)",
+   "site": "https://tally.so",
+   "descricao": "Construtor de formularios SaaS, NAO e codigo aberto e NAO e autohospedavel. Entra nesta lista por um motivo unico e importante: e a unica ferramenta pesquisada cujo plano gratuito oferece respostas ILIMITADAS. Resolve COLETA com custo zero real e sem servidor.",
+   "features": [
+    "Plano gratuito com respostas ILIMITADAS dentro das diretrizes de uso justo",
+    "Formularios ilimitados no plano gratuito",
+    "No gratuito: submissoes, pagamentos, assinaturas, upload de arquivos, logica condicional",
+    "Integracoes nativas no gratuito com Google Sheets, Notion, Airtable, Zapier, Make e webhooks",
+    "Remocao da marca Tally, dominio proprio, notificacao por e-mail, dominio de e-mail customizado, analytics de formulario e analise de abandono ficam no plano Pro",
+    "Controle de retencao de dados e verificacao de e-mail ficam no plano Business"
+   ],
+   "preco": "Free: US$ 0/mes com respostas ILIMITADAS. Pro: US$ 24/mes (com desconto no anual), respostas ilimitadas, remove marca, dominio proprio, historico de versoes de 30 dias. Business: US$ 74/mes (com desconto no anual), historico de versoes de 90 dias, controle de retencao de dados e verificacao de e-mail.",
+   "modelo_cobranca": "SaaS, assinatura mensal ou anual por workspace; sem cobranca por resposta",
+   "publico_alvo": "Quem precisa de formulario bonito no ar hoje sem escrever codigo nem manter servidor",
+   "integracoes": [
+    "Webhooks (no plano gratuito) - chave para enviar cada resposta ao banco proprio",
+    "Google Sheets",
+    "Notion",
+    "Airtable",
+    "Zapier",
+    "Make"
+   ],
+   "canais_coleta": [
+    "Link publico (serve QR code na mesa)",
+    "Formulario embutido em site"
+   ],
+   "diferencial": "Respostas ilimitadas no plano gratuito com webhook incluido. Isso permite usar Tally como camada de coleta a custo zero e mandar cada resposta por webhook para o banco proprio, ficando com o historico de anos sob controle da QT e o dashboard em Next.js. E o atalho mais rapido para sair do Risposta.",
+   "fraquezas": [
+    "Nao e codigo aberto e nao pode ser autohospedado; ha dependencia de fornecedor externo",
+    "Marca Tally aparece no formulario no plano gratuito, o que pesa numa mesa de restaurante premium",
+    "Nao ha dashboard analitico de pesquisa: analytics de formulario e analise de abandono exigem o Pro de US$ 24/mes",
+    "Respostas ilimitadas estao sujeitas a diretrizes de uso justo, que sao subjetivas e podem mudar",
+    "Retencao de dados no plano gratuito nao e garantida contratualmente; o historico de anos deve ficar no banco proprio via webhook"
+   ],
+   "confianca": "alta",
+   "fontes": [
+    "https://tally.so/pricing"
+   ]
+  },
+  {
+   "nome": "Fillout",
+   "pais": "Estados Unidos (conhecimento geral, nao confirmado em pagina oficial nesta pesquisa)",
+   "site": "https://www.fillout.com",
+   "descricao": "Construtor de formularios SaaS, nao autohospedavel. Plano gratuito de 1.000 respostas/mes, cinco vezes o volume maximo da QT. Resolve COLETA. Visualizacao (analytics de formulario) fica no plano Business.",
+   "features": [
+    "Plano gratuito com 1.000 respostas/mes e formularios ILIMITADOS",
+    "Assentos ilimitados no plano gratuito: da para convidar a empresa inteira de graca",
+    "No gratuito: formularios multi-pagina, embed, cobranca de pagamento, answer piping, agendamento, geracao de PDF, logica condicional, upload de arquivo, workflows, calculos e pre-preenchimento de campos",
+    "Analytics de formulario, dominio proprio, codigo customizado, submissoes parciais e pre-fetch de dados ficam no Business",
+    "Remocao da marca Fillout e e-mails customizados ficam no Pro"
+   ],
+   "preco": "Free: US$ 0/mes, 1.000 respostas/mes. Starter: US$ 15/mes (US$ 180/ano, 20% de desconto), 2.000 respostas/mes. Pro: US$ 40/mes (US$ 480/ano), 5.000 respostas/mes. Business: US$ 75/mes (US$ 900/ano), respostas ILIMITADAS.",
+   "modelo_cobranca": "SaaS, assinatura mensal ou anual por faixa de respostas; assentos ilimitados em todos os planos",
+   "publico_alvo": "Times que precisam de formularios avancados (calculos, PDF, pagamento) sem codigo",
+   "integracoes": [
+    "Workflows nativos no plano gratuito",
+    "Geracao de PDF no plano gratuito",
+    "Cobranca de pagamento no plano gratuito",
+    "Webhooks e integracoes (detalhes nao detalhados na pagina de preco)"
+   ],
+   "canais_coleta": [
+    "Link publico (serve QR code)",
+    "Formulario embutido"
+   ],
+   "diferencial": "Plano gratuito com geracao de PDF, workflows e calculos incluidos, e 1.000 respostas/mes com folga de 5x sobre o pico da QT. Mais recursos gratuitos que Formbricks Cloud (250/mes).",
+   "fraquezas": [
+    "Nao e codigo aberto nem autohospedavel",
+    "Analytics e dominio proprio exigem o plano Business de US$ 75/mes, mais caro que os US$ 24 do Tally Pro",
+    "Marca Fillout no formulario no plano gratuito",
+    "1.000 respostas/mes e limite rigido, ao contrario do ilimitado do Tally",
+    "Retencao de historico de anos no plano gratuito nao verificada"
+   ],
+   "confianca": "alta",
+   "fontes": [
+    "https://www.fillout.com/pricing"
+   ]
+  },
+  {
+   "nome": "Google Forms + Sheets + Apps Script + Looker Studio",
+   "pais": "Estados Unidos",
+   "site": "https://developers.google.com/apps-script/guides/services/quotas",
+   "descricao": "Combinacao gratuita que resolve COLETA (Forms), ARMAZENAMENTO (Sheets), VISUALIZACAO (Looker Studio) e DISPARO DE E-MAIL DIARIO (Apps Script com trigger de tempo). E o unico caminho da lista com custo de infraestrutura literalmente zero, sem cartao de credito e sem servidor. As cotas foram lidas na documentacao oficial.",
+   "features": [
+    "Conta consumidor (gmail.com): 100 destinatarios de e-mail por dia via Apps Script",
+    "Conta consumidor: 90 minutos por dia de runtime total de triggers",
+    "Google Workspace: 1.500 destinatarios de e-mail por dia e 6 horas por dia de runtime de triggers",
+    "Runtime de script: 6 minutos por execucao, em ambos os tipos de conta",
+    "Chamadas URL Fetch: 20.000 por dia na conta consumidor e 100.000 por dia no Workspace",
+    "Trigger baseado em tempo (time-driven) permite agendar o disparo diario de e-mail",
+    "Google Forms com respostas ilimitadas gravando direto em Google Sheets"
+   ],
+   "preco": "US$ 0 (R$ 0) para conta consumidor gmail.com, incluindo Forms, Sheets, Apps Script e Looker Studio. Nao ha camada paga obrigatoria para o volume da QT. Google Workspace, se desejado por conta de e-mail com dominio proprio: preco NAO VERIFICADO nesta pesquisa.",
+   "modelo_cobranca": "Gratuito por cota diaria, sem assinatura e sem cartao de credito",
+   "publico_alvo": "Negocios pequenos que precisam de resultado funcional imediato com zero orcamento de infraestrutura e zero manutencao",
+   "integracoes": [
+    "Google Forms para Google Sheets nativo",
+    "Apps Script com MailApp e GmailApp para e-mail diario",
+    "Looker Studio conectado ao Sheets para dashboard",
+    "URL Fetch (20.000/dia) para integrar com API do PDV Altec/Next ou com WhatsApp",
+    "Webhook de entrada via Web App do Apps Script"
+   ],
+   "canais_coleta": [
+    "Link do Google Forms (serve QR code na mesa)",
+    "Formulario embutido em site",
+    "Web App proprio em Apps Script"
+   ],
+   "diferencial": "Unico caminho da lista com custo de infraestrutura comprovadamente zero, sem VPS, sem cartao de credito, sem risco de pausa por inatividade e sem clausula anticomercial. Cobre as quatro exigencias (coleta, historico, dashboard, e-mail diario) usando apenas cotas gratuitas oficiais. Para o volume da QT o consumo e de 3 por cento da cota diaria de e-mail.",
+   "fraquezas": [
+    "Marca Google visivel no formulario, o que colide com posicionamento premium da QT",
+    "Experiencia de resposta do Google Forms e generica e nao permite NPS visual bonito nem branding forte",
+    "Looker Studio e lento e limitado em customizacao visual comparado a um dashboard proprio em Next.js",
+    "Conta consumidor limitada a 100 destinatarios de e-mail por dia e 90 minutos de trigger por dia, teto baixo se o projeto crescer",
+    "Google Sheets como banco nao suporta consultas relacionais complexas nem cruzamento com dados de PDV em escala",
+    "Sem controle de versao ou ambiente de testes; alteracao em producao e imediata"
+   ],
+   "confianca": "alta",
+   "fontes": [
+    "https://developers.google.com/apps-script/guides/services/quotas"
+   ]
+  },
+  {
+   "nome": "OpnForm",
+   "pais": "Franca (conhecimento geral, nao confirmado em pagina oficial nesta pesquisa)",
+   "site": "https://opnform.com/",
+   "descricao": "Construtor de formularios de codigo aberto sob AGPLv3, com nuvem sediada na Uniao Europeia e opcao on-premise. Resolve COLETA. Alternativa mais leve que Formbricks, mas com analise mais rasa.",
+   "features": [
+    "Nucleo livre e de codigo aberto sob GNU AGPLv3 ou versao posterior",
+    "Autohospedagem com formularios e submissoes ilimitados; custo e apenas o do servidor",
+    "Nuvem sediada na Uniao Europeia para quem quer controle de residencia de dados",
+    "Recursos avancados em api/app/Enterprise/ ficam sob Licenca Enterprise separada"
+   ],
+   "preco": "Autohospedado: US$ 0 de licenca sob AGPLv3, formularios e submissoes ilimitados, custo apenas do servidor. Nuvem: precos NAO VERIFICADOS em pagina oficial nesta pesquisa. Licenca Enterprise: preco NAO PUBLICO.",
+   "modelo_cobranca": "AGPLv3 gratuito para o nucleo autohospedado; licenca Enterprise paga para modulos avancados; nuvem paga",
+   "publico_alvo": "Organizacoes com exigencia de privacidade que querem formularios com marca propria",
+   "integracoes": [
+    "Deploy on-premise",
+    "Nuvem europeia",
+    "Detalhes de integracoes nao verificados nesta pesquisa"
+   ],
+   "canais_coleta": [
+    "Link publico",
+    "Formulario embutido"
+   ],
+   "diferencial": "Formularios e submissoes ilimitados no autohospedado sob licenca aberta, com nuvem na Uniao Europeia como plano B. Mais simples de operar que Formbricks.",
+   "fraquezas": [
+    "Exige VPS: nao atinge custo zero",
+    "Nao tem dashboard analitico de nivel gerencial; e um construtor de formularios, nao uma plataforma de CX",
+    "Precos da nuvem nao encontrados em pagina oficial nesta pesquisa",
+    "Recursos Enterprise atras de licenca paga sem preco publico",
+    "Confianca media: informacoes vieram de agregadores, nao da pagina oficial"
+   ],
+   "confianca": "media",
+   "fontes": [
+    "https://opnform.com/",
+    "https://github.com/OpnForm/OpnForm",
+    "https://privacytools.io/app/opnform",
+    "https://formbricks.com/blog/best-open-source-survey-software"
+   ]
+  },
+  {
+   "nome": "OpenSurvey (projetos no GitHub)",
+   "pais": "DESCONHECIDO",
+   "site": "https://github.com/mohitbadwal/opensurvey",
+   "descricao": "ATENCAO: nao existe um produto unico e consolidado chamado OpenSurvey. Ha ao menos dois projetos distintos no GitHub com esse nome, ambos de pequeno porte e sem indicacao de manutencao comercial. Resolve COLETA e alguma VISUALIZACAO em teoria, mas o risco de abandono e alto.",
+   "features": [
+    "Projeto de mohitbadwal: plataforma de pesquisa e experience management autohospedada e multi-tenant, em Django e React, apresentada como alternativa a Typeform e Formbricks",
+    "Construtor visual de pesquisa, compartilhamento por link, embed em site ou app, logica condicional com ramificacao",
+    "Coleta e analise de respostas, gestao de contatos, segmentos, times e papeis",
+    "Projeto de movaldivia: construtor de formularios apresentado como alternativa de codigo aberto ao Google Forms"
+   ],
+   "preco": "US$ 0 de licenca (projetos de codigo aberto no GitHub). Licencas exatas de cada projeto: NAO VERIFICADAS nesta pesquisa. Custo real e o do servidor.",
+   "modelo_cobranca": "Codigo aberto sem cobranca; custo apenas de infraestrutura",
+   "publico_alvo": "Desenvolvedores dispostos a assumir um projeto pequeno e adapta-lo",
+   "integracoes": [
+    "Deploy proprio em Django/React (projeto mohitbadwal)",
+    "Detalhes nao verificados"
+   ],
+   "canais_coleta": [
+    "Link de pesquisa",
+    "Embed em site ou app"
+   ],
+   "diferencial": "O projeto de mohitbadwal cobre no papel exatamente o escopo do Risposta (coleta, logica, analise, contatos, segmentos, times) em codigo que a QT poderia possuir por inteiro.",
+   "fraquezas": [
+    "Nome ambiguo: ha multiplos projetos distintos chamados OpenSurvey, o que indica falta de consolidacao",
+    "Licenca de cada projeto nao verificada, o que e risco juridico para uso comercial",
+    "Sem evidencia de comunidade, releases regulares ou suporte; risco alto de abandono",
+    "Stack Django/React exige VPS e conhecimento de Python, saindo do stack Next.js do cliente",
+    "Nao recomendado como base para um sistema que a pizzaria vai depender no dia a dia"
+   ],
+   "confianca": "baixa",
+   "fontes": [
+    "https://github.com/mohitbadwal/opensurvey",
+    "https://github.com/movaldivia/opensurvey"
+   ]
+  },
+  {
+   "nome": "NocoDB",
+   "pais": "India (conhecimento geral, nao confirmado em pagina oficial nesta pesquisa)",
+   "site": "https://nocodb.com",
+   "descricao": "Alternativa ao Airtable com interface de planilha sobre banco relacional. Resolve ARMAZENAMENTO e VISUALIZACAO tabular basica, e tem formularios simples para COLETA. Atencao: mudou de AGPL-3.0 para Sustainable Use License na v0.301.0 (final de 2024), deixando de ser codigo aberto aprovado pela OSI.",
+   "features": [
+    "Migrou de AGPL-3.0 para Sustainable Use License a partir da v0.301.0, no final de 2024; passou a ser source-available e nao mais open source aprovado pela OSI",
+    "Autohospedagem remove completamente a cobranca por assento; o unico custo e a infraestrutura",
+    "Interface de planilha sobre banco relacional, com views de grade, galeria, kanban e formulario",
+    "Versao em nuvem com camadas pagas"
+   ],
+   "preco": "Autohospedado: US$ 0 de licenca sob Sustainable Use License, sem cobranca por assento; custo apenas de infraestrutura. Nuvem: precos exatos NAO VERIFICADOS em pagina oficial nesta pesquisa.",
+   "modelo_cobranca": "Sustainable Use License gratuita para uso interno no autohospedado; nuvem paga; restricoes comerciais similares as do n8n",
+   "publico_alvo": "Times que querem banco de dados com cara de planilha e views prontas sem escrever front-end",
+   "integracoes": [
+    "Conecta em PostgreSQL, MySQL e outros bancos existentes",
+    "Webhooks",
+    "API REST"
+   ],
+   "canais_coleta": [
+    "View de formulario (coleta simples)",
+    "Entrada manual em grade"
+   ],
+   "diferencial": "Pode apontar direto para o mesmo PostgreSQL do Supabase e virar um back-office pronto para a gerencia ver e editar respostas, sem construir CRUD. Isso economiza tempo real de desenvolvimento.",
+   "fraquezas": [
+    "Nao e mais open source pela definicao da OSI: Sustainable Use License restringe uso comercial do codigo",
+    "Exige VPS: nao atinge custo zero",
+    "Formularios sao rudimentares comparados a Formbricks, Tally ou SurveyJS; nao servem para experiencia de mesa premium",
+    "Views tabulares nao sao dashboard executivo; nao ha grafico de tendencia NPS decente",
+    "A mudanca de licenca em 2024 e sinal de risco de novas restricoes futuras"
+   ],
+   "confianca": "media",
+   "fontes": [
+    "https://github.com/nocodb/nocodb/discussions/6741",
+    "https://blog.elest.io/nocodb-vs-baserow-which-open-source-airtable-alternative-should-you-pick/",
+    "https://cloudzy.com/blog/best-self-hosted-airtable-alternatives/"
+   ]
+  },
+  {
+   "nome": "Baserow",
+   "pais": "Paises Baixos (conhecimento geral, nao confirmado em pagina oficial nesta pesquisa)",
+   "site": "https://baserow.io/",
+   "descricao": "Alternativa ao Airtable com licenca MIT em quase todo o codigo, a mais permissiva da lista de bases de dados no-code. Resolve ARMAZENAMENTO e VISUALIZACAO tabular, com formularios para COLETA simples. Autohospedagem sem nenhum limite de linhas, armazenamento ou requisicoes de API.",
+   "features": [
+    "Quase todo o codigo do Baserow e licenciado sob MIT, a licenca mais permissiva que existe (declaracao da propria FAQ oficial)",
+    "Versao autohospedada nunca tera limitacao de linhas, armazenamento ou requisicoes de API; sera sempre ilimitada e gratuita",
+    "Recursos Premium exigem pagamento por usuario por mes, mesmo no autohospedado",
+    "Nuvem tem camada gratuita e planos pagos por usuario",
+    "Descontos disponiveis para ONGs e instituicoes de ensino via contato com vendas",
+    "Pagamento atualmente apenas por cartao de credito"
+   ],
+   "preco": "Autohospedado (nucleo MIT): US$ 0, sem limite de linhas, armazenamento ou requisicoes de API, para sempre. Recursos Premium no autohospedado: cobrados por usuario por mes, valor exato NAO PUBLICO na FAQ consultada. Nuvem: camada gratuita disponivel; planos pagos a partir de EUR 5 por usuario por mes (dado de terceiro, confianca media).",
+   "modelo_cobranca": "MIT gratuito para o nucleo autohospedado sem limites; assinatura por usuario por mes para Premium e para a nuvem",
+   "publico_alvo": "Times que precisam de base de dados no-code com licenca permissiva e sem risco de copyleft",
+   "integracoes": [
+    "API REST",
+    "Webhooks",
+    "Deploy proprio em Docker",
+    "Conexao com PostgreSQL"
+   ],
+   "canais_coleta": [
+    "View de formulario",
+    "Entrada manual em grade"
+   ],
+   "diferencial": "Licenca MIT no nucleo, declarada na propria FAQ oficial, com promessa explicita de que o autohospedado nunca tera limite de linhas, armazenamento ou API. E a base no-code mais segura juridicamente da lista, sem o copyleft do AGPL nem as restricoes do Sustainable Use License do NocoDB.",
+   "fraquezas": [
+    "Exige VPS: nao atinge custo zero",
+    "Formularios simples, sem experiencia de pesquisa comparavel a Formbricks ou SurveyJS",
+    "Nao e dashboard analitico; views tabulares nao entregam a leitura gerencial que o Risposta da hoje",
+    "Preco exato dos recursos Premium por usuario nao esta publico na FAQ, apenas o modelo de cobranca",
+    "Apenas cartao de credito como forma de pagamento"
+   ],
+   "confianca": "alta",
+   "fontes": [
+    "https://baserow.io/faq",
+    "https://baserow.io/",
+    "https://blog.elest.io/nocodb-vs-baserow-which-open-source-airtable-alternative-should-you-pick/"
+   ]
+  },
+  {
+   "nome": "Appsmith (Community Edition)",
+   "pais": "India e Estados Unidos (conhecimento geral, nao confirmado em pagina oficial nesta pesquisa)",
+   "site": "https://www.appsmith.com",
+   "descricao": "Plataforma low-code para construir ferramentas internas. Community Edition e Apache 2.0, a licenca mais permissiva entre os concorrentes diretos (ToolJet e AGPL-3.0, Budibase e GPL-3.0). Resolve VISUALIZACAO e back-office, nao resolve coleta externa em mesa.",
+   "features": [
+    "Community Edition livre e de codigo aberto sob licenca Apache 2.0, autohospedavel com usuarios ilimitados sem custo (dado de terceiro)",
+    "Pagina oficial confirma: plataforma low-code de codigo aberto disponivel de graca",
+    "Plano gratuito da nuvem limitado a 5 usuarios, 5 workspaces e 3 repositorios Git, com suporte da comunidade",
+    "Business inclui integracoes premium e suporte por e-mail e chat",
+    "Apache 2.0 e mais permissiva que GPLv3 do Budibase e AGPLv3 do ToolJet, o que importa para empresas com preocupacao juridica"
+   ],
+   "preco": "Community Edition autohospedada: US$ 0. Nuvem Free: US$ 0/mes, ate 5 usuarios, 5 workspaces, 3 repositorios Git. Business: US$ 15 por usuario por mes, ate 99 usuarios, workspaces e repositorios ilimitados. Enterprise: US$ 2.500/mes, minimo de 100 usuarios, SSO SAML/OIDC, hospedagem gerenciada e suporte dedicado 24x7.",
+   "modelo_cobranca": "Apache 2.0 gratuito no autohospedado; assinatura por usuario por mes na nuvem Business; contrato fixo no Enterprise",
+   "publico_alvo": "Times que precisam de painel interno sobre banco existente sem construir front-end",
+   "integracoes": [
+    "PostgreSQL e outros bancos relacionais",
+    "API REST",
+    "Repositorios Git para versionamento"
+   ],
+   "canais_coleta": [
+    "Nao aplicavel: nao e ferramenta de coleta externa"
+   ],
+   "diferencial": "Licenca Apache 2.0 no autohospedado, sem copyleft, com usuarios ilimitados. Serve como back-office pronto sobre o Supabase da QT, poupando o CRUD de gestao de perguntas e de acoes corretivas.",
+   "fraquezas": [
+    "Nao resolve coleta: nao substitui o formulario de mesa do Risposta",
+    "Exige VPS com Docker: nao atinge custo zero",
+    "A pagina oficial de preco nao detalha limites de usuario nem termos de licenca da edicao autohospedada; a informacao de usuarios ilimitados vem de terceiros",
+    "Overkill para um dashboard de 200 respostas por mes que pode ser feito em uma pagina Next.js com Recharts",
+    "Nuvem gratuita limitada a 5 usuarios"
+   ],
+   "confianca": "media",
+   "fontes": [
+    "https://www.appsmith.com/pricing",
+    "https://www.modern-datatools.com/compare/retool-vs-appsmith-vs-budibase",
+    "https://www.pistack.xyz/posts/budibase-vs-appsmith-vs-tooljet-self-hosted-low-code-guide-2026/"
+   ]
+  },
+  {
+   "nome": "Budibase",
+   "pais": "Reino Unido (conhecimento geral, nao confirmado em pagina oficial nesta pesquisa)",
+   "site": "https://budibase.com/",
+   "descricao": "Plataforma low-code sob GPLv3 na edicao comunitaria. Resolve VISUALIZACAO, formularios internos e automacoes. A pagina oficial de preco declara plano Open Source autohospedado gratuito com apps, automacoes, agentes e usuarios ILIMITADOS e acoes ilimitadas.",
+   "features": [
+    "Plano Open Source autohospedado: gratuito, com acoes ilimitadas, apps, automacoes, agentes e usuarios ilimitados, gratis para usar indefinidamente e sem taxa de licenca",
+    "Community Edition sob GPL-3.0 (dado de terceiro)",
+    "Nuvem Pro: 2.000 creditos de IA, 1 criador, 1 workspace, 5.000 a 10.000 acoes",
+    "Nuvem Premium: 10.000 creditos de IA, branding customizado, SSO, 10 workspaces, 20.000 a 50.000 acoes",
+    "Nuvem Business: 50.000 creditos de IA, 3 criadores, workspaces ilimitados, 250.000 acoes, suporte por e-mail",
+    "Enterprise autohospedado: branding customizado, SCIM, logs de auditoria, deploy flexivel"
+   ],
+   "preco": "Autohospedado Open Source: US$ 0, acoes ilimitadas, usuarios ilimitados, indefinidamente. Nuvem Pro: US$ 19/mes. Premium: US$ 49/mes. Business: US$ 299/mes. Enterprise: preco customizado. Add-ons: usuario final US$ 5 por usuario por mes; criador (builder) US$ 50 por criador por mes.",
+   "modelo_cobranca": "GPLv3 gratuito e ilimitado no autohospedado; assinatura mensal por faixa de acoes na nuvem; add-ons por usuario final e por criador",
+   "publico_alvo": "Times pequenos que querem app interno completo com automacoes sem escrever front-end",
+   "integracoes": [
+    "PostgreSQL e outros bancos",
+    "API REST",
+    "Automacoes internas com gatilho de tempo (alternativa a cron para o e-mail diario)",
+    "Deploy em Docker"
+   ],
+   "canais_coleta": [
+    "Formularios internos do proprio app",
+    "Nao substitui coleta publica em mesa com qualidade de UX"
+   ],
+   "diferencial": "O plano autohospedado mais generoso da categoria low-code: usuarios, apps, automacoes e acoes todos ilimitados e gratuitos, declarado na propria pagina de preco. As automacoes nativas poderiam cobrir o disparo de e-mail diario sem n8n.",
+   "fraquezas": [
+    "GPLv3 impoe copyleft se houver distribuicao de versao modificada",
+    "Exige VPS com Docker: nao atinge custo zero",
+    "Formularios internos nao entregam a experiencia de coleta em mesa que o Risposta oferece",
+    "Modelo de creditos de IA e acoes na nuvem e confuso para prever custo",
+    "Overdimensionado para o volume da QT"
+   ],
+   "confianca": "alta",
+   "fontes": [
+    "https://budibase.com/pricing/",
+    "https://www.pistack.xyz/posts/budibase-vs-appsmith-vs-tooljet-self-hosted-low-code-guide-2026/",
+    "https://www.modern-datatools.com/compare/retool-vs-appsmith-vs-budibase"
+   ]
+  },
+  {
+   "nome": "Metabase (Open Source Edition)",
+   "pais": "Estados Unidos (conhecimento geral, nao confirmado em pagina oficial nesta pesquisa)",
+   "site": "https://www.metabase.com",
+   "descricao": "Ferramenta de BI mais amigavel do mercado para nao-tecnicos. A Open Source Edition e gratuita, autohospedavel, com perguntas e dashboards ilimitados e usuarios ilimitados. Resolve VISUALIZACAO com qualidade, nao resolve coleta.",
+   "features": [
+    "Open Source Edition gratuita e autohospedavel, com perguntas e dashboards ILIMITADOS",
+    "Usuarios ilimitados e gratuitos na versao open source",
+    "Suporte a mais de 20 fontes de dados",
+    "Perguntas em linguagem natural com IA e geracao de SQL",
+    "Requer JRE versao 25 do Eclipse Temurin com HotSpot JVM; versoes anteriores de Java nao sao suportadas",
+    "Pro e Enterprise exigem token de ativacao",
+    "Na nuvem, tanto o time interno quanto os usuarios dos embeds contam como usuarios para faturamento"
+   ],
+   "preco": "Open Source Edition autohospedada: US$ 0, usuarios ilimitados. Nuvem Starter: US$ 100/mes (US$ 90 no anual) mais US$ 6 por usuario por mes (US$ 65/ano), cobrindo os 5 primeiros usuarios. Pro: US$ 575/mes (US$ 517,50 no anual) mais US$ 12 por usuario por mes (US$ 130/ano), cobrindo os 10 primeiros usuarios. Enterprise: preco customizado a partir de US$ 20.000/ano. Requisito minimo de RAM: NAO PUBLICO na documentacao consultada.",
+   "modelo_cobranca": "Gratuito e ilimitado no autohospedado; na nuvem, mensalidade base mais valor por usuario por mes",
+   "publico_alvo": "Gestores nao-tecnicos que querem explorar dados sem SQL; times de dados pequenos",
+   "integracoes": [
+    "PostgreSQL (aponta direto para o Supabase da QT)",
+    "Mais de 20 fontes de dados",
+    "Envio de dashboards por e-mail agendado (subscriptions) - candidato natural para o e-mail diario"
+   ],
+   "canais_coleta": [
+    "Nao aplicavel: nao coleta dados, apenas consulta"
+   ],
+   "diferencial": "Aponta direto para o PostgreSQL do Supabase e entrega dashboard e alertas por e-mail agendado sem uma linha de codigo. Para a QT, e o unico da lista que pode resolver dashboard e e-mail diario juntos com configuracao apenas visual. O salto de preco da nuvem (US$ 100/mes minimo) e brutal, mas o autohospedado e gratuito e ilimitado.",
+   "fraquezas": [
+    "Exige VPS com JVM: nao atinge custo zero e consome mais memoria que aplicacoes Node",
+    "Requisito minimo de RAM nao publicado, o que impede escolher com seguranca o VPS mais barato (Metabase em JVM tipicamente pede mais que 512 MB)",
+    "Nao resolve coleta: seria preciso somar Formbricks, Tally ou formulario proprio",
+    "Salto de preco para a nuvem e proibitivo: US$ 100/mes base contra os R$501 a R$1.000 que a QT paga hoje ao Risposta inteiro",
+    "Exige JRE 25 especifico, o que adiciona atrito de manutencao"
+   ],
+   "confianca": "alta",
+   "fontes": [
+    "https://www.metabase.com/pricing/",
+    "https://www.metabase.com/docs/latest/installation-and-operation/running-the-metabase-jar-file"
+   ]
+  },
+  {
+   "nome": "Apache Superset",
+   "pais": "Estados Unidos (Apache Software Foundation)",
+   "site": "https://superset.apache.org",
+   "descricao": "Plataforma de BI da Apache Software Foundation sob licenca Apache-2.0. Resolve VISUALIZACAO em escala de empresa. Para uma pizzaria com 200 respostas por mes, e desproporcional em complexidade operacional.",
+   "features": [
+    "Licenca Apache-2.0, permissiva, sem copyleft",
+    "Autohospedavel",
+    "Plataforma de BI com grande variedade de visualizacoes e SQL Lab"
+   ],
+   "preco": "US$ 0 de licenca (Apache-2.0). Custo real e o do servidor. Nao ha versao gerenciada oficial da fundacao com preco publico.",
+   "modelo_cobranca": "Licenca Apache-2.0 gratuita; custo apenas de infraestrutura",
+   "publico_alvo": "Times de dados de empresas medias e grandes com volume alto e necessidade de governanca",
+   "integracoes": [
+    "PostgreSQL e dezenas de bancos via SQLAlchemy",
+    "Alertas e relatorios agendados (requer Celery e Redis)"
+   ],
+   "canais_coleta": [
+    "Nao aplicavel: nao coleta dados"
+   ],
+   "diferencial": "Licenca Apache-2.0 totalmente permissiva e nenhum recurso escondido atras de edicao paga, ao contrario de Metabase e Grafana.",
+   "fraquezas": [
+    "Muito mais complexo de operar que Metabase: exige Python, Celery, Redis e banco de metadados, o que empurra o VPS para faixa mais cara",
+    "Absurdamente sobredimensionado para 200 respostas por mes",
+    "Nao resolve coleta",
+    "Curva de aprendizado alta para o gestor da pizzaria; nao e ferramenta de autoatendimento como o Metabase",
+    "Licenca confirmada apenas por fonte terceira nesta pesquisa"
+   ],
+   "confianca": "media",
+   "fontes": [
+    "https://openalternative.co/compare/apache-superset/vs/redash",
+    "https://blog.elest.io/apache-superset-vs-metabase-vs-redash-which-open-source-bi-tool-to-self-host-in-2026/"
+   ]
+  },
+  {
+   "nome": "Grafana (OSS) e Grafana Cloud",
+   "pais": "Estados Unidos e Suecia (conhecimento geral)",
+   "site": "https://grafana.com",
+   "descricao": "Ferramenta de visualizacao originalmente de observabilidade, relicenciada de Apache 2.0 para AGPLv3 em abril de 2021. Resolve VISUALIZACAO. ATENCAO CRITICA: a camada gratuita do Grafana Cloud retem metricas e logs por apenas 14 dias, o que INVIABILIZA o requisito de historico de anos nessa modalidade.",
+   "features": [
+    "Grafana, Loki e Tempo relicenciados de Apache 2.0 para AGPLv3 em abril de 2021; AGPLv3 e licenca aprovada pela OSI",
+    "Plugins, agentes e certas bibliotecas permanecem sob Apache",
+    "Grafana Cloud Free: todos os servicos com uso limitado, suporte da comunidade, sem cartao de credito",
+    "Grafana Cloud Free - Metricas: limitado a 10 mil series ativas por mes com 14 dias de retencao",
+    "Grafana Cloud Free - Logs: limitado a 50 GB ingeridos por mes com 14 dias de retencao",
+    "Grafana Cloud Free - Traces e Profiles: limitado a 50 GB por mes com 14 dias de retencao",
+    "Grafana Cloud Free - Visualizacao: limitado a 3 usuarios ativos por mes",
+    "Grafana Cloud Free - Grafana Assistant: limitado a 3 usuarios de IA ativos por mes"
+   ],
+   "preco": "Grafana OSS autohospedado: US$ 0 de licenca sob AGPLv3, viavel tanto em ambiente interno quanto comercial. Grafana Cloud Free: US$ 0/mes com os limites acima, incluindo apenas 14 dias de retencao e 3 usuarios de visualizacao. Precos das camadas pagas do Grafana Cloud: NAO EXTRAIDOS nesta pesquisa.",
+   "modelo_cobranca": "AGPLv3 gratuito no autohospedado; camada gratuita limitada mais planos por uso na nuvem",
+   "publico_alvo": "Times de infraestrutura e engenharia; nao e ferramenta de gestor de restaurante",
+   "integracoes": [
+    "PostgreSQL como fonte de dados (pode ler o Supabase da QT)",
+    "Alertas por e-mail e webhook",
+    "Dezenas de fontes de dados"
+   ],
+   "canais_coleta": [
+    "Nao aplicavel: nao coleta dados de pesquisa"
+   ],
+   "diferencial": "Grafana OSS autohospedado le PostgreSQL direto e tem sistema de alertas nativo por e-mail, o que poderia cobrir dashboard e disparo diario. Licenca AGPLv3 aprovada pela OSI, ao contrario do SSPL usado por concorrentes.",
+   "fraquezas": [
+    "ELIMINATORIO na nuvem: 14 dias de retencao no plano gratuito contra o requisito de historico de anos da QT",
+    "Grafana Cloud Free limitado a 3 usuarios ativos de visualizacao por mes",
+    "Autohospedado exige VPS: nao atinge custo zero",
+    "Linguagem visual de observabilidade (series temporais, gauges) e estranha para leitura de NPS e comentario qualitativo de cliente",
+    "AGPLv3 exige abrir codigo se houver modificacao oferecida como servico em rede",
+    "Nao resolve coleta"
+   ],
+   "confianca": "alta",
+   "fontes": [
+    "https://grafana.com/pricing/",
+    "https://grafana.com/blog/grafana-loki-tempo-relicensing-to-agplv3/",
+    "https://grafana.com/blog/qa-with-our-ceo-on-relicensing/"
+   ]
+  },
+  {
+   "nome": "Redash",
+   "pais": "Israel e Estados Unidos (conhecimento geral, nao confirmado em pagina oficial nesta pesquisa)",
+   "site": "https://redash.io",
+   "descricao": "Ferramenta de BI baseada em SQL sob licenca BSD-2-Clause. NAO RECOMENDADA: o projeto esta em modo de manutencao, com cerca de um release por ano desde 2022 e forum da comunidade em modo somente leitura. A nuvem hospedada foi desligada pela Databricks em 30 de novembro de 2021.",
+   "features": [
+    "Licenca BSD-2-Clause, mais permissiva que a Apache-2.0 do Superset",
+    "Versao autohospedada em modo de manutencao: voluntarios focam em upgrade de dependencia, correcao de CI, compatibilidade com Python 3 e patch de seguranca, nao em recursos novos",
+    "Cerca de sete mantenedores voluntarios apos o reboot comunitario no fim de 2023",
+    "Ultimo release identificado: v26.3.0, em 2 de marco de 2026",
+    "Forum de discussao da comunidade em modo somente leitura"
+   ],
+   "preco": "US$ 0 de licenca (BSD-2-Clause). Nuvem hospedada oficial: descontinuada em 30 de novembro de 2021. Custo real e o do servidor.",
+   "modelo_cobranca": "BSD-2-Clause gratuito; sem oferta comercial oficial ativa",
+   "publico_alvo": "Times que ja usam Redash e nao querem migrar; nao recomendado para novos projetos",
+   "integracoes": [
+    "PostgreSQL e dezenas de bancos",
+    "Agendamento de queries e alertas por e-mail"
+   ],
+   "canais_coleta": [
+    "Nao aplicavel: nao coleta dados"
+   ],
+   "diferencial": "Licenca BSD-2-Clause, a mais permissiva das ferramentas de BI da lista. Sem isso, nao ha razao para escolher Redash hoje.",
+   "fraquezas": [
+    "ELIMINATORIO: modo de manutencao com cerca de um release por ano desde 2022; nao e base segura para um sistema que a pizzaria vai depender por anos",
+    "Nuvem oficial desligada em novembro de 2021; desenvolvimento financiado pela Databricks encerrado apos a aquisicao",
+    "Forum da comunidade em modo somente leitura, sinal de comunidade minguante",
+    "Exige VPS: nao atinge custo zero",
+    "Nao resolve coleta"
+   ],
+   "confianca": "media",
+   "fontes": [
+    "https://redash.io/help/faq/eol/",
+    "https://www.knowi.com/blog/best-redash-alternatives/",
+    "https://saasrat.com/products/redash"
+   ]
+  },
+  {
+   "nome": "Umami",
+   "pais": "Estados Unidos (conhecimento geral, nao confirmado em pagina oficial nesta pesquisa)",
+   "site": "https://umami.is",
+   "descricao": "Analytics web focado em privacidade, sob licenca MIT. Resolve VISUALIZACAO de trafego, nao de respostas de pesquisa. Util apenas como complemento para medir quantos clientes escaneiam o QR code e quantos abandonam antes de responder, ou seja, a taxa de conversao da mesa.",
+   "features": [
+    "Licenca MIT permissiva, codigo completo no GitHub; pode autohospedar, modificar e rodar sem pagar nada",
+    "Autohospedagem sempre gratuita",
+    "Requisitos: Node 18 ou superior, com PostgreSQL 12 ou superior, ou MySQL 8 ou superior",
+    "Roda confortavelmente em VPS de US$ 5/mes para sites pequenos e medios",
+    "Nuvem com camada Hobby gratuita (limites informados por terceiros: 100 mil eventos e 3 sites) e Pro (1 milhao de eventos)"
+   ],
+   "preco": "Autohospedado: US$ 0 (MIT), sempre gratuito. Nuvem: Hobby US$ 0 com cerca de 100 mil eventos e 3 sites; Pro cerca de US$ 20/mes com 1 milhao de eventos e sites ilimitados. ATENCAO: a pagina oficial umami.is/pricing nao pudo ser lida (conteudo renderizado por JavaScript); esses numeros vem de fontes terceiras e devem ser confirmados na pagina oficial antes de qualquer decisao.",
+   "modelo_cobranca": "MIT gratuito no autohospedado; camada gratuita mais assinatura mensal por volume de eventos na nuvem",
+   "publico_alvo": "Sites que querem analytics sem cookies e sem Google Analytics",
+   "integracoes": [
+    "Script de tracking em pagina Next.js",
+    "PostgreSQL ou MySQL",
+    "API para leitura de dados"
+   ],
+   "canais_coleta": [
+    "Nao coleta pesquisa: coleta apenas evento de pagina e evento customizado"
+   ],
+   "diferencial": "Licenca MIT, sem copyleft, e roda no mesmo PostgreSQL do projeto. Para a QT, o valor real e medir a taxa de conversao do QR code na mesa (quantos escaneiam contra quantos concluem), numero que o Risposta provavelmente nao entrega e que orienta onde colocar o QR code.",
+   "fraquezas": [
+    "Nao resolve o problema principal: nao coleta nem analisa respostas de pesquisa",
+    "A pagina oficial de preco nao pode ser lida nesta pesquisa; os numeros da nuvem tem confianca media",
+    "Autohospedado exige VPS com Node e Postgres",
+    "Camada extra de complexidade para um beneficio secundario",
+    "Alternativa mais simples e usar Vercel Web Analytics (50 mil eventos/mes inclusos no Hobby) ou apenas contar eventos na propria tabela do banco"
+   ],
+   "confianca": "media",
+   "fontes": [
+    "https://umami.is/pricing",
+    "https://analytics-alternatives.com/tools/umami/",
+    "https://setupanalytics.com/umami-analytics-privacy-first-open-source-analytics-you-can-self-host/",
+    "https://openpanel.dev/articles/self-hosted-web-analytics"
+   ]
+  },
+  {
+   "nome": "PostHog (self-host, open source)",
+   "pais": "Estados Unidos e Reino Unido (conhecimento geral, nao confirmado em pagina oficial nesta pesquisa)",
+   "site": "https://posthog.com/docs/self-host",
+   "descricao": "Plataforma de product analytics com deploy Docker Compose sob licenca MIT. NAO RECOMENDADA para a QT: a propria PostHog declara que o self-host open source e feito para hobbistas, nao oferece suporte comercial e nao ajuda a depurar problemas.",
+   "features": [
+    "Deploy gratuito via Docker Compose sob licenca MIT",
+    "Limitacoes do deploy open source: apenas um projeto permitido, e recursos como Experimentation, Advanced Paths e Permissions ficam de fora",
+    "Fornecido sem garantia; clientes autohospedados nao recebem suporte comercial da PostHog",
+    "A PostHog declara que nao responde tickets e nao ajuda a depurar por causa da variedade de ambientes de hospedagem",
+    "Deploy autohospedado open source e descrito pela propria empresa como feito para hobbistas ou para rodar em lugares como o porao de casa",
+    "Novos deploys do produto open source pago via Kubernetes nao sao mais suportados"
+   ],
+   "preco": "Self-host open source: US$ 0 de licenca (MIT). Nuvem: precos NAO EXTRAIDOS nesta pesquisa. Custo real do self-host e o do servidor, que para PostHog e alto porque a stack inclui ClickHouse, Kafka e Redis.",
+   "modelo_cobranca": "MIT gratuito no self-host sem suporte; nuvem por uso",
+   "publico_alvo": "Times de produto de software; nao serve gestao de restaurante",
+   "integracoes": [
+    "SDK JavaScript em Next.js",
+    "Webhooks",
+    "Docker Compose"
+   ],
+   "canais_coleta": [
+    "Eventos de produto e sessao; nao coleta pesquisa de satisfacao com a profundidade necessaria"
+   ],
+   "diferencial": "Tem modulo de surveys nativo, o que em teoria juntaria coleta e visualizacao. Na pratica, o custo operacional da stack elimina qualquer vantagem no cenario da QT.",
+   "fraquezas": [
+    "ELIMINATORIO: a propria PostHog declara que o self-host open source e para hobbistas e que nao havera suporte nem ajuda para depurar",
+    "Stack pesada (ClickHouse, Kafka, Redis) exige servidor caro, muito acima de VPS de US$ 5; e o oposto de infraestrutura de custo proximo de zero",
+    "Deploy open source limitado a um unico projeto e sem varios recursos",
+    "Novos deploys em Kubernetes do produto pago nao sao mais suportados",
+    "Absurdamente sobredimensionado para 200 respostas por mes de uma pizzaria"
+   ],
+   "confianca": "alta",
+   "fontes": [
+    "https://posthog.com/docs/self-host",
+    "https://posthog.com/docs/self-host/open-source/disclaimer",
+    "https://github.com/PostHog/posthog.com/blob/master/contents/docs/self-host/open-source/disclaimer.mdx"
+   ]
+  },
+  {
+   "nome": "n8n",
+   "pais": "Alemanha (conhecimento geral, nao confirmado em pagina oficial nesta pesquisa)",
+   "site": "https://n8n.io",
+   "descricao": "Plataforma de automacao de workflow sob Sustainable Use License, licenca fair-code criada pela propria n8n em 2022. Resolve ORQUESTRACAO: poderia disparar o e-mail diario e integrar o PDV Altec/Next. ATENCAO JURIDICA: nao e codigo aberto pela definicao da OSI, mas o uso interno pela pizzaria E permitido.",
+   "features": [
+    "Sustainable Use License, licenca fair-code criada pela n8n em 2022: codigo disponivel com restricao de uso comercial do codigo",
+    "Aplica-se a todo o codigo do repositorio principal, exceto arquivos com .ee. no nome, que ficam sob a n8n Enterprise License",
+    "Permite usar, modificar, criar obras derivadas e redistribuir, com tres limitacoes",
+    "Uso ou modificacao permitidos apenas para fins internos de negocio proprio, ou para uso nao comercial ou pessoal",
+    "Distribuicao a terceiros apenas gratuita e para fins nao comerciais",
+    "PERMITE explicitamente automacao interna de negocio, incluindo vendas, operacoes e suporte, com quantos workflows quiser sem pagar pelo software",
+    "PROIBE vender o n8n como produto, oferecer n8n como servico hospedado a clientes, ou construir plataforma de automacao concorrente",
+    "Permite oferecer consultoria e suporte comercial (construir workflows para terceiros) sem licenca separada",
+    "A propria n8n nao se chama open source, porque licencas open source pela OSI nao podem restringir uso"
+   ],
+   "preco": "Autohospedado sob Sustainable Use License: US$ 0 de licenca para uso interno de negocio, com workflows ilimitados. Custo real e o do servidor. Precos da nuvem n8n e das licencas Enterprise e Embed: NAO EXTRAIDOS nesta pesquisa.",
+   "modelo_cobranca": "Sustainable Use License gratuita para uso interno; licencas Enterprise e Embed pagas; nuvem por assinatura",
+   "publico_alvo": "Times tecnicos que precisam orquestrar integracoes entre sistemas sem escrever glue code",
+   "integracoes": [
+    "Centenas de nodes de integracao",
+    "Webhook de entrada e saida",
+    "Node de agendamento (cron) para o e-mail diario",
+    "Node de PostgreSQL para ler o Supabase",
+    "Node de HTTP Request para a API do PDV Altec/Next"
+   ],
+   "canais_coleta": [
+    "Formulario nativo do n8n (n8n Form) para coleta simples",
+    "Webhook recebendo respostas de Tally ou Google Forms"
+   ],
+   "diferencial": "A Sustainable Use License permite explicitamente automacao interna de negocio da propria pizzaria, com workflows ilimitados e sem custo de licenca. Seria a peca ideal para amarrar pesquisa, PDV Altec/Next e WhatsApp sem escrever codigo de integracao.",
+   "fraquezas": [
+    "Nao e codigo aberto pela definicao da OSI; a restricao de uso comercial do codigo exige leitura cuidadosa da licenca",
+    "Exige VPS com Docker e Postgres: nao atinge custo zero",
+    "Para a necessidade real da QT (um e-mail por dia), um cron trigger de 30 linhas em Cloudflare Workers resolve de graca e sem servidor; n8n adiciona um servico inteiro para manter",
+    "Arquivos .ee. ficam sob licenca Enterprise separada, criando area cinzenta no codigo",
+    "Precos oficiais nao verificados nesta pesquisa"
+   ],
+   "confianca": "alta",
+   "fontes": [
+    "https://docs.n8n.io/sustainable-use-license/",
+    "https://github.com/n8n-io/n8n/blob/master/LICENSE.md",
+    "https://docs.n8n.io/privacy-and-security/sustainable-use-license"
+   ]
+  },
+  {
+   "nome": "Activepieces",
+   "pais": "DESCONHECIDO (nao verificado nesta pesquisa)",
+   "site": "https://www.activepieces.com",
+   "descricao": "Plataforma de automacao de workflow com modelo de licenciamento duplo: MIT (Expat) na maior parte do codigo, com diretorios enterprise sob licenca separada. Mais permissiva que o n8n na licenca do nucleo. Resolve ORQUESTRACAO.",
+   "features": [
+    "Modelo de licenciamento duplo: licenca MIT Expat para a maior parte do conteudo",
+    "Conteudo nos diretorios packages/ee/ e packages/server/api/src/app/ee e regido por licenca separada definida em packages/ee/LICENSE",
+    "Componentes de terceiros mantem suas licencas originais",
+    "Autohospedavel"
+   ],
+   "preco": "Autohospedado (nucleo MIT): US$ 0 de licenca. Custo real e o do servidor. Precos da nuvem e das licencas enterprise: NAO PUBLICOS nesta pesquisa.",
+   "modelo_cobranca": "MIT gratuito para o nucleo; licenca separada para diretorios enterprise; nuvem paga",
+   "publico_alvo": "Times que querem alternativa ao Zapier com licenca de nucleo permissiva",
+   "integracoes": [
+    "Catalogo de pieces (conectores)",
+    "Webhooks",
+    "Agendamento por cron"
+   ],
+   "canais_coleta": [
+    "Formularios e webhooks de entrada"
+   ],
+   "diferencial": "Licenca MIT no nucleo, sem as restricoes de uso comercial do codigo que o n8n impoe via Sustainable Use License. Para quem quer automacao autohospedada sem area cinzenta juridica, e a escolha mais limpa.",
+   "fraquezas": [
+    "Exige VPS: nao atinge custo zero",
+    "Ecossistema de conectores menor que o do n8n",
+    "Diretorios ee/ sob licenca separada sem preco publico",
+    "Mesma critica do n8n: para um e-mail diario, um cron trigger de Cloudflare Workers resolve sem servidor nenhum",
+    "Pais de origem e detalhes de produto nao verificados nesta pesquisa"
+   ],
+   "confianca": "media",
+   "fontes": [
+    "https://github.com/activepieces/activepieces/blob/main/LICENSE",
+    "https://n8nlab.io/blog/n8n-vs-node-red-vs-activepieces",
+    "https://instapods.com/blog/n8n-alternatives/"
+   ]
+  },
+  {
+   "nome": "Node-RED",
+   "pais": "Reino Unido, origem IBM, hoje na OpenJS Foundation (conhecimento geral, nao confirmado nesta pesquisa)",
+   "site": "https://nodered.org",
+   "descricao": "Ferramenta de programacao visual baseada em fluxo, sob licenca Apache 2.0. Resolve ORQUESTRACAO. Origem em IoT, nao em automacao de negocio; menos adequada que n8n ou Activepieces para o caso da QT.",
+   "features": [
+    "Projeto de codigo aberto sob licenca Apache 2.0, sem copyleft",
+    "Autohospedavel; roda em hardware modesto, inclusive Raspberry Pi",
+    "Programacao visual por fluxo de nodes",
+    "Nodes de agendamento (inject com intervalo) e de e-mail"
+   ],
+   "preco": "US$ 0 de licenca (Apache 2.0). Custo real e o do servidor. Nao ha oferta comercial oficial com preco.",
+   "modelo_cobranca": "Apache 2.0 gratuito; custo apenas de infraestrutura",
+   "publico_alvo": "Projetos de IoT e automacao industrial; entusiastas de automacao domestica",
+   "integracoes": [
+    "Nodes de HTTP, e-mail, PostgreSQL e MQTT",
+    "Webhooks de entrada e saida"
+   ],
+   "canais_coleta": [
+    "Dashboard de formulario via node-red-dashboard",
+    "Endpoint HTTP proprio"
+   ],
+   "diferencial": "Licenca Apache 2.0 completamente permissiva e consumo de recursos baixissimo: roda em Raspberry Pi, o que permitiria hospedar dentro da propria pizzaria com custo de energia proximo de zero e sem mensalidade de VPS.",
+   "fraquezas": [
+    "Ferramenta de IoT, nao de automacao de negocio: nao tem conectores prontos para servicos de SaaS como n8n tem",
+    "Interface de fluxo e tecnica; ninguem na operacao da pizzaria vai manter",
+    "Nao resolve coleta com qualidade de UX nem visualizacao gerencial",
+    "Hospedar em Raspberry Pi dentro do salao expoe o sistema a queda de energia e de internet do restaurante, e exige expor porta na rede",
+    "Licenca confirmada apenas por fonte terceira nesta pesquisa"
+   ],
+   "confianca": "media",
+   "fontes": [
+    "https://n8nlab.io/blog/n8n-vs-node-red-vs-activepieces",
+    "https://slashdot.org/software/comparison/Activepieces-vs-Node-RED/",
+    "https://grokipedia.com/page/Comparison_of_n8n_ActivePieces_and_Node-RED"
+   ]
+  },
+  {
+   "nome": "Bibliotecas de dashboard para Next.js (Recharts, Tremor, Nivo, Apache ECharts, Chart.js)",
+   "pais": "Diversos (projetos de codigo aberto)",
+   "site": "https://recharts.org",
+   "descricao": "Camada de VISUALIZACAO gratuita que roda dentro do proprio Next.js, sem adicionar um centavo de infraestrutura. Substitui completamente Metabase, Superset, Grafana e Redash no cenario da QT, porque 200 respostas por mes nao precisam de servidor de BI.",
+   "features": [
+    "Recharts sob licenca MIT; Apache ECharts, ApexCharts, Plotly.js, Billboard.js e D3 sob MIT ou Apache 2.0",
+    "Recharts e o padrao mais seguro para dashboards React: forte adocao no ecossistema, API de componentes direta, renderizacao SVG e boa compatibilidade com shadcn/ui",
+    "Tremor e a escolha para dashboards de SaaS: componentes de grafico pre-estilizados que combinam com a estetica do shadcn/ui de fabrica, com minima customizacao",
+    "Nivo e React-first, com forte suporte a SSR e Next.js; funciona com o App Router sem giria de use client, renderiza em SVG, Canvas ou HTML e traz mais de 30 tipos de grafico",
+    "Apache ECharts e especialmente forte para dashboards interativos grandes",
+    "Tamanhos de bundle: Recharts cerca de 150 kB, Tremor cerca de 200 kB, Nivo pode passar de 500 kB na instalacao completa"
+   ],
+   "preco": "US$ 0. Todas MIT ou Apache 2.0. Nenhum custo de licenca, nenhum custo de servidor adicional (rodam no bundle do proprio Next.js). Nao ha camada paga.",
+   "modelo_cobranca": "Gratuito sob licenca permissiva; sem assinatura, sem servidor",
+   "publico_alvo": "Desenvolvedores construindo dashboard proprio em React ou Next.js",
+   "integracoes": [
+    "Next.js App Router",
+    "shadcn/ui (Recharts e Tremor combinam nativamente)",
+    "Qualquer fonte de dados via server component ou API route"
+   ],
+   "canais_coleta": [
+    "Nao aplicavel: apenas visualizacao"
+   ],
+   "diferencial": "E a resposta correta para a camada de dashboard da QT: custo de licenca zero, custo de infraestrutura zero (nao ha servico novo, e codigo no bundle que ja existe), controle total sobre o visual (podendo aplicar o manual de marca da QT) e nenhuma dependencia de fornecedor. Recharts com shadcn/ui e o caminho de menor atrito.",
+   "fraquezas": [
+    "Exige desenvolvimento: nao ha construtor visual de dashboard como no Metabase, entao cada grafico novo pede codigo",
+    "Sem funcionalidade nativa de e-mail agendado nem alerta (isso vira um cron trigger separado)",
+    "Gestor da pizzaria nao pode criar consultas novas sozinho, ao contrario do Metabase",
+    "Nivo pode passar de 500 kB de bundle, o que pesa em celular de cliente em rede movel",
+    "Licencas confirmadas por fonte terceira nesta pesquisa, nao nos repositorios oficiais"
+   ],
+   "confianca": "media",
+   "fontes": [
+    "https://www.pkgpulse.com/guides/recharts-v3-vs-tremor-vs-nivo-react-charting-2026",
+    "https://blog.logrocket.com/best-react-chart-libraries-2026/",
+    "https://lightningchart.com/blog/best-chart-js-alternatives-in-2026/"
+   ]
+  },
+  {
+   "nome": "Supabase (plano Free) - camada de banco e historico",
+   "pais": "Estados Unidos (conhecimento geral)",
+   "site": "https://supabase.com/pricing",
+   "descricao": "PostgreSQL gerenciado com autenticacao, storage e edge functions. Resolve ARMAZENAMENTO do historico de anos e parte do backend. Plano Free suficiente com folga para o volume da QT, com um cuidado operacional importante: projetos gratuitos sao pausados apos 1 semana de inatividade.",
+   "features": [
+    "Plano Free: 500 MB de tamanho de banco, com CPU compartilhada e 500 MB de RAM",
+    "Plano Free: 1 GB de armazenamento de arquivos",
+    "Plano Free: 5 GB de egress e 5 GB de egress em cache",
+    "Plano Free: 50.000 usuarios ativos mensais",
+    "Plano Free: 500.000 invocacoes de edge function incluidas",
+    "Plano Free: limitado a 2 projetos ativos",
+    "Projetos gratuitos sao PAUSADOS apos 1 semana de inatividade",
+    "Projetos pausados nao contam no limite de projetos gratuitos",
+    "Plano Pro: nenhum projeto da organizacao e pausado",
+    "Plano Pro: 100.000 usuarios ativos mensais, 8 GB de disco, 250 GB de egress, suporte por e-mail e backup diario com retencao de 7 dias",
+    "Detalhes de cron no plano Free: NAO ESPECIFICADOS na pagina de preco"
+   ],
+   "preco": "Free: US$ 0/mes, com 500 MB de banco, 1 GB de storage, 5 GB de egress, 50.000 MAU, 500.000 invocacoes de edge function e 2 projetos ativos. Pro: US$ 25/mes.",
+   "modelo_cobranca": "Camada gratuita com limites rigidos; assinatura mensal por organizacao no Pro, mais uso adicional",
+   "publico_alvo": "Desenvolvedores construindo produto sobre PostgreSQL sem gerenciar servidor",
+   "integracoes": [
+    "PostgreSQL puro: qualquer ferramenta de BI le direto (Metabase, Grafana, Superset)",
+    "API REST e GraphQL automaticas",
+    "Edge Functions em Deno",
+    "Auth pronto",
+    "Row Level Security nativo",
+    "pg_cron disponivel via extensao (nao confirmado no plano Free nesta pesquisa)"
+   ],
+   "canais_coleta": [
+    "Nao coleta por si: recebe dados via API do formulario"
+   ],
+   "diferencial": "Para o historico de anos da QT: 200 respostas/mes a cerca de 1,5 kB por resposta dao aproximadamente 3,6 MB por ano, ou 36 MB em 10 anos. Isso e 7 por cento dos 500 MB gratuitos, ou seja, folga de mais de 13 vezes para uma decada de dados. E PostgreSQL de verdade, entao qualquer ferramenta de BI da lista pode ler depois, sem lock-in.",
+   "fraquezas": [
+    "RISCO OPERACIONAL REAL: projetos gratuitos sao pausados apos 1 semana de inatividade. Uma pizzaria fechada por ferias coletivas de 8 dias volta com o banco pausado. Mitigacao: cron diario que faz uma consulta trivial",
+    "Plano Free limitado a 2 projetos ativos, entao nao ha espaco confortavel para ambiente de teste separado",
+    "500 MB de RAM em CPU compartilhada; sem garantia de desempenho",
+    "Sem backup no plano Free: o backup diario com retencao de 7 dias so aparece no Pro de US$ 25/mes. Para historico de anos, isso obriga a montar um backup proprio (por exemplo, dump semanal para Google Drive via cron)",
+    "Detalhes de cron no plano Free nao especificados na pagina de preco"
+   ],
+   "confianca": "alta",
+   "fontes": [
+    "https://supabase.com/pricing",
+    "https://supabase.com/docs/guides/platform/billing-on-supabase"
+   ]
+  },
+  {
+   "nome": "Cloudflare (Workers, Pages, D1) - camada de hospedagem, cron e banco",
+   "pais": "Estados Unidos",
+   "site": "https://developers.cloudflare.com/workers/platform/limits/",
+   "descricao": "Combinacao que resolve HOSPEDAGEM, CRON e ARMAZENAMENTO no plano gratuito, sem clausula anticomercial e sem pausa por inatividade. E a alternativa tecnica correta ao Vercel Hobby para um negocio comercial que precisa de custo zero.",
+   "features": [
+    "Workers Free: 100.000 requisicoes por dia",
+    "Workers Free: 10 ms de tempo de CPU por requisicao HTTP e 10 ms por trigger de cron",
+    "Workers Free: 5 Cron Triggers por conta",
+    "Workers Free: 50 subrequisicoes por invocacao",
+    "Cron Triggers com intervalo minimo de 1 minuto e precisao de minuto",
+    "D1 Free: 5 milhoes de linhas lidas por dia",
+    "D1 Free: 100.000 linhas escritas por dia",
+    "D1 Free: 5 GB de armazenamento total",
+    "Limites gratuitos do D1 resetam diariamente as 00:00 UTC",
+    "Pages Free: 500 builds por mes",
+    "Pages Free: ate 20.000 arquivos por site",
+    "Pages Free: 100 dominios customizados",
+    "Pages Free: requisicoes e banda nao especificadas na pagina de limites consultada"
+   ],
+   "preco": "US$ 0/mes para Workers Free, Pages Free e D1 Free com os limites acima. Precos das camadas pagas: NAO EXTRAIDOS nesta pesquisa.",
+   "modelo_cobranca": "Camada gratuita com limites diarios que resetam; planos pagos por uso",
+   "publico_alvo": "Qualquer aplicacao web de baixo a medio volume, incluindo uso comercial",
+   "integracoes": [
+    "Next.js via adaptador (OpenNext / @opennextjs/cloudflare)",
+    "D1 como banco SQLite gerenciado",
+    "Cron Triggers para o e-mail diario",
+    "Fetch para APIs externas (Resend, PDV Altec/Next), respeitando 50 subrequisicoes por invocacao",
+    "R2 para arquivos"
+   ],
+   "canais_coleta": [
+    "Hospeda o formulario proprio, que pode ser acessado por QR code na mesa"
+   ],
+   "diferencial": "Tres vantagens decisivas sobre o Vercel Hobby no caso da QT: (1) nao ha clausula proibindo uso comercial no plano gratuito, ao contrario do Hobby da Vercel; (2) Cron Triggers com precisao de minuto e intervalo minimo de 1 minuto, contra 1 vez por dia com imprecisao de mais ou menos 59 minutos no Hobby; (3) D1 com 5 GB gratuitos que nao pausa por inatividade, ao contrario do Supabase Free. Volume da QT: cerca de 40 requisicoes por dia contra 100.000 permitidas, ou 0,04 por cento da cota.",
+   "fraquezas": [
+    "Limite de 10 ms de CPU por requisicao no plano gratuito e apertado: renderizacao pesada de Next.js pode estourar, exigindo cuidado com server components e agregacoes",
+    "D1 e SQLite, nao PostgreSQL: menos recursos que o Supabase e menos ferramentas de BI leem direto",
+    "50 subrequisicoes por invocacao limita workflows que chamam muitas APIs em uma so execucao",
+    "Rodar Next.js completo em Workers exige adaptador (OpenNext) e nem todo recurso do framework e suportado",
+    "Pages nao publica limites de requisicao e banda na pagina de limites, o que deixa uma incognita",
+    "Sem autenticacao pronta como o Supabase Auth: seria preciso montar"
+   ],
+   "confianca": "alta",
+   "fontes": [
+    "https://developers.cloudflare.com/workers/platform/limits/",
+    "https://developers.cloudflare.com/d1/platform/pricing/",
+    "https://developers.cloudflare.com/pages/platform/limits/"
+   ]
+  },
+  {
+   "nome": "Vercel (plano Hobby) - ALERTA DE ELEGIBILIDADE",
+   "pais": "Estados Unidos",
+   "site": "https://vercel.com/docs/limits/fair-use-guidelines",
+   "descricao": "Hospedagem natural para Next.js, mas o plano gratuito Hobby PROIBE EXPLICITAMENTE uso comercial. Uma pizzaria usando o sistema para gerar receita se encaixa na definicao de uso comercial da Vercel. Este e o achado mais importante para quem planeja custo zero em Next.js.",
+   "features": [
+    "Texto oficial: times Hobby sao restritos a uso pessoal nao comercial apenas; todo uso comercial da plataforma exige plano Pro ou Enterprise",
+    "Definicao oficial de uso comercial: qualquer Deployment usado com o proposito de ganho financeiro de QUALQUER PESSOA envolvida em QUALQUER PARTE da producao do projeto, incluindo funcionario pago ou consultor escrevendo o codigo",
+    "Exemplos oficiais de uso comercial: qualquer forma de solicitar ou processar pagamento de visitantes; anunciar a venda de produto ou servico; receber pagamento para criar, atualizar ou hospedar o site; link de afiliado como proposito principal; inclusao de anuncios",
+    "Pedir doacoes tambem se enquadra como uso comercial",
+    "Cron Jobs no Hobby: 100 cron jobs por projeto, intervalo minimo de UMA VEZ POR DIA, precisao por hora (mais ou menos 59 minutos)",
+    "Expressoes cron mais frequentes que uma vez por dia FALHAM no deploy no Hobby, com erro explicito",
+    "Hobby incluido: 1.000.000 de invocacoes de funcao, 4 CPU-horas de Active CPU, 360 GB-horas de memoria provisionada, ate 1.000.000 de Edge Requests, 200 projetos, 100 deploys por dia, 50.000 eventos de Web Analytics por mes com 1 mes de dados, 1 hora de logs de runtime",
+    "Hobby: duracao maxima de funcao de 300 s, 50 dominios por projeto, 3 regras de WAF e 3 bloqueios de IP",
+    "Diretrizes de uso mensal tipico do Hobby: ate 100 GB de Fast Data Transfer e ate 10 GB de Fast Origin Transfer",
+    "Se estourar limites no Hobby, na maioria dos casos e preciso esperar 30 dias para voltar a usar o recurso",
+    "Pro: US$ 20 por usuario por mes para assentos de desenvolvedor; assentos Viewer sao gratuitos; cron com intervalo minimo de 1 minuto e precisao por minuto"
+   ],
+   "preco": "Hobby: US$ 0/mes, MAS restrito a uso pessoal nao comercial. Pro: US$ 20 por usuario por mes (assentos de desenvolvedor), assentos Viewer gratuitos, 10.000.000 de Edge Requests inclusas e depois sob demanda. Uso adicional no Pro: Active CPU a partir de US$ 0,128 por hora, memoria provisionada a partir de US$ 0,0106 por GB-hora, invocacoes de funcao US$ 0,60 por milhao, transformacoes de imagem US$ 0,05 por mil.",
+   "modelo_cobranca": "Hobby gratuito para uso pessoal nao comercial; Pro por assento de desenvolvedor mais uso sob demanda",
+   "publico_alvo": "Hobby: projetos pessoais. Pro: qualquer projeto comercial",
+   "integracoes": [
+    "Next.js nativo, com a melhor experiencia de deploy do mercado",
+    "Cron Jobs via vercel.json",
+    "Vercel Web Analytics (50 mil eventos/mes no Hobby)",
+    "Vercel Blob para storage"
+   ],
+   "canais_coleta": [
+    "Hospeda o formulario proprio acessado por QR code"
+   ],
+   "diferencial": "Melhor experiencia de deploy para Next.js. No plano Pro, cron com precisao de minuto resolve o e-mail diario com folga.",
+   "fraquezas": [
+    "ELIMINATORIO PARA CUSTO ZERO: o Hobby proibe uso comercial, e a definicao da Vercel e ampla o suficiente para cobrir o sistema de uma pizzaria (inclusive por haver consultor pago escrevendo o codigo)",
+    "Cron no Hobby limitado a uma vez por dia com precisao de mais ou menos 59 minutos: um e-mail agendado para 8h pode chegar as 8h59, o que atrapalha rotina de gestao",
+    "Sair do Hobby custa US$ 20 por usuario por mes no Pro, mais uso sob demanda, o que torna o caminho Vercel pago e nao zero",
+    "Se estourar limite no Hobby, espera-se 30 dias para o recurso voltar, sem aviso amigavel"
+   ],
+   "confianca": "alta",
+   "fontes": [
+    "https://vercel.com/docs/limits/fair-use-guidelines",
+    "https://vercel.com/docs/plans/hobby",
+    "https://vercel.com/docs/cron-jobs/usage-and-pricing"
+   ]
+  },
+  {
+   "nome": "Resend (plano Free) - camada de e-mail diario",
+   "pais": "Estados Unidos (conhecimento geral)",
+   "site": "https://resend.com/pricing",
+   "descricao": "API de e-mail transacional com plano gratuito que cobre o requisito de e-mail diario com folga de 100 vezes. Resolve DISPARO. Alternativa gratuita ao Apps Script quando o sistema for proprio em Next.js.",
+   "features": [
+    "Plano gratuito: 3.000 e-mails por mes de e-mail transacional",
+    "Plano gratuito: limitado a 100 e-mails por dia",
+    "Plano gratuito: 1 dominio incluido",
+    "Plano gratuito: 10.000 execucoes de automacao por mes",
+    "Plano gratuito: 30 dias de retencao de dados",
+    "Plano gratuito: 5 creditos de IA por mes",
+    "Plano gratuito: envio e recebimento, com suporte por ticket",
+    "Planos pagos removem o limite diario de envio"
+   ],
+   "preco": "Free: US$ 0/mes, 3.000 e-mails/mes, 100 e-mails/dia, 1 dominio, 30 dias de retencao. Pro: US$ 20/mes para 50.000 e-mails ou US$ 35/mes para 100.000 e-mails. Scale: US$ 90 a US$ 1.150/mes para 100.000 a 2.500.000 e-mails. Enterprise: preco customizado para mais de 3 milhoes de e-mails por mes.",
+   "modelo_cobranca": "Camada gratuita por volume mensal com teto diario; assinatura por faixa de volume nos planos pagos",
+   "publico_alvo": "Desenvolvedores enviando e-mail transacional de aplicacao propria",
+   "integracoes": [
+    "SDK Node/TypeScript, encaixa direto em Next.js, Cloudflare Workers e Supabase Edge Functions",
+    "React Email para montar o template do resumo diario em componentes React",
+    "API HTTP simples, chamavel de qualquer cron"
+   ],
+   "canais_coleta": [
+    "Nao coleta: apenas envia. Pode receber e-mail no plano gratuito"
+   ],
+   "diferencial": "Um resumo diario para tres socios consome 3 e-mails por dia, ou 90 por mes: 3 por cento dos 3.000 gratuitos e 3 por cento do teto diario de 100. Folga de mais de 30 vezes. E o unico item de e-mail da lista que permite dominio proprio (contato@qtpizzabar.com.br) no plano gratuito, ao contrario do Apps Script em conta gmail.com.",
+   "fraquezas": [
+    "Teto de 100 e-mails por dia no gratuito impede usar o mesmo plano para envio em massa a clientes (por exemplo, convite de pesquisa por e-mail para base de clientes)",
+    "Retencao de dados de apenas 30 dias no gratuito: logs de envio antigos desaparecem",
+    "Apenas 1 dominio no plano gratuito",
+    "Exige configurar SPF, DKIM e DMARC no dominio, o que e trabalho tecnico inicial",
+    "Servico de terceiro: uma mudanca de politica do plano gratuito quebra a camada de disparo"
+   ],
+   "confianca": "alta",
+   "fontes": [
+    "https://resend.com/pricing"
+   ]
+  },
+  {
+   "nome": "Neon (plano Free) - alternativa ao Supabase para o banco",
+   "pais": "Estados Unidos (conhecimento geral)",
+   "site": "https://neon.com/pricing",
+   "descricao": "PostgreSQL serverless com branching. Alternativa ao Supabase Free. Resolve ARMAZENAMENTO. Vantagem: 100 projetos no gratuito, contra 2 do Supabase. Desvantagem grave para o caso da QT: apenas 0,5 GB de armazenamento por projeto e suspensao de compute ate o proximo mes se qualquer limite for estourado.",
+   "features": [
+    "Plano Free: 100 CU-horas por projeto de compute",
+    "Plano Free: 0,5 GB por projeto de armazenamento",
+    "Plano Free: 100 projetos",
+    "Plano Free: 10 branches por projeto",
+    "Plano Free: 5 GB de transferencia publica de rede incluida",
+    "Plano Free escala a zero apos inatividade: o compute suspende apos 5 minutos sem atividade, logo recursos ociosos nao geram cobranca",
+    "Ao esgotar qualquer limite mensal (horas de compute, armazenamento ou egress), o sistema SUSPENDE o compute ate o proximo mes de faturamento",
+    "Planos pagos cobram por recurso usado, sem minimo mensal, faturados por hora e liquidados no fim do mes"
+   ],
+   "preco": "Free: US$ 0/mes com 100 CU-horas por projeto, 0,5 GB por projeto, 100 projetos, 10 branches e 5 GB de transferencia. Launch: pague conforme o uso, US$ 0,106 por CU-hora de compute e US$ 0,35 por GB-mes de armazenamento. Scale: US$ 0,222 por CU-hora e US$ 0,35 por GB-mes.",
+   "modelo_cobranca": "Camada gratuita com cotas mensais por projeto; planos pagos por consumo real, sem minimo mensal",
+   "publico_alvo": "Desenvolvedores que querem PostgreSQL com branching por ambiente de desenvolvimento",
+   "integracoes": [
+    "PostgreSQL puro: qualquer ferramenta de BI le direto",
+    "Drivers serverless para Next.js e Cloudflare Workers",
+    "Branching de banco para ambientes de teste"
+   ],
+   "canais_coleta": [
+    "Nao coleta: apenas armazena"
+   ],
+   "diferencial": "100 projetos e 10 branches por projeto no gratuito permitem ambiente de desenvolvimento e producao separados sem custo, algo impossivel no Supabase Free (2 projetos). O scale-to-zero apos 5 minutos evita cobranca ociosa. Os 36 MB estimados de 10 anos de historico da QT cabem nos 0,5 GB, mas com folga de apenas 14 vezes.",
+   "fraquezas": [
+    "Apenas 0,5 GB de armazenamento por projeto, igual ao Supabase, mas com menos servicos ao redor (nao ha Auth nem Storage prontos)",
+    "RISCO OPERACIONAL: estourar qualquer limite mensal suspende o compute ATE O PROXIMO MES de faturamento, o que significa sistema fora do ar por dias ou semanas. E mais grave que a pausa do Supabase, que basta restaurar",
+    "100 CU-horas por projeto por mes precisa ser monitorado; consultas de dashboard pesadas consomem compute",
+    "Nao traz Auth, Storage, Edge Functions nem API REST automatica como o Supabase, entao sobra mais codigo para escrever",
+    "Compute suspende apos 5 minutos de inatividade, gerando latencia de cold start no primeiro acesso do gestor ao dashboard"
+   ],
+   "confianca": "alta",
+   "fontes": [
+    "https://neon.com/pricing"
+   ]
+  },
+  {
+   "nome": "GitHub Actions (plano Free) - cron externo gratuito e preciso",
+   "pais": "Estados Unidos",
+   "site": "https://docs.github.com/en/billing/concepts/product-billing/github-actions",
+   "descricao": "Runner de CI que serve como agendador (cron) gratuito e com precisao aceitavel, sem servidor e sem clausula anticomercial. Resolve DISPARO do e-mail diario e do keep-alive do Supabase.",
+   "features": [
+    "GitHub Free inclui 2.000 minutos por mes de runners padrao em repositorios privados",
+    "Uso do GitHub Actions e GRATUITO para repositorios publicos que usam runners padrao hospedados pelo GitHub",
+    "Agendamento por expressao cron no workflow (schedule)",
+    "Caveat sobre desativacao de workflows agendados em repositorios inativos: NAO MENCIONADO na pagina de billing consultada; DESCONHECIDO nesta pesquisa"
+   ],
+   "preco": "US$ 0/mes: 2.000 minutos/mes em repositorio privado na conta Free, e ilimitado em repositorio publico com runners padrao. Precos de minutos adicionais: NAO EXTRAIDOS nesta pesquisa.",
+   "modelo_cobranca": "Cota mensal gratuita de minutos em repositorio privado; gratuito sem limite em repositorio publico",
+   "publico_alvo": "Qualquer projeto ja versionado no GitHub",
+   "integracoes": [
+    "Chamada HTTP para a API do Resend ou para uma rota do proprio app",
+    "Conexao direta com PostgreSQL do Supabase ou Neon",
+    "Secrets do repositorio para guardar chaves de API"
+   ],
+   "canais_coleta": [
+    "Nao aplicavel"
+   ],
+   "diferencial": "Cron gratuito com precisao de minutos na definicao (contra 1 vez por dia com mais ou menos 59 minutos do Vercel Hobby) e sem clausula anticomercial. Um workflow diario de 1 minuto consome 30 dos 2.000 minutos mensais, ou 1,5 por cento da cota. Serve tambem de keep-alive contra a pausa do Supabase Free, e de rotina de backup (pg_dump enviado para storage externo).",
+   "fraquezas": [
+    "O GitHub e conhecido por atrasar workflows agendados em horarios de pico; nao ha garantia de pontualidade documentada",
+    "Existe relato amplo de que workflows agendados sao desativados em repositorios inativos apos periodo sem commits, mas isso NAO foi confirmado na documentacao consultada; risco DESCONHECIDO que precisa ser verificado antes de depender disso",
+    "Repositorio publico e gratuito e ilimitado, mas expor o codigo do sistema da pizzaria pode nao ser desejavel; repositorio privado usa a cota de 2.000 minutos",
+    "Nao e servico de agendamento de verdade: e CI sendo usado como cron, sem monitoramento nem alerta de falha decentes",
+    "Nao resolve coleta nem visualizacao"
+   ],
+   "confianca": "media",
+   "fontes": [
+    "https://docs.github.com/en/billing/concepts/product-billing/github-actions"
+   ]
+  }
+ ],
+ "achados_tecnicos": [
+  "1. CAMINHO DE MENOR CUSTO TOTAL (resposta direta a pergunta): Google Forms + Google Sheets + Looker Studio + Apps Script. Custo mensal: R$ 0,00. Custo de infraestrutura: R$ 0,00. Cartao de credito: nao exigido. Servidor: nenhum. Tempo de implantacao: 4 a 8 horas. Cobre as quatro exigencias com cotas oficiais verificadas: coleta ilimitada no Forms, historico no Sheets, dashboard no Looker Studio, e-mail diario via trigger de tempo do Apps Script (cota de 100 destinatarios por dia em conta gmail.com, 90 minutos por dia de runtime de triggers, 6 minutos por execucao, 20.000 URL Fetch por dia). Fonte: https://developers.google.com/apps-script/guides/services/quotas. Este e o unico caminho com custo comprovadamente zero e ZERO risco de mudanca de politica de fornecedor pago. Custo escondido: a marca Google no formulario e um dashboard visualmente inferior, o que colide com o posicionamento premium da QT.",
+  "2. CAMINHO RECOMENDADO (melhor relacao entre custo zero e qualidade de marca): Next.js + SurveyJS Form Library (MIT) + Cloudflare Pages/Workers + Cloudflare D1 (ou Supabase Free) + Cloudflare Cron Trigger + Resend Free. Custo mensal: R$ 0,00 (mais dominio proprio, opcional, cerca de R$ 40 a R$ 60 por ANO). Tempo de desenvolvimento: 40 a 80 horas. Todas as camadas verificadas em pagina oficial: Workers Free 100.000 requisicoes/dia e 5 cron triggers; D1 Free 5 GB, 5 milhoes de leituras/dia e 100.000 escritas/dia; Pages Free 500 builds/mes; Resend Free 3.000 e-mails/mes e 100/dia.",
+  "3. ALERTA CRITICO, NAO USE VERCEL HOBBY: a documentacao oficial diz literalmente que times Hobby sao restritos a uso pessoal nao comercial apenas, e que todo uso comercial exige Pro ou Enterprise. A definicao de uso comercial da Vercel inclui qualquer deployment usado para ganho financeiro de QUALQUER PESSOA envolvida em QUALQUER PARTE da producao do projeto, incluindo funcionario pago ou consultor escrevendo o codigo. Um sistema de pesquisa de satisfacao de uma pizzaria, escrito por consultor pago, se encaixa duas vezes nessa definicao. Sair disso custa US$ 20 por usuario por mes no Pro, que ja NAO e custo zero. Fonte: https://vercel.com/docs/limits/fair-use-guidelines",
+  "4. SEGUNDO ALERTA SOBRE VERCEL HOBBY: cron no Hobby e limitado a UMA VEZ POR DIA com precisao por hora, ou seja mais ou menos 59 minutos. Um resumo agendado para 8h pode chegar as 8h59. Expressoes cron mais frequentes FALHAM no deploy. Cloudflare Workers Free entrega 5 cron triggers com intervalo minimo de 1 minuto e precisao de minuto, de graca. Para o requisito de e-mail diario, Cloudflare e tecnicamente superior ao Vercel Hobby, alem de nao ter clausula anticomercial. Fontes: https://vercel.com/docs/cron-jobs/usage-and-pricing e https://developers.cloudflare.com/workers/platform/limits/",
+  "5. DIMENSIONAMENTO DE VOLUME (por que infraestrutura NAO e o problema): 22 mesas, ate 20 mesas atendidas por dia, terca a domingo, ou seja cerca de 26 dias de operacao por mes, o que da cerca de 520 atendimentos de mesa por mes. As 200 respostas de pico representam cerca de 38 por cento de conversao. Isso gera cerca de 1.200 requisicoes HTTP por mes, ou cerca de 40 por dia. Contra as 100.000 requisicoes DIARIAS gratuitas do Cloudflare Workers, o uso e de 0,04 por cento da cota. O volume da QT esta tres ordens de magnitude abaixo de qualquer camada gratuita. A restricao real do projeto e HORA DE DESENVOLVIMENTO, nunca infraestrutura.",
+  "6. DIMENSIONAMENTO DE HISTORICO DE ANOS: 200 respostas/mes x 12 = 2.400 respostas/ano. A cerca de 1,5 kB por resposta (10 a 12 campos mais metadados de mesa, garcom, horario e comentario livre), o consumo e de cerca de 3,6 MB por ano, ou cerca de 36 MB em 10 anos. Isso equivale a 7,2 por cento dos 500 MB gratuitos do Supabase (folga de mais de 13 vezes) e 0,72 por cento dos 5 GB gratuitos do Cloudflare D1 (folga de mais de 138 vezes). Historico de decada e um problema resolvido em qualquer camada gratuita. Fontes: https://supabase.com/pricing e https://developers.cloudflare.com/d1/platform/pricing/",
+  "7. DIMENSIONAMENTO DO E-MAIL DIARIO: um resumo por dia para 3 destinatarios da 3 e-mails por dia e 90 por mes. Contra o plano gratuito da Resend (3.000 por mes e 100 por dia), o consumo e de 3 por cento da cota mensal e 3 por cento do teto diario, folga de mais de 30 vezes. Contra a cota do Apps Script em conta gmail.com (100 destinatarios por dia), o consumo tambem e de 3 por cento. Nenhum dos dois caminhos chega perto do limite. Fontes: https://resend.com/pricing e https://developers.google.com/apps-script/guides/services/quotas",
+  "8. RISCO OPERACIONAL DO SUPABASE FREE QUE PRECISA DE MITIGACAO: a pagina oficial diz que projetos gratuitos sao PAUSADOS apos 1 SEMANA DE INATIVIDADE, e que o plano Free permite apenas 2 projetos ativos. Uma pizzaria em ferias coletivas de 8 dias volta com o banco pausado. MITIGACAO OBRIGATORIA: um cron diario (Cloudflare Worker ou GitHub Actions) executando um SELECT trivial. Segundo risco no mesmo plano: NAO HA BACKUP no Free. O backup diario com retencao de 7 dias so aparece no Pro de US$ 25/mes. Para historico de anos, isso obriga montar backup proprio, por exemplo dump semanal via cron enviado para Google Drive. Fonte: https://supabase.com/pricing",
+  "9. NEON FREE E MAIS ARRISCADO QUE SUPABASE FREE PARA ESTE CASO: o Neon Free da 100 projetos e 10 branches por projeto (contra 2 projetos do Supabase), mas ao esgotar QUALQUER limite mensal (100 CU-horas por projeto, 0,5 GB por projeto, 5 GB de egress) o sistema SUSPENDE O COMPUTE ATE O PROXIMO MES DE FATURAMENTO. Isso significa sistema fora do ar por dias ou semanas, sem opcao de religar sem pagar. E consequencia mais grave que a pausa do Supabase, que basta restaurar. Alem disso o Neon nao traz Auth, Storage nem API REST automatica, deixando mais codigo para escrever. Fonte: https://neon.com/pricing",
+  "10. GRAFANA CLOUD FREE ESTA ELIMINADO PELO REQUISITO DE HISTORICO: o plano gratuito retem metricas por 14 DIAS e logs por 14 DIAS, e limita a 3 usuarios ativos de visualizacao por mes. O requisito da QT e historico de ANOS. Grafana OSS autohospedado (AGPLv3) nao tem esse limite, mas exige VPS, o que quebra o custo zero. Fonte: https://grafana.com/pricing/",
+  "11. NENHUMA FERRAMENTA AUTOHOSPEDADA DA LISTA ATINGE CUSTO ZERO: Formbricks (AGPLv3, exige Docker + PostgreSQL + Traefik + object storage), LimeSurvey CE (GPL v2, exige LAMP), Typebot (AGPLv3), OpnForm (AGPLv3), NocoDB (Sustainable Use License), Baserow (MIT), Appsmith (Apache 2.0), Budibase (GPLv3), Metabase OSS (exige JRE 25), Superset (Apache 2.0, exige Python + Celery + Redis), Redash (BSD-2-Clause), Umami (MIT), PostHog (MIT, exige ClickHouse + Kafka + Redis), n8n (Sustainable Use License), Activepieces (MIT no nucleo), Node-RED (Apache 2.0). Em todos, o custo migra de licenca para servidor: tipicamente US$ 5 a US$ 10 por mes de VPS, ou R$ 30 a R$ 60 por mes. Isso ainda representa economia de 94 a 97 por cento sobre os R$ 501 a R$ 1.000 pagos hoje ao Risposta, mas NAO e zero, e adiciona manutencao de container, banco, backup e certificado.",
+  "12. SE O CLIENTE ACEITAR PAGAR VPS (cerca de R$ 30 a R$ 60/mes), O MELHOR ATALHO E FORMBRICKS COMMUNITY EDITION: e o unico produto da lista que entrega coleta, logica condicional e analise em um so pacote de codigo aberto (AGPLv3), sem limite artificial de respostas quando autohospedado, com setup one-click em Docker. Tempo de implantacao estimado: 4 a 12 horas contra 40 a 80 horas de construcao propria. Ressalva verificada: a documentacao oficial de self-hosting NAO publica requisitos minimos de RAM e CPU, o que impede escolher o VPS mais barato com seguranca; e recursos de time (SSO, papeis, dashboards customizados, rotulagem por IA) ficam atras de licenca Enterprise sem preco publico. Fontes: https://formbricks.com/pricing e https://formbricks.com/docs/self-hosting/setup/one-click",
+  "13. CAMINHO HIBRIDO MAIS RAPIDO DE TODOS (12 a 20 horas, custo zero): Tally no plano gratuito como camada de coleta, com webhook enviando cada resposta para o banco proprio (Supabase Free ou D1), mais dashboard proprio em Next.js com Recharts, mais cron para o e-mail diario. O Tally e a UNICA ferramenta pesquisada com RESPOSTAS ILIMITADAS no plano gratuito (dentro de diretrizes de uso justo), com webhook incluido no gratuito. Isso elimina todo o trabalho de construir formulario, validacao e logica condicional. Ressalva: a marca Tally aparece no formulario no gratuito (remove-la custa US$ 24/mes no Pro), e o historico de anos deve ficar no banco proprio via webhook, nunca dentro do Tally. Fonte: https://tally.so/pricing",
+  "14. COMPARATIVO DOS PLANOS GRATUITOS DE COLETA (numeros verificados em pagina oficial): Tally = respostas ILIMITADAS; Fillout = 1.000 respostas/mes; Formbricks Cloud Hobby = 250 respostas/mes com 1 workspace; Google Forms = ilimitado. Para o pico de 200 respostas/mes da QT, todos servem, mas apenas Tally e Google Forms dao margem para o negocio crescer sem migrar de plano. O Formbricks Cloud, com 250, deixaria a QT a 80 por cento do limite ja no primeiro mes de pico.",
+  "15. MELHOR ATALHO PARA A CAMADA DE FORMULARIO EM CODIGO PROPRIO: SurveyJS Form Library, licenca MIT, gratuita, roda dentro do Next.js sem adicionar infraestrutura. Elimina a reescrita de renderizacao, validacao e logica condicional. IMPORTANTE: o construtor visual (Survey Creator) e o modulo Dashboard sao PROPRIETARIOS e pagos, com precos oficiais de US$ 569 por desenvolvedor no Basic (renovacao US$ 229/ano), US$ 1.029 no PRO (renovacao US$ 409/ano) e a partir de US$ 2.299 no Enterprise (renovacao a partir de US$ 919/ano). Recomendacao: usar somente a Form Library MIT (definicao de pesquisa em JSON versionado no repositorio) e fazer o dashboard com Recharts, mantendo o custo em zero. Fonte: https://surveyjs.io/pricing",
+  "16. NAO USE FERRAMENTA DE BI SEPARADA (Metabase, Superset, Grafana, Redash) PARA 200 RESPOSTAS POR MES: todas exigem servidor proprio (o Metabase ainda pede JRE 25 especifico do Eclipse Temurin), e a nuvem do Metabase comeca em US$ 100/mes mais US$ 6 por usuario por mes, ou seja mais caro que o Risposta INTEIRO que a QT paga hoje. A alternativa correta e Recharts (MIT) ou Tremor dentro do proprio Next.js, com custo de licenca zero e custo de infraestrutura zero, porque nao ha servico novo, apenas codigo no bundle que ja existe. Fontes: https://www.metabase.com/pricing/ e https://www.metabase.com/docs/latest/installation-and-operation/running-the-metabase-jar-file",
+  "17. NAO USE n8n, Activepieces OU Node-RED PARA O E-MAIL DIARIO: para disparar um resumo por dia, um Cron Trigger de Cloudflare Workers com cerca de 30 linhas de codigo resolve de graca e sem servidor. Instalar n8n adiciona um servico inteiro (VPS, Docker, Postgres, backup) para uma tarefa que cabe em uma funcao. n8n so passa a fazer sentido quando entrar a integracao real com o PDV Altec/Next, disparo por WhatsApp e regras condicionais de alerta. Nesse cenario, atencao a licenca: a Sustainable Use License PERMITE explicitamente automacao interna do proprio negocio com workflows ilimitados, mas PROIBE oferecer n8n como servico hospedado a clientes. Para uso interno da pizzaria, e permitido. Fontes: https://docs.n8n.io/sustainable-use-license/ e https://github.com/n8n-io/n8n/blob/master/LICENSE.md",
+  "18. DESCARTE IMEDIATO, TRES ITENS DA LISTA: (a) Redash esta em MODO DE MANUTENCAO, com cerca de um release por ano desde 2022, forum da comunidade em modo somente leitura e nuvem oficial desligada em 30 de novembro de 2021; nao e base segura para um sistema de anos. (b) PostHog self-host e descrito pela PROPRIA PostHog como feito para hobbistas, sem suporte comercial e sem ajuda para depurar, e a stack (ClickHouse, Kafka, Redis) exige servidor caro. (c) OpenSurvey nao e um produto consolidado: ha ao menos dois projetos distintos com esse nome no GitHub, sem licenca verificada e sem evidencia de comunidade ou releases regulares. Fontes: https://redash.io/help/faq/eol/ , https://posthog.com/docs/self-host/open-source/disclaimer , https://github.com/mohitbadwal/opensurvey",
+  "19. RANKING DE SEGURANCA JURIDICA DAS LICENCAS PARA USO COMERCIAL (do mais seguro ao mais restritivo): MIT (SurveyJS Form Library, Baserow, Umami, Activepieces no nucleo, Recharts, PostHog) e BSD-2-Clause (Redash) permitem tudo sem copyleft; Apache 2.0 (Appsmith, Superset, Node-RED, Tremor, ECharts) permite tudo sem copyleft e com clausula de patente; GPL v2 (LimeSurvey CE) e GPLv3 (Budibase) exigem abrir codigo se houver DISTRIBUICAO de versao modificada; AGPLv3 (Formbricks, Typebot, OpnForm, Grafana, ToolJet) exige abrir codigo se houver modificacao OFERECIDA COMO SERVICO EM REDE, o que e o caso mais arriscado para um SaaS; Sustainable Use License (n8n, NocoDB desde a v0.301.0 no fim de 2024) NAO e open source pela definicao da OSI e restringe explicitamente uso comercial do codigo. Para uso interno da pizzaria, TODAS sao permitidas; a distincao passa a importar se a QT algum dia quiser vender o sistema para outros restaurantes.",
+  "20. AVISO SOBRE AGPLv3 CASO A QT QUEIRA REVENDER O SISTEMA DEPOIS: se o plano de longo prazo incluir oferecer a plataforma a outros restaurantes do Rio como produto, basear em Formbricks, Typebot, OpnForm ou Grafana (todos AGPLv3) obriga a publicar as modificacoes, e basear em n8n ou NocoDB (Sustainable Use License) e explicitamente PROIBIDO, porque a licenca veda oferecer o software como servico hospedado a clientes. Nesse cenario, o unico caminho limpo e construir em Next.js usando apenas MIT e Apache 2.0 (SurveyJS Form Library, Recharts, Tremor), o que reforca a escolha do caminho 2.",
+  "21. GITHUB ACTIONS COMO CRON GRATUITO E ALTERNATIVA VERIFICADA: GitHub Free inclui 2.000 minutos por mes de runners padrao em repositorio privado, e uso ILIMITADO E GRATUITO em repositorio publico com runners padrao. Um workflow diario de 1 minuto consome 30 dos 2.000 minutos, ou 1,5 por cento da cota. Serve para o e-mail diario, para o keep-alive contra a pausa do Supabase e para o backup semanal via pg_dump. RESSALVA HONESTA: existe relato amplo na comunidade de que workflows agendados sao desativados em repositorios inativos apos periodo sem commits, mas isso NAO foi confirmado na documentacao de billing consultada; classifico como DESCONHECIDO e recomendo verificar antes de tornar essa peca critica. Fonte: https://docs.github.com/en/billing/concepts/product-billing/github-actions",
+  "22. VEREDITO SOBRE CONSTRUIR DO ZERO EM NEXT.JS E SUPABASE VERSUS ADOTAR PRONTO: construir vale a pena, com duas correcoes ao plano original. Correcao 1: trocar Vercel por Cloudflare Pages/Workers, pela clausula anticomercial e pelo cron de uma vez por dia do Hobby. Correcao 2: nao construir o formulario do zero, e sim usar SurveyJS Form Library (MIT) mais Recharts (MIT), o que elimina 60 a 70 por cento do trabalho de front sem nenhum custo. Com essas duas correcoes, o custo mensal e R$ 0,00 de verdade, o dado fica em PostgreSQL ou SQLite proprio (portanto sem lock-in e com historico de decada garantido), e o payback do desenvolvimento acontece no primeiro mes, considerando que a QT paga hoje entre R$ 501 e R$ 1.000 por mes ao Risposta, ou entre R$ 6.012 e R$ 12.000 por ano.",
+  "23. SEQUENCIA DE IMPLANTACAO RECOMENDADA PARA REDUZIR RISCO: Semana 1, subir Tally gratuito com webhook para Supabase Free ou D1 e cancelar o Risposta imediatamente (economia comeca no mes 1, custo zero, esforco minimo). Semanas 2 a 6, construir o formulario proprio com SurveyJS Form Library em Next.js sobre Cloudflare, o dashboard com Recharts e o e-mail diario com Cron Trigger mais Resend, sem pressa e com o dado ja sendo coletado. Semana 7, migrar o QR code da mesa do Tally para o dominio proprio e desligar o Tally. Essa ordem elimina a mensalidade do Risposta na primeira semana, sem esperar o sistema proprio ficar pronto, e sem nenhum dia sem coletar dados.",
+  "24. LACUNAS DECLARADAS DESTA PESQUISA (nao inventei nada para preenche-las): preco exato do ComfortUpdate do LimeSurvey CE = NAO PUBLICO na pagina consultada; requisitos minimos de RAM e CPU do Formbricks autohospedado = NAO PUBLICO na documentacao de self-hosting; requisito minimo de RAM do Metabase OSS = NAO PUBLICO na documentacao consultada; precos da nuvem do Typebot = so encontrados em fonte terceira, nao em pagina oficial; precos da nuvem do Umami = pagina oficial umami.is/pricing nao pudo ser lida por ser renderizada em JavaScript, os numeros citados vem de terceiros; precos da nuvem do NocoDB, do OpnForm, do n8n, do Activepieces e das camadas pagas do Grafana Cloud e do Cloudflare = NAO EXTRAIDOS; valor exato do Premium por usuario do Baserow autohospedado = NAO PUBLICO na FAQ; requisicoes e banda do Cloudflare Pages Free = nao especificadas na pagina de limites; precos do Risposta = a pagina oficial de QR code consultada NAO publica valores, so direciona a contato comercial, e a mencao a R$ 150 por mes veio de fonte terceira com confianca media, nao da Risposta."
+ ],
+ "fontes": [
+  "https://formbricks.com/pricing",
+  "https://formbricks.com/docs/self-hosting/setup/one-click",
+  "https://formbricks.com/docs/self-hosting/advanced/license",
+  "https://github.com/formbricks/formbricks",
+  "https://community.limesurvey.org/licence-trademark/",
+  "https://www.limesurvey.org/manual/LimeSurvey_PRO_vs_LimeSurvey_CE",
+  "https://github.com/LimeSurvey/LimeSurvey",
+  "https://surveyjs.io/pricing",
+  "https://surveyjs.io/licensing",
+  "https://surveyjs.io/form-library",
+  "https://github.com/surveyjs/survey-library/blob/master/LICENSE",
+  "https://docs.typebot.com/self-hosting/get-started",
+  "https://community.typebot.io/selfhosted-pricing-xxwS44h62j22",
+  "https://libreselfhosted.com/project/typebot/",
+  "https://tally.so/pricing",
+  "https://www.fillout.com/pricing",
+  "https://developers.google.com/apps-script/guides/services/quotas",
+  "https://opnform.com/",
+  "https://github.com/OpnForm/OpnForm",
+  "https://github.com/mohitbadwal/opensurvey",
+  "https://github.com/movaldivia/opensurvey",
+  "https://github.com/nocodb/nocodb/discussions/6741",
+  "https://blog.elest.io/nocodb-vs-baserow-which-open-source-airtable-alternative-should-you-pick/",
+  "https://cloudzy.com/blog/best-self-hosted-airtable-alternatives/",
+  "https://baserow.io/faq",
+  "https://baserow.io/",
+  "https://www.appsmith.com/pricing",
+  "https://www.modern-datatools.com/compare/retool-vs-appsmith-vs-budibase",
+  "https://www.pistack.xyz/posts/budibase-vs-appsmith-vs-tooljet-self-hosted-low-code-guide-2026/",
+  "https://budibase.com/pricing/",
+  "https://www.metabase.com/pricing/",
+  "https://www.metabase.com/docs/latest/installation-and-operation/running-the-metabase-jar-file",
+  "https://openalternative.co/compare/apache-superset/vs/redash",
+  "https://blog.elest.io/apache-superset-vs-metabase-vs-redash-which-open-source-bi-tool-to-self-host-in-2026/",
+  "https://grafana.com/pricing/",
+  "https://grafana.com/blog/grafana-loki-tempo-relicensing-to-agplv3/",
+  "https://grafana.com/blog/qa-with-our-ceo-on-relicensing/",
+  "https://redash.io/help/faq/eol/",
+  "https://www.knowi.com/blog/best-redash-alternatives/",
+  "https://saasrat.com/products/redash",
+  "https://umami.is/pricing",
+  "https://analytics-alternatives.com/tools/umami/",
+  "https://setupanalytics.com/umami-analytics-privacy-first-open-source-analytics-you-can-self-host/",
+  "https://openpanel.dev/articles/self-hosted-web-analytics",
+  "https://posthog.com/docs/self-host",
+  "https://posthog.com/docs/self-host/open-source/disclaimer",
+  "https://docs.n8n.io/sustainable-use-license/",
+  "https://github.com/n8n-io/n8n/blob/master/LICENSE.md",
+  "https://docs.n8n.io/privacy-and-security/sustainable-use-license",
+  "https://github.com/activepieces/activepieces/blob/main/LICENSE",
+  "https://n8nlab.io/blog/n8n-vs-node-red-vs-activepieces",
+  "https://instapods.com/blog/n8n-alternatives/",
+  "https://slashdot.org/software/comparison/Activepieces-vs-Node-RED/",
+  "https://grokipedia.com/page/Comparison_of_n8n_ActivePieces_and_Node-RED",
+  "https://www.pkgpulse.com/guides/recharts-v3-vs-tremor-vs-nivo-react-charting-2026",
+  "https://blog.logrocket.com/best-react-chart-libraries-2026/",
+  "https://lightningchart.com/blog/best-chart-js-alternatives-in-2026/",
+  "https://supabase.com/pricing",
+  "https://supabase.com/docs/guides/platform/billing-on-supabase",
+  "https://developers.cloudflare.com/workers/platform/limits/",
+  "https://developers.cloudflare.com/d1/platform/pricing/",
+  "https://developers.cloudflare.com/pages/platform/limits/",
+  "https://vercel.com/docs/limits/fair-use-guidelines",
+  "https://vercel.com/docs/plans/hobby",
+  "https://vercel.com/docs/cron-jobs/usage-and-pricing",
+  "https://resend.com/pricing",
+  "https://neon.com/pricing",
+  "https://docs.github.com/en/billing/concepts/product-billing/github-actions",
+  "https://www.risposta.app/risposta-qr-code/",
+  "https://feedelize.com.br/2025/10/03/como-criar-pesquisas-satisfacao-qr-code-pontos-fisicos/",
+  "https://formbricks.com/blog/best-open-source-survey-software"
+ ]
+}

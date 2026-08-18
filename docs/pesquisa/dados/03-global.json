@@ -1,0 +1,1802 @@
+{
+ "resumo": "Mapeei 30+ fornecedores globais de gestão de experiência do cliente para restaurantes, priorizando páginas oficiais de preço/produto e, quando não havia preço público, terceiros identificados. Conclusão central: o mercado global convergiu para quatro mecânicas que praticamente não existem no Brasil com essa profundidade. (1) Pesquisa de DUAS perguntas via SMS disparada pelo pedido, com o resto do questionário voltando 24h depois em segunda onda segmentada — a Ovation publica 42% de taxa de resposta contra menos de 0,5% de pesquisa impressa no recibo (https://ovationup.com/news-releases-ovation-adds-custom-questions-to-actionable-guest-feedback-loop/). (2) Feedback POR ITEM CONSUMIDO pré-preenchido pela comanda do PDV, avaliando cada prato em atributos separados (sabor, textura, porção, temperatura, apresentação, valor) e comparando o item contra a média do cardápio — Tattle e Yumpingo/Black Box. (3) Recuperação do insatisfeito como fluxo com SLA, oferta/crédito emitido dentro do PDV e pedido para o cliente EDITAR a review pública já publicada, com receita recuperada atribuída (Momos: US$ 2 mi na Papa Murphy's). (4) Captura no dispositivo de pagamento à mesa, com o cliente ainda sentado: TableSafe RAIL usa 1 pergunta fixa + 2 perguntas rotacionadas aleatoriamente e relata 80% de resposta na primeira. Sobre preço: quase todo o mercado enterprise é NÃO PÚBLICO (Medallia, InMoment, Qualtrics, SMG, Reputation, Chatmeter, Olo, Paytronix, Punchh, Thanx, Bikky, Intouch, GuestXM, Presto, TableSafe). Quem publica: Tattle US$ 125 a 65/loja/mês, Marqii US$ 90/145/180/loja/mês, Birdeye ~US$ 299-449/loja/mês, Popmenu US$ 179-499/mês, Owner.com US$ 249 ou 499/mês, HappyOrNot ~US$ 100/mês por totem (terceiro), Cloutly a partir de US$ 27/local. Para o contexto da QT (1 salão, 50-200 respostas/mês) nenhum desses faz sentido econômico: o piso do mercado global é ~US$ 60-90/loja/mês e a Tattle exige escala multi-unidade. Construir o próprio é a decisão certa; o valor deste levantamento está nas mecânicas, não nos fornecedores.",
+ "achados_tecnicos": [
+  "MECÂNICA 1 - Pesquisa de duas perguntas e nada mais. A Ovation chama de Digital Table Touch: manda por SMS só 'Como foi sua experiência?' com resposta em emoji mais um campo aberto opcional. Nada de matriz de 10 atributos na primeira tela. Reporta 97% de conclusão e take rate de até 20%. Fonte oficial: https://ovationup.com/platform/feedback/ e https://ovationup.com/. Para a QT: a primeira tela do QR deve ter UMA pergunta e um campo de texto, nada mais.",
+  "MECÂNICA 2 - Segunda onda 24h depois (Custom Questions / Next-Day Questions). Em vez de alongar a pesquisa, a Ovation dispara um segundo bloco 24 horas após a primeira resposta, hiper-segmentado por localidade, nota recebida e origem do pedido. É assim que se coleta profundidade sem matar a taxa de resposta. Número publicado: 'upwards of 42% response rate, as opposed to traditional receipt-surveys which see a less than 0.5% completion rate'. Fonte: https://ovationup.com/news-releases-ovation-adds-custom-questions-to-actionable-guest-feedback-loop/. Esta é a mecânica de maior ROI para copiar e não existe no Brasil.",
+  "MECÂNICA 3 - Feedback por item consumido pré-preenchido pelo PDV. Tattle e Yumpingo não perguntam 'o que você comeu'. A integração com PDV/pedido popula automaticamente a lista de itens da comanda e o cliente avalia CADA item nos atributos Sabor, Textura, Tamanho da Porção, Temperatura, Apresentação e Valor percebido. Fonte: https://get.tattleapp.com/item-level-feedback/ e https://get.tattleapp.com/features/item-level-feedback/. Para a QT com PDV Altec/Next: puxar as linhas da comanda e montar a pesquisa em cima delas transforma a pesquisa em insumo direto de engenharia de cardápio, cruzável com a skill de ficha técnica e CMV.",
+  "MECÂNICA 4 - Score do item comparado à MÉDIA DO CARDÁPIO, não em valor absoluto. A Tattle mostra 'how the menu item performs against the menu average'. Nota 4,2 não diz nada; 4,2 quando a média do cardápio é 4,6 diz tudo. Fonte: https://get.tattleapp.com/features/item-level-feedback/. Barato de implementar e muda completamente a leitura do dado.",
+  "MECÂNICA 5 - Timing do disparo: ~90 minutos após a transação, não no momento do pagamento. A Tattle dispara email/SMS 90 minutos depois ('sent 90 minutes after a transaction'), tempo de o cliente digerir a experiência e chegar em casa. Fonte: https://get.tattleapp.com/features/feedback-collection/.",
+  "MECÂNICA 6 - Captura no dispositivo de pagamento à mesa, cliente ainda sentado. TableSafe RAIL faz a pesquisa aparecer no fim do fluxo de pagamento na mesa. Estrutura: primeira pergunta SEMPRE a nota geral, depois DUAS perguntas customizáveis ROTACIONADAS ALEATORIAMENTE. Resultado relatado: 80% de resposta na primeira pergunta e mais de 70% nas duas seguintes. Fonte: https://www.businesswire.com/news/home/20171023005441/en/TableSafe-Launches-EMV-Award-Winning-RAIL-Pay-at-the-Table-Platform. Para a QT isso é ouro: com 50-200 respostas/mês, um banco de 20 perguntas rotacionadas 2 por vez cobre o cardápio e a operação inteira em um mês sem cansar ninguém.",
+  "MECÂNICA 7 - Alerta ao gerente em tempo real com o cliente ainda no salão. HappyOrNot vende 'real-time collaboration & alerts' nos planos Professional e Managed, Medallia vende 'real-time alerts and mobile customer engagement tools' e InMoment roteia o detrator para a pessoa certa imediatamente. Fontes: https://www.happy-or-not.com/en/solution/smiley-terminal/, https://www.medallia.com/solutions/restaurants-food-service/. Para a QT: nota baixa no QR da mesa X dispara push/WhatsApp ao gerente com o número da mesa e o item da comanda — janela de recuperação de minutos, não de dias.",
+  "MECÂNICA 8 - Recuperação em dois cliques com oferta anexada. A Ovation permite responder feedback negativo em two-click, por template ou por IA, e ANEXAR uma oferta na própria mensagem de recuperação. Fonte: https://ovationup.com/platform/feedback/.",
+  "MECÂNICA 9 - IA que redige a resposta usando histórico do cliente + voz da marca. 'Suggested Response' da Ovation gera resposta única em um clique 'based on the customer's history, the brand voice, best practices to recover that guest, and the specific feedback', com opção de editar ou regerar. Fonte: https://ovationup.com/news-releases-suggested-response/. Trivial de replicar hoje com uma chamada de LLM, e ninguém no Brasil faz com histórico do cliente no prompt.",
+  "MECÂNICA 10 - Pedir para o cliente EDITAR a review pública já publicada, não escrever uma nova. A Momos, depois de resolver, roda um CSAT de recuperação e 'automatically prompt customers to edit the public review'. Fonte: https://www.momos.com/product/customer-recovery. Mecânica que ninguém no Brasil executa e que ataca direto a nota do Google.",
+  "MECÂNICA 11 - Crédito/oferta emitido DENTRO do PDV ou do loyalty, não por voucher solto. Momos: 'share offer or give credits on POS, Loyalty, or natively'. Fonte: https://www.momos.com/product/customer-recovery.",
+  "MECÂNICA 12 - Atribuição de receita recuperada. A Momos publica case de US$ 2 mi de receita recuperada na Papa Murphy's, redução de 99% no tempo de resposta na Just Salad (1.200 horas/mês economizadas) e 61% mais reviews na Caribou Coffee. Fonte: https://www.momos.com/product/customer-recovery. A mecânica que importa: medir o cliente que voltou usando a oferta de recuperação como coorte separada.",
+  "MECÂNICA 13 - Resposta gravada no PERFIL do cliente e recompensa por responder. A Paytronix amarra a resposta da pesquisa à conta do cliente ('immediately tied to the customer's account'), dispara para quem teve comportamento de compra específico ou para um percentual de quem bate um critério, e recompensa quem responde. Fonte: https://www.paytronix.com/blog/the-newest-tool-to-gather-customer-feedback.",
+  "MECÂNICA 14 - Perfil 360 com valor de vida (GLV) e risco de churn preditos por ML. Olo Guest Data Platform (ex-Wisely) unifica PDV, pedido online, loyalty e feedback em perfil único e prediz guest lifetime value e churn risk para segmentar campanha. Fonte: https://www.olo.com/gdp e https://www.olo.com/sentiment. Bikky faz o mesmo como CDP e afirma rastrear até 90% dos clientes dependendo do stack. Fonte: https://www.bikky.com/integrations.",
+  "MECÂNICA 15 - Sentimento FRASE POR FRASE, não por resposta inteira. O Wisely/Olo analisa 'the sentiment of each comment, phrase-by-phrase' e categoriza os termos. Fonte: https://www.olo.com/sentiment. A Ovation classifica texto aberto em 35+ categorias específicas de restaurante. Fonte: https://ovationup.com/. Um comentário como 'pizza excelente mas demorou 40 minutos' precisa gerar um positivo em produto e um negativo em tempo, não uma nota média inútil.",
+  "MECÂNICA 16 - Biblioteca de respostas pré-aprovadas + IA que personaliza dinamicamente com nome do cliente e loja. Olo: 'generative AI and pre-approved response libraries' com 'dynamically personalize responses with guest names, store locations, and other details'. Fonte: https://www.olo.com/sentiment. Resolve o risco de deixar LLM solto respondendo review pública.",
+  "MECÂNICA 17 - IA que vira plano de ação POR TURNO, não relatório. A Tattle vende 'AI Coach' que converte feedback em action items de nível de turno, e a Ovation tem 'AI-suggested goals' que recomenda metas operacionais específicas. Fontes: https://get.tattleapp.com/features/item-level-feedback/, https://ovationup.com/. Para uma pizzaria que abre ter-dom só no jantar, o recorte por turno/dia da semana é o único que importa.",
+  "MECÂNICA 18 - Menu e horário do PDV como fonte da verdade, empurrados automaticamente para 70+ publishers. A Marqii sincroniza mudança de menu/horário feita no PDV para Google, Yelp, Facebook, Apple Maps, Bing, Tripadvisor e Waze, com economia relatada de ~7 horas por alteração de menu. Fonte: https://marqii.com/pricing e https://marqii.com/listings. Equivalente brasileiro inexistente: Altec/Next → Google Business Profile automático.",
+  "MECÂNICA 19 - Precificação por review respondida como produto separado. Marqii Managed Review Response: US$ 100 por 50 reviews (US$ 2,00/review), US$ 150 por 100 (US$ 1,50), US$ 250 por 250 (US$ 1,00), US$ 375 por 500 (US$ 0,75). Fonte oficial: https://marqii.com/pricing. Mecânica de embalagem, não de tecnologia — vale copiar se a QT quiser depois vender o produto a outros restaurantes.",
+  "MECÂNICA 20 - Totem anônimo sem fricção e sem cabo, com pergunta de follow-up depois da carinha. HappyOrNot Smiley Terminal é wireless, plug-and-play, escala de verde-escuro a vermelho, e a análise de texto aberto ('Open feedback AI') vem depois do toque. Planos: Essentials (só Terminal), Professional (todos os produtos + IA + alertas em tempo real), Managed. Respostas ilimitadas em todos. Fontes: https://www.happy-or-not.com/en/solution/smiley-terminal/, https://www.happy-or-not.com/en/pricing-and-features/. O ponto de produto é o anonimato: gera volume e sinceridade que o QR nominal não gera.",
+  "MECÂNICA 21 - Anonimato e antifraude são o gargalo real da coleta por QR. A própria Risposta documenta que o TABLET responde por ~90% das avaliações porque é anônimo, e que o QR adiciona só até 15% de avaliações/cadastros e exige salvaguarda contra manipulação pela equipe. Fonte: https://www.risposta.app/risposta-qr-code/. Se a QT for só-QR, precisa de trava: 1 resposta por comanda do PDV, janela de tempo válida, e bloqueio de IP/dispositivo repetido.",
+  "MECÂNICA 22 - Convite no recibo está morto; convite digital é o padrão. A SMG, que é a referência global em programa de pesquisa por recibo, publica que 'it's no longer enough to rely on receipt-based invitations'. Fonte: https://marketing.smg.com/smg-program-methodology-digital-invitations. Casa com o número da Ovation de <0,5% de conclusão em pesquisa de recibo.",
+  "MECÂNICA 23 - Cliente oculto, auditoria operacional, checklist digital e pesquisa de cliente na MESMA plataforma. A Intouch Insight vende IntouchShop (cliente oculto), IntouchAudit (auditoria), IntouchCheck (checklist/inspeção) e IntouchSurvey (pesquisa) integrados, medindo velocidade de serviço, temperatura da comida, simpatia e precisão do pedido. Fonte: https://www.intouchinsight.com/who-we-are/about-intouch/. A mecânica que vale: cruzar o checklist de abertura/fechamento da cozinha com a nota do cliente daquele mesmo turno.",
+  "MECÂNICA 24 - Atribuição da nota a garçom, turno, prato, canal e loja simultaneamente. Yumpingo/Black Box captura satisfação 'down to location, shift, server and dish level' e compara contra benchmark de rede da indústria (Black Box: 100 mil unidades, 300+ empresas, US$ 153 bi em vendas anuais). Fontes: https://yumpingo.com/product/guest-interaction (via https://blackboxintelligence.com/yumpingo/), https://www.businesswire.com/news/home/20221114006082/en/Black-Box-Intelligence-Announces-GuestXM-Defining-Next-Generation-of-Customer-Experience-Management-for-Restaurants. Para a QT, atribuição a garçom com 20 mesas/dia é imediatamente acionável.",
+  "LEITURA ECONÔMICA PARA A QT - O piso do mercado global é incompatível com 1 salão e 50-200 respostas/mês. Tattle: US$ 125/loja/mês na faixa de 5-10 unidades (e a própria Tattle indica mínimo de 10+ lojas em material comparativo). Marqii: US$ 90/mês só de listagens. Birdeye: ~US$ 299-449/loja/mês. Popmenu: US$ 179-499/mês. Owner.com: US$ 249 + 5% por pedido ou US$ 499 flat. Ou seja: os R$ 501-1.000/mês pagos hoje ao Risposta compram, no mercado global, apenas o tier de entrada de uma ferramenta genérica — e o que a QT quer (feedback por item amarrado à comanda + alerta em tempo real + segunda onda 24h) é construível com um formulário próprio, o dado da comanda do Altec/Next e uma chamada de LLM para classificação. Nenhuma dessas quatro mecânicas exige infra caro.",
+  "O QUE JÁ EXISTE NO BRASIL (não vale reinventar como diferencial) - Falaê já integra com PDV e associa o feedback ao pedido, permitindo identificar prato, atendente e processo; Falaê coleta por QR na mesa, link no WiFi, SMS, WhatsApp e email. Fontes: https://www.falae.app/, https://naturalbot.com.br/falae-pesquisa-para-restaurantes/. Tagme tem produto de review. Fonte: https://tagme.com.br/tudo-sobre-pesquisa-de-satisfacao-em-restaurante/. O gap brasileiro NÃO é 'amarrar ao PDV' — é a PROFUNDIDADE: atributos separados por item, comparação contra média do cardápio, segunda onda 24h, banco de perguntas rotacionadas, alerta com número de mesa antes da saída e atribuição de receita recuperada.",
+  "RISCO A EVITAR - review gating. Várias plataformas (Ovation, Guestmeter) descrevem identificar o cliente satisfeito e empurrá-lo para o Google/Tripadvisor, e o insatisfeito para o canal privado. Fontes: https://ovationup.com/platform/feedback/, https://www.guestmeter.com/. Filtrar quem é convidado a avaliar publicamente com base na nota viola as políticas do Google e pode custar as avaliações da QT. Se copiar, convide TODOS a avaliar publicamente e use o canal privado apenas para resolver, não para filtrar."
+ ],
+ "vendors": [
+  {
+   "nome": "Ovation",
+   "pais": "Estados Unidos",
+   "site": "https://ovationup.com/",
+   "descricao": "Plataforma de experiência do cliente para restaurantes construída em cima de uma pesquisa de DUAS perguntas enviada por SMS, chamada Digital Table Touch. Posiciona-se como AI-first e tem três módulos: Digital Table Touch (coleta), Retention Marketing e Full CX Suite. Planos nomeados 'Plus' e 'Growth' aparecem em release de produto de 2023.",
+   "features": [
+    "Pesquisa SMS de 2 perguntas: 'How was your experience?' + emoji + campo aberto",
+    "Custom Questions / Next-Day Questions: segunda onda disparada 24h após a primeira resposta, hiper-segmentada por localidade, nota e origem do pedido",
+    "Taxa de resposta publicada de até 42% na segunda onda contra menos de 0,5% de pesquisa impressa no recibo",
+    "97% de taxa de conclusão de pesquisa e take rate de até 20% (números do próprio site)",
+    "Recuperação de cliente insatisfeito em dois cliques, por template ou por IA, com possibilidade de anexar oferta na mensagem",
+    "AI Suggested Response: gera resposta em 1 clique usando histórico do cliente, voz da marca, boas práticas de recuperação e o feedback específico; permite editar ou regerar",
+    "Classificação automática de texto aberto em 35+ categorias específicas de restaurante",
+    "AI-suggested goals: IA recomenda metas operacionais específicas",
+    "Alerta em tempo real de cliente em risco (at-risk guest) para intervenção rápida",
+    "Heatmap de performance por localidade e dashboard de analytics por nível de menu",
+    "Módulo de reputação online: incentiva o cliente satisfeito a publicar review e permite responder de dentro da plataforma",
+    "Setup em poucos dias, em alguns casos no mesmo dia"
+   ],
+   "preco": "NAO PUBLICO. O site só oferece cotação sob demanda para multi-unidade. Existe taxa de setup (uma landing page promocional oferece isenção dela). Nomes de plano identificados em release oficial: Plus e Growth.",
+   "modelo_cobranca": "Assinatura por loja com cotação customizada, mais taxa de setup. Valores não divulgados.",
+   "canais_coleta": [
+    "SMS pós-visita (canal primário)",
+    "QR code no ponto da transação (mesa, sacola, recibo)",
+    "Integrações com 50+ sistemas de pedido online, PDV e loyalty que disparam a pesquisa automaticamente",
+    "Cobre dine-in, take-out, delivery e drive-thru"
+   ],
+   "integracoes": [
+    "50+ integrações declaradas com PDV, pedido online e plataformas de loyalty (parceiros individuais não listados na home)",
+    "Restaurant365 (listado como parceiro no site do R365)",
+    "CBS NorthStar (PDV)"
+   ],
+   "diferencial": "É o melhor exemplo mundial de fricção mínima na coleta: duas perguntas e pronto, com o questionário longo voltando em segunda onda 24h depois e segmentado pelo que o cliente respondeu e pediu. Nenhum fornecedor brasileiro divide a pesquisa em duas ondas assim, e é exatamente isso que sustenta os 42% de resposta.",
+   "fraquezas": [
+    "Preço totalmente opaco, sem nenhuma referência pública",
+    "Reclamações no Capterra sobre falha em push notifications quando o celular do gerente está com SO desatualizado",
+    "Avaliado como 'pretty niche', não resolve todas as dores de marketing",
+    "Base de avaliações pequena (15 reviews no Capterra), o que enfraquece a leitura de nota 5,0",
+    "Estratégia de direcionar satisfeito para review pública e insatisfeito para canal privado é review gating e viola política do Google se aplicada como filtro"
+   ],
+   "publico_alvo": "Redes multi-unidade de fast casual e QSR nos EUA; setup para franquias e grupos",
+   "confianca": "alta",
+   "fontes": [
+    "https://ovationup.com/",
+    "https://ovationup.com/platform/feedback/",
+    "https://ovationup.com/news-releases-ovation-adds-custom-questions-to-actionable-guest-feedback-loop/",
+    "https://ovationup.com/news-releases-suggested-response/",
+    "https://www.capterra.com/p/181479/Ovation/reviews/",
+    "https://ovationup.com/chip/",
+    "https://www.restaurant365.com/partners/ovation/"
+   ]
+  },
+  {
+   "nome": "Tattle",
+   "pais": "Estados Unidos",
+   "site": "https://get.tattleapp.com/",
+   "descricao": "Plataforma de feedback exclusiva para restaurantes, cujo diferencial declarado é o feedback em nível de ITEM DE MENU com atributos separados, pré-populado por integração com PDV e sistemas de pedido. Atende 250+ marcas.",
+   "features": [
+    "Feedback por item de menu, com atributos separados: Sabor, Textura, Tamanho da Porção, Temperatura, Apresentação e Valor percebido",
+    "Pesquisa pré-preenchida com os itens da comanda via integração (o cliente não digita o que comeu); também suporta leitura/escaneamento de recibo",
+    "Comparação do score do item contra a MÉDIA DO CARDÁPIO, não em valor absoluto",
+    "Pesquisas 'causation-based': identificam o fator raiz que causou a nota, não só a nota",
+    "55+ pontos de dado por pesquisa com 94,5% de taxa de conclusão declarada e ~10% de penetração de resposta sobre transações",
+    "Disparo automático de email/SMS ~90 minutos após a transação",
+    "AI Coach: converte feedback em itens de ação de nível de TURNO",
+    "Dashboards: Overall Satisfaction Trend, Day Part Heatmap, Revenue Analysis, Incident Involvement Analysis",
+    "Módulo de análise de LTO (limited time offer): mede se a promoção trouxe cliente novo, aumentou ticket e satisfação",
+    "Sistema de guest recovery, gestão multi-loja, white-label, multi-idioma, acesso a API, SOC2",
+    "Add-on de Reputation Management (monitorar e responder review público)"
+   ],
+   "preco": "USD 125/loja/mês para 5-10 unidades; USD 100 para 11-20; USD 85 para 21-50; USD 65 para 51-200; 201+ sob consulta. A página oficial também diz 'Plans start from $59/location'. Pesquisas e respostas ILIMITADAS em todos os tiers. Atenção: material comparativo da própria Tattle afirma mínimo de 10+ lojas, o que conflita com o tier de 5-10 unidades da página de preço.",
+   "modelo_cobranca": "Por loja por mês, com desconto por volume de lojas. Sem limite de respostas. Reputation Management como add-on de preço não divulgado.",
+   "canais_coleta": [
+    "Email pós-transação (automático, ~90 min depois)",
+    "SMS pós-transação (declara 5x mais resposta que email)",
+    "QR code específico por loja, colocado na mesa ou na sacola de viagem",
+    "Pesquisa pré-populada via integração com PDV/pedido/kiosk",
+    "Escaneamento de recibo",
+    "Cobre dine-in, drive-thru, pickup, carryout e delivery"
+   ],
+   "integracoes": [
+    "35+ integrações diretas declaradas",
+    "Olo",
+    "Punchh",
+    "Toast",
+    "PAR Brink",
+    "Thanx",
+    "Revel",
+    "Paytronix",
+    "Flipdish",
+    "Bite",
+    "Square",
+    "Lunchbox",
+    "Itsacheckmate",
+    "Brygid",
+    "Up-n-Go",
+    "Como",
+    "Onosys",
+    "Restolabs",
+    "OneDine",
+    "Redcat",
+    "Menuu",
+    "GoParrot",
+    "Zuppler"
+   ],
+   "diferencial": "É a referência mundial em feedback por item consumido com atributos desmembrados e benchmark contra a média do próprio cardápio. Nenhum player brasileiro faz atributo por item nesse nível de granularidade — e é a mecânica que transforma pesquisa de satisfação em insumo direto de engenharia de cardápio.",
+   "fraquezas": [
+    "Pesquisa longa: um executivo citado no próprio site fala de 'despite being 50+ questions', o que é o oposto da filosofia da Ovation",
+    "Voltada a multi-unidade; sinaliza mínimo de 10+ lojas em material próprio, inviabilizando restaurante de 1 salão",
+    "Números de eficácia ('84% de probabilidade de melhorar satisfação em 30 dias', '97% de probabilidade de aumento de receita em 60-90 dias') vêm do marketing do próprio fornecedor, sem metodologia publicada",
+    "O blog comparativo dos 20 fornecedores é escrito pela própria Tattle e não lista nenhuma fraqueza de concorrente, o que revela viés",
+    "Nenhuma integração com PDV brasileiro"
+   ],
+   "publico_alvo": "Redes de restaurante multi-unidade, de fast casual a enterprise",
+   "confianca": "alta",
+   "fontes": [
+    "https://get.tattleapp.com/pricing/",
+    "https://get.tattleapp.com/item-level-feedback/",
+    "https://get.tattleapp.com/features/item-level-feedback/",
+    "https://get.tattleapp.com/features/feedback-collection/",
+    "https://get.tattleapp.com/blog/2026-03-15-top-20-restaurant-guest-feedback-software-providers-2026/",
+    "https://www.restaurantnews.com/tattle-continues-innovation-with-upgraded-menu-item-level-feedback-and-analytics-dashboard-021524/"
+   ]
+  },
+  {
+   "nome": "Yumpingo (agora BBI Survey Studio, dentro de Guest Intelligence da Black Box Intelligence)",
+   "pais": "Reino Unido / Estados Unidos",
+   "site": "https://blackboxintelligence.com/yumpingo/",
+   "descricao": "Pioneira em feedback POR PRATO (dish-level). Em vez de pedir nota da refeição, pergunta o sentimento de cada prato pedido. Foi absorvida pela Black Box Intelligence e hoje opera como BBI Survey Studio dentro da plataforma Guest Intelligence, junto com reputação, pesquisa por item, integrações e IA treinada em restaurante.",
+   "features": [
+    "Feedback dish-level: sentimento por prato pedido, não nota agregada da refeição",
+    "Atribuição simultânea a loja, TURNO, GARÇOM, prato e canal",
+    "Dispositivos próprios em restaurante (tablet entregue pelo garçom) além de recibo, email e QR",
+    "Volume de feedback declarado dramaticamente superior a Yelp/TripAdvisor/Google",
+    "'Smart Actions': expõe problemas críticos de execução",
+    "Conexão do dado de satisfação com performance financeira",
+    "Benchmarking contra a rede da indústria da Black Box (300+ empresas, ~100 mil unidades, 2,4 mi de funcionários, USD 153 bi em vendas anuais)",
+    "IA treinada em restaurante para analytics e benchmarking",
+    "40+ integrações de plataforma declaradas"
+   ],
+   "preco": "NAO PUBLICO. Nenhuma faixa divulgada nas páginas oficiais; a página de devices retornou HTTP 403 na consulta.",
+   "modelo_cobranca": "Cotação enterprise customizada. Detalhes não divulgados.",
+   "canais_coleta": [
+    "Dispositivo próprio dentro do restaurante (tablet entregue ao cliente)",
+    "QR code",
+    "Convite no recibo",
+    "Email"
+   ],
+   "integracoes": [
+    "40+ integrações de plataforma declaradas (parceiros individuais não confirmados em página oficial acessível)"
+   ],
+   "diferencial": "Foi quem inventou a categoria de feedback por prato e é a única a amarrar prato + garçom + turno + benchmark de rede da indústria numa só leitura. O benchmark contra 100 mil unidades é algo que nenhum fornecedor brasileiro tem condições de oferecer.",
+   "fraquezas": [
+    "Marca diluída em três renomeações (Yumpingo → GuestXM → BBI Survey Studio/Guest Intelligence), o que gera confusão e sinaliza instabilidade de produto",
+    "Preço opaco e claramente enterprise",
+    "Depende de hardware próprio no salão para atingir os volumes que anuncia, o que encarece",
+    "Páginas de produto com acesso bloqueado (403), reduzindo transparência",
+    "Voltada a rede grande; sem oferta para independente"
+   ],
+   "publico_alvo": "Redes de casual dining e full service multi-unidade; enterprise",
+   "confianca": "media",
+   "fontes": [
+    "https://blackboxintelligence.com/yumpingo/",
+    "https://yumpingo.com/product/guest-interaction",
+    "https://blackboxintelligence.com/product/guest-intelligence/guest-experience-survey/guest-interaction/",
+    "https://www.g2.com/products/yumpingo/reviews",
+    "https://www.insightplatforms.com/platforms/yumpingo/",
+    "https://www.businesswire.com/news/home/20221114006082/en/Black-Box-Intelligence-Announces-GuestXM-Defining-Next-Generation-of-Customer-Experience-Management-for-Restaurants"
+   ]
+  },
+  {
+   "nome": "GuestXM (Black Box Intelligence)",
+   "pais": "Estados Unidos",
+   "site": "https://blackboxintelligence.com/guestxm/",
+   "descricao": "Plataforma de Customer Experience Management anunciada em 2022 como a primeira construída especificamente para restaurantes. Combina motores de escuta, analytics de mercado local, inteligência preditiva e gestão de reputação em nível de loja. Hoje faz parte do guarda-chuva Guest Intelligence junto com o Yumpingo.",
+   "features": [
+    "Coleta, gestão e resposta a feedback omnichannel em nível local, regional e nacional",
+    "Identificação de causa raiz ligada a operação de salão E de cozinha, condições de força de trabalho e tendências de mercado local",
+    "Inteligência preditiva",
+    "Gestão de reputação em nível de unidade",
+    "Benchmarking contra base da indústria: 300+ empresas, 2,4 mi de funcionários, ~100 mil unidades, USD 153 bi em vendas anuais",
+    "Case público: CKE Restaurants International"
+   ],
+   "preco": "NAO PUBLICO",
+   "modelo_cobranca": "Enterprise, cotação customizada. Não divulgado.",
+   "canais_coleta": [
+    "Reviews públicos agregados",
+    "Pesquisas próprias",
+    "Redes sociais",
+    "Canais omnichannel (não detalhados publicamente)"
+   ],
+   "integracoes": [
+    "DESCONHECIDO em detalhe; herda as 40+ integrações declaradas do Guest Intelligence"
+   ],
+   "diferencial": "Cruza dado de satisfação com dado de FORÇA DE TRABALHO (turnover, staffing) e de mercado local, algo que só quem tem base de benchmarking de rede consegue fazer. É a mecânica de 'a nota caiu porque a equipe rotacionou', não 'a nota caiu'.",
+   "fraquezas": [
+    "Absorvido/renomeado dentro do Guest Intelligence, com identidade de produto pouco clara",
+    "Preço não público",
+    "Inútil para operação de uma unidade",
+    "Comunicação fortemente dependente de press release, com pouca documentação técnica pública"
+   ],
+   "publico_alvo": "Redes multi-unidade e enterprise de restaurante",
+   "confianca": "media",
+   "fontes": [
+    "https://blackboxintelligence.com/guestxm/",
+    "https://www.businesswire.com/news/home/20221114006082/en/Black-Box-Intelligence-Announces-GuestXM-Defining-Next-Generation-of-Customer-Experience-Management-for-Restaurants",
+    "https://www.businesswire.com/news/home/20231109530752/en/CKE-Restaurants-International-Gains-Insights-on-Customer-Experience-with-GuestXM-powered-by-Black-Box-Intelligence",
+    "https://salestechstar.com/sales-engagement/black-box-intelligence-announces-guestxm-defining-next-generation-of-customer-experience-management-for-restaurants/"
+   ]
+  },
+  {
+   "nome": "Guestmeter",
+   "pais": "DESCONHECIDO (opera globalmente, forte em hotelaria)",
+   "site": "https://www.guestmeter.com/",
+   "descricao": "Plataforma de gestão de feedback e reputação para hospitalidade (hotéis e restaurantes), com pesquisa por SMS internacional, email, QR imprimível e kiosk, e foco em interceptar o cliente insatisfeito antes que ele publique review negativo.",
+   "features": [
+    "Pesquisa por SMS internacional, email ou QR card impresso no ponto da experiência",
+    "Pesquisa on-stay por QR code ou kiosk",
+    "Identificação de cliente feliz vs infeliz antes da publicação de review negativo",
+    "Direcionamento de cliente satisfeito para TripAdvisor, Google Reviews e outros sites",
+    "Acompanhamento de NPS ao longo do tempo",
+    "Sem contrato, upgrade/downgrade/cancelamento a qualquer momento",
+    "Teste grátis de 7 dias e garantia de 30 dias de devolução"
+   ],
+   "preco": "USD 49/mês como preço inicial, segundo agregador terceiro (SoftwareSuggest). NAO CONFIRMADO na página oficial: https://www.guestmeter.com/pricing retornou HTTP 503 na consulta.",
+   "modelo_cobranca": "Assinatura mensal por propriedade, sem contrato. Faixa superior de preço não verificada.",
+   "canais_coleta": [
+    "SMS internacional pós-visita",
+    "Email pós-visita",
+    "QR card impresso no ponto da experiência",
+    "Kiosk / totem"
+   ],
+   "integracoes": [
+    "TripAdvisor",
+    "Google Reviews",
+    "Outros sites de review (não enumerados em fonte oficial verificada)"
+   ],
+   "diferencial": "É o raro fornecedor global com preço de entrada baixo (~USD 49/mês) e sem contrato, viável para operação de uma unidade. A mecânica de QR CARD IMPRESSO entregue no ponto da experiência (em vez de adesivo fixo na mesa) é simples e reduz manipulação pela equipe.",
+   "fraquezas": [
+    "Página oficial de preços indisponível na consulta (HTTP 503), preço só confirmável por terceiro",
+    "Origem/sede da empresa não identificada nas fontes consultadas",
+    "Produto claramente desenhado para hotel, com restaurante como caso secundário",
+    "Sem integração com PDV nas fontes consultadas — o feedback não se amarra à comanda nem ao item consumido",
+    "Estratégia central é direcionar satisfeito para review pública, o que é review gating e conflita com política do Google"
+   ],
+   "publico_alvo": "Hotéis e restaurantes independentes e pequenas redes",
+   "confianca": "media",
+   "fontes": [
+    "https://www.guestmeter.com/",
+    "https://www.guestmeter.com/restaurant-qr-code-survey",
+    "https://www.guestmeter.com/restaurant-survey-software",
+    "https://www.softwaresuggest.com/guestmeter",
+    "https://hoteltechreport.com/marketing/reputation-management/guestmeter"
+   ]
+  },
+  {
+   "nome": "Delighted (Qualtrics)",
+   "pais": "Estados Unidos",
+   "site": "https://www.qualtrics.com/delighted/",
+   "descricao": "Ferramenta de NPS/CSAT/CES simples, com plano gratuito, historicamente a referência de 'pesquisa de uma pergunta' bem feita. ESTÁ SENDO DESCONTINUADA: delighted.com/pricing hoje redireciona (HTTP 301) para qualtrics.com/delighted.",
+   "features": [
+    "Pesquisa de pergunta única de NPS/CSAT/CES por email, SMS, link e web",
+    "Envios de pesquisa ilimitados e lógica de pergunta em todos os planos, inclusive no free",
+    "Plano gratuito real, sem cartão de crédito",
+    "Escadinha de preço amarrada a RESPOSTAS por mês e a número de usuários, não a features"
+   ],
+   "preco": "Planos históricos citados por terceiros: Free (25 respostas/mês, 1 usuário), Starter USD 19/mês (50 respostas, 2 usuários), Growth USD 39/mês (100 respostas, 3 usuários), Advanced USD 149/mês (250 respostas, 5 usuários), Premium USD 249/mês (500 respostas, 10 usuários). PRODUTO EM DESCOMISSIONAMENTO: sunset citado por terceiros para 30/06/2026. A página oficial de preço já não existe.",
+   "modelo_cobranca": "Assinatura mensal por faixa de respostas/mês e número de usuários. Descontinuado.",
+   "canais_coleta": [
+    "Email",
+    "SMS",
+    "Link de pesquisa",
+    "Web / in-app"
+   ],
+   "integracoes": [
+    "Qualtrics (destino da migração)",
+    "DESCONHECIDO em detalhe após o descomissionamento"
+   ],
+   "diferencial": "A mecânica de embalagem é o que vale: cobrar por RESPOSTA/mês e por usuário, com features iguais em todos os planos e um free tier honesto de 25 respostas. Para 50-200 respostas/mês, esse modelo colocaria a QT no tier de USD 19-39/mês — referência útil de quanto esse volume de feedback realmente vale.",
+   "fraquezas": [
+    "PRODUTO SENDO DESCONTINUADO — não é opção viável de compra",
+    "Limite de respostas/mês baixíssimo nos planos baratos (25 a 100), estourável por uma pizzaria movimentada",
+    "Ferramenta genérica de NPS, sem nada de restaurante: não conhece item de menu, comanda, garçom ou turno",
+    "Sem integração com PDV"
+   ],
+   "publico_alvo": "Era pequeno e médio e-commerce e SaaS; nunca foi produto de restaurante",
+   "confianca": "media",
+   "fontes": [
+    "https://delighted.com/pricing",
+    "https://www.qualtrics.com/delighted",
+    "https://www.capterra.com/p/157973/Delighted/pricing/",
+    "https://g2.com/products/delighted/pricing",
+    "https://feedsense.co/blog/delighted-alternatives-nps"
+   ]
+  },
+  {
+   "nome": "Medallia",
+   "pais": "Estados Unidos",
+   "site": "https://www.medallia.com/solutions/restaurants-food-service/",
+   "descricao": "Plataforma enterprise de experience management com solução vertical para restaurante e food service, referência mundial em CLOSED-LOOP: pegar o sinal negativo, rotear para o responsável e fechar o ciclo com o cliente em tempo real.",
+   "features": [
+    "Coleta de 'todo sinal' em todos os canais da jornada do cliente",
+    "Alertas em tempo real e ferramentas móveis de engajamento com o cliente",
+    "Smart Closed Loop: automação de fechamento de ciclo em tempo real (guia e demo próprios)",
+    "Text analytics e IA sobre feedback aberto",
+    "Integração com sistemas operacionais",
+    "Solução específica para gerente de unidade (location-based operations)",
+    "Case público: A&W Canada, 2ª maior rede de hambúrguer do Canadá, 1.000+ lojas, identificando fricção em tempo real via touchpoints digitais, redes sociais e Google Reviews"
+   ],
+   "preco": "NAO PUBLICO",
+   "modelo_cobranca": "Enterprise, cotação customizada. Não divulgado.",
+   "canais_coleta": [
+    "Pesquisas",
+    "Redes sociais",
+    "Sites de review",
+    "Apps móveis",
+    "Interações em loja",
+    "(Canais individuais não detalhados na página oficial de restaurante)"
+   ],
+   "integracoes": [
+    "'Seamless integrations of operational systems' declarado, sem parceiros nomeados na página de restaurante"
+   ],
+   "diferencial": "O conceito de Smart Closed Loop é a mecânica mais madura do mercado: cada feedback negativo é um TICKET com dono, prazo e desfecho registrado, não um item de relatório. É isso que falta em toda pesquisa de satisfação brasileira, que morre no dashboard.",
+   "fraquezas": [
+    "Página oficial de restaurante é quase toda marketing: não revela canal de coleta, workflow de recuperação, integração com PDV, preço, nem benchmark",
+    "Preço enterprise e opaco; inacessível para independente",
+    "Complexidade de implantação típica de enterprise CX",
+    "Nada específico de item de menu ou comanda nas fontes consultadas"
+   ],
+   "publico_alvo": "Redes enterprise de restaurante e food service com centenas ou milhares de unidades",
+   "confianca": "media",
+   "fontes": [
+    "https://www.medallia.com/solutions/restaurants-food-service/",
+    "https://www.medallia.com/solutions/location-based-operations/",
+    "https://www.medallia.com/resource/the-complete-guide-to-closing-the-loop/",
+    "https://exp-now.medallia.com/video/closed-loop-automation-demo/",
+    "https://www.medallia.com/customers/",
+    "https://get.tattleapp.com/blog/2026-03-15-top-20-restaurant-guest-feedback-software-providers-2026/"
+   ]
+  },
+  {
+   "nome": "InMoment",
+   "pais": "Estados Unidos",
+   "site": "https://inmoment.com/",
+   "descricao": "Plataforma enterprise de Voice of the Customer que combina dado de VoC com analytics de IA. Concorrente direta de Medallia e Qualtrics, com foco em alerta closed-loop que roteia o detrator para a pessoa certa imediatamente.",
+   "features": [
+    "Alerta closed-loop em tempo real roteando feedback de detrator para o responsável certo",
+    "Alerta customizável e workflow de guest recovery",
+    "VoC combinado com analytics de IA",
+    "Journey analytics e insights pós-compra"
+   ],
+   "preco": "NAO PUBLICO",
+   "modelo_cobranca": "Enterprise, cotação customizada. Não divulgado.",
+   "canais_coleta": [
+    "DESCONHECIDO em detalhe nas fontes consultadas; presume-se pesquisa multicanal, review público e social"
+   ],
+   "integracoes": [
+    "DESCONHECIDO"
+   ],
+   "diferencial": "O ROTEAMENTO do detrator para o dono do problema (não para uma caixa de entrada genérica) com workflow de recuperação customizável é a mecânica a copiar: a nota baixa sobre pizza queimada tem que chegar na cozinha, a nota baixa sobre demora tem que chegar no salão.",
+   "fraquezas": [
+    "Não consegui validar nada em página oficial nesta rodada — todo o conteúdo vem de comparativos de terceiros",
+    "Preço opaco, enterprise",
+    "Sem especificidade de restaurante identificada nas fontes",
+    "Sem integração com PDV comprovada"
+   ],
+   "publico_alvo": "Enterprise multissetorial, incluindo restaurantes de grande porte",
+   "confianca": "baixa",
+   "fontes": [
+    "https://www.cuspera.com/compare/medallia-experience-cloud-vs-inmoment/496/765",
+    "https://www.zigpoll.com/content/medallia-vs-inmoment-compared-2026",
+    "https://get.tattleapp.com/blog/2026-03-15-top-20-restaurant-guest-feedback-software-providers-2026/"
+   ]
+  },
+  {
+   "nome": "Qualtrics (para restaurantes)",
+   "pais": "Estados Unidos",
+   "site": "https://www.qualtrics.com/",
+   "descricao": "Plataforma de experience management 'research-grade' que cobre customer, employee, product e brand experience. Absorveu a Delighted, que está sendo descontinuada e migrada para a Qualtrics.",
+   "features": [
+    "Pesquisa de grau de pesquisa acadêmica/mercado, com desenho experimental e amostragem",
+    "IA e analytics avançado que expõem tendências de sentimento",
+    "Workflows automatizados",
+    "Cobertura de customer + employee + product + brand experience na mesma base"
+   ],
+   "preco": "NAO PUBLICO (enterprise, cotação customizada)",
+   "modelo_cobranca": "Enterprise. Não divulgado.",
+   "canais_coleta": [
+    "Pesquisas",
+    "Comportamento em site e app",
+    "Chat",
+    "Redes sociais",
+    "Telefone",
+    "Reviews públicos"
+   ],
+   "integracoes": [
+    "Delighted (produto absorvido)",
+    "DESCONHECIDO em detalhe para o vertical de restaurante"
+   ],
+   "diferencial": "É a única com rigor metodológico de pesquisa de verdade (amostragem, significância, desenho de questionário). Para quem quer construir o próprio, o aprendizado é metodológico, não de feature: com 50-200 respostas/mês a QT precisa cuidar de significância estatística antes de tirar conclusão de item individual.",
+   "fraquezas": [
+    "Não tem produto vertical de restaurante de verdade; é plataforma horizontal",
+    "Descontinuar a Delighted eliminou a única porta de entrada barata do ecossistema Qualtrics",
+    "Preço enterprise, opaco e alto",
+    "Nenhuma mecânica de restaurante (item de menu, comanda, garçom, turno) nas fontes consultadas"
+   ],
+   "publico_alvo": "Enterprise multissetorial; equipes de insights e pesquisa",
+   "confianca": "baixa",
+   "fontes": [
+    "https://www.qualtrics.com/delighted",
+    "https://get.tattleapp.com/blog/2026-03-15-top-20-restaurant-guest-feedback-software-providers-2026/"
+   ]
+  },
+  {
+   "nome": "SMG (Service Management Group / smg360)",
+   "pais": "Estados Unidos",
+   "site": "https://smg.com/industries/restaurant",
+   "descricao": "Parceira de experience management de mais de 500 marcas globais, historicamente A referência em programa de pesquisa por convite no RECIBO para restaurante. Opera em modelo 'Software with a Service' (SwaS): software mais serviço gerenciado.",
+   "features": [
+    "Modelo SwaS: software + serviço de ponta a ponta, com pacotes Standard e Pro UXM e três tiers de serviço (Foundational, Advanced, Elite)",
+    "DIY survey designer",
+    "Gestão de reputação online",
+    "Analytics preditivo",
+    "Dado de feedback em tempo real com relatório por papel (role-based) e app móvel de relatório",
+    "Migração declarada de convite por recibo para convite DIGITAL: 'it's no longer enough to rely on receipt-based invitations'",
+    "Parceria de experience management com a Olo (plataforma de pedido) anunciada em 2020"
+   ],
+   "preco": "NAO PUBLICO. A página https://smg.com/pricing existe, descreve dois pacotes de software e três tiers de serviço, mas NÃO exibe nenhum valor ou moeda — direciona para demo.",
+   "modelo_cobranca": "Software + serviço gerenciado, cotação customizada por programa. Sem valores públicos.",
+   "canais_coleta": [
+    "Convite no recibo (histórico, declarado insuficiente hoje)",
+    "Convite digital: email e SMS",
+    "App do cliente",
+    "Reviews públicos"
+   ],
+   "integracoes": [
+    "Olo (parceria de experience management)",
+    "DESCONHECIDO em detalhe"
+   ],
+   "diferencial": "O sinal mais valioso do mercado inteiro vem da SMG: a própria dona do modelo de pesquisa por recibo declara publicamente que ele acabou. Casa com o número da Ovation de menos de 0,5% de conclusão em pesquisa de recibo. Se a QT hoje coleta por adesivo estático, esse é o alerta.",
+   "fraquezas": [
+    "Página de preços que não tem preço — opacidade deliberada",
+    "Modelo SwaS caro por definição (embute consultoria)",
+    "O one-pager de metodologia de convite digital fica atrás de formulário, sem benchmark de taxa de resposta acessível publicamente",
+    "Voltada exclusivamente a marca grande (500+ marcas, mas todas de porte)"
+   ],
+   "publico_alvo": "Redes enterprise de restaurante, varejo e food service",
+   "confianca": "alta",
+   "fontes": [
+    "https://smg.com/pricing",
+    "https://smg.com/industries/restaurant",
+    "https://marketing.smg.com/smg-program-methodology-digital-invitations",
+    "https://marketing.smg.com/smg360-services",
+    "https://www.businesswire.com/news/home/20201109005058/en/SMG-Announces-Experience-Management-Partnership-With-Leading-Food-Ordering-Platform-Olo",
+    "https://www.techjockey.com/detail/smg360",
+    "https://www.g2.com/products/smg-service-management-group/pricing"
+   ]
+  },
+  {
+   "nome": "Reputation (Reputation.com)",
+   "pais": "Estados Unidos",
+   "site": "https://reputation.com/",
+   "descricao": "Plataforma que consolida reviews, pesquisas, listagens e dado social em uma só base, com analytics de texto e sentimento e insights preditivos combinando feedback público e privado.",
+   "features": [
+    "Consolidação de reviews, pesquisas, listagens e dado social",
+    "Analytics de sentimento e de texto",
+    "Insights preditivos a partir de feedback público E privado combinados"
+   ],
+   "preco": "NAO PUBLICO",
+   "modelo_cobranca": "Cotação customizada. Não divulgado.",
+   "canais_coleta": [
+    "Reviews públicos",
+    "Pesquisas próprias",
+    "Listagens",
+    "Redes sociais"
+   ],
+   "integracoes": [
+    "DESCONHECIDO"
+   ],
+   "diferencial": "A mecânica de fundir feedback PRIVADO (pesquisa) com feedback PÚBLICO (review) numa única base de sentimento é o que quase ninguém faz no Brasil: aqui a pesquisa vive num sistema e o Google Reviews em outro, e ninguém cruza.",
+   "fraquezas": [
+    "Nada verificado em página oficial nesta rodada; todo o conteúdo vem de comparativo de terceiro (escrito por concorrente)",
+    "Preço opaco",
+    "Sem especificidade de restaurante identificada",
+    "Sem integração com PDV comprovada"
+   ],
+   "publico_alvo": "Enterprise multi-location de vários setores",
+   "confianca": "baixa",
+   "fontes": [
+    "https://get.tattleapp.com/blog/2026-03-15-top-20-restaurant-guest-feedback-software-providers-2026/"
+   ]
+  },
+  {
+   "nome": "Birdeye",
+   "pais": "Estados Unidos",
+   "site": "https://birdeye.com/",
+   "descricao": "Plataforma de reputação e experiência de cliente alimentada por IA, que consolida feedback de 150+ sites de review e fornece dado comparativo de concorrente.",
+   "features": [
+    "Agregação de 150+ sites de review",
+    "BirdAI: análise de sentimento, geração de resposta e insights operacionais",
+    "Competitors AI: dado de performance de concorrente",
+    "Social AI",
+    "Integrações com Olo, GrubHub, Square, OpenTable e Toast"
+   ],
+   "preco": "USD 299/local/mês (Starter), USD 349 (Growth), USD 449 (Dominate), Premium sob consulta — valores de terceiros, NÃO confirmados em página oficial. Terceiros também relatam setup de USD 500 a 1.500 e uma 'Innovation Fee' de 8% na renovação, elevando o custo real em 25-40%. Custo real de primeiro ano estimado por terceiro em USD 4.000 a 6.000 para pequeno negócio em contrato anual.",
+   "modelo_cobranca": "Assinatura por local por mês, contrato anual, com setup fee e taxa de renovação segundo relatos de terceiros.",
+   "canais_coleta": [
+    "Solicitação de review por SMS e email",
+    "150+ sites de review agregados",
+    "Integrações de PDV e pedido (Toast, Square, Olo, OpenTable, GrubHub)"
+   ],
+   "integracoes": [
+    "Olo",
+    "GrubHub",
+    "Square",
+    "OpenTable",
+    "Toast"
+   ],
+   "diferencial": "Escala de agregação de review (150+ fontes) e a mecânica de Competitors AI: medir a própria nota contra a dos concorrentes do mesmo raio, automaticamente. Para uma pizzaria no Rio, saber a nota das outras 8 pizzarias do bairro em tempo real é acionável.",
+   "fraquezas": [
+    "Taxas escondidas são reclamação recorrente de terceiros: setup fee, Innovation Fee de 8% na renovação, custo real 25-40% acima do anunciado",
+    "Caríssimo para uma unidade (USD 299+/mês, ~R$ 1.600+/mês no piso)",
+    "Contrato anual",
+    "É gestão de REPUTAÇÃO, não de experiência: não conhece item de menu, comanda, garçom nem turno",
+    "Preço não confirmado em fonte oficial"
+   ],
+   "publico_alvo": "Pequeno e médio negócio multi-location e enterprise, multissetorial",
+   "confianca": "media",
+   "fontes": [
+    "https://birdeye.com/blog/what-does-birdeye-cost/",
+    "https://wiserreview.com/blog/birdeye-pricing/",
+    "https://www.replifast.com/blog/birdeye-pricing-2026",
+    "https://www.reviewflowz.com/blog/how-much-does-birdeye-really-cost",
+    "https://www.g2.com/products/birdeye/pricing",
+    "https://get.tattleapp.com/blog/2026-03-15-top-20-restaurant-guest-feedback-software-providers-2026/"
+   ]
+  },
+  {
+   "nome": "Chatmeter",
+   "pais": "Estados Unidos",
+   "site": "https://www.chatmeter.com/",
+   "descricao": "Plataforma de inteligência de reputação e experiência local com IA que sintetiza dado não estruturado de milhões de reviews, voltada a enterprise multi-location e agências.",
+   "features": [
+    "Síntese com IA de dado não estruturado de milhões de reviews",
+    "Insights de sentimento por IA",
+    "Workflows automatizados de resposta",
+    "Taxa de retenção de cliente declarada de 93%"
+   ],
+   "preco": "NAO PUBLICO",
+   "modelo_cobranca": "Cotação customizada, orientada a enterprise. Não divulgado.",
+   "canais_coleta": [
+    "Agregação multi-plataforma de reviews públicos"
+   ],
+   "integracoes": [
+    "DESCONHECIDO"
+   ],
+   "diferencial": "A mecânica é de escala de linguagem: extrair tema e causa de milhões de textos não estruturados sem categoria pré-definida. É a única forma de descobrir problema que você não pensou em perguntar — o oposto do questionário fechado que domina o Brasil.",
+   "fraquezas": [
+    "Nada verificado em página oficial nesta rodada",
+    "Preço não público",
+    "Mira explicitamente enterprise multi-location e agências, irrelevante para independente",
+    "Só review público, sem coleta first-party de restaurante"
+   ],
+   "publico_alvo": "Enterprise multi-location e agências de marketing",
+   "confianca": "baixa",
+   "fontes": [
+    "https://research.com/software/reviews/chatmeter",
+    "https://get.tattleapp.com/blog/2026-03-15-top-20-restaurant-guest-feedback-software-providers-2026/"
+   ]
+  },
+  {
+   "nome": "Marqii",
+   "pais": "Estados Unidos",
+   "site": "https://marqii.com/",
+   "descricao": "Plataforma de 'hospitalidade digital' que usa o PDV como fonte da verdade: mudanças de menu e horário feitas no PDV são empurradas automaticamente para 70+ diretórios e sites de review. Tem o preço mais transparente de todos os fornecedores pesquisados.",
+   "features": [
+    "Atualizações ilimitadas para 70+ publishers: Google, Yelp, Facebook, Apple Maps, Bing, Tripadvisor, Waze",
+    "Sincronização automática de menu a partir do PDV (Toast, Square, Olo) — economia declarada de ~7 horas por alteração de menu",
+    "Widgets de horário e menu para o site próprio",
+    "Analytics de busca detalhado",
+    "Monitoramento de review em Yelp, Google, Facebook, DoorDash, Grubhub, Uber Eats, ezCater",
+    "Resposta a review em Yelp, Google e Facebook",
+    "Respostas de review sugeridas por IA, insights com análise de sentimento e resumos de review por IA",
+    "Notificações de review customizadas",
+    "Kitchen Sync",
+    "First-party reviews (reviews coletadas pelo próprio restaurante) no tier mais alto",
+    "Gestão social com Google Posts e Apple Showcase",
+    "Add-on Managed Review Response: respostas escritas por humanos da Marqii"
+   ],
+   "preco": "OFICIAL, por local por mês, contrato anual: Base USD 90; Pro USD 145; Full Marqii Suite USD 180; Multi-Unit (5+ locais) sob consulta. Add-on Managed Review Response: USD 100 por 50 reviews (USD 2,00/review), USD 150 por 100 (USD 1,50), USD 250 por 250 (USD 1,00), USD 375 por 500 (USD 0,75) — taxa de plataforma aplicável se comprado separado.",
+   "modelo_cobranca": "Por local por mês em contrato anual, com três tiers de feature e um add-on cobrado POR REVIEW RESPONDIDA em pacotes com desconto por volume.",
+   "canais_coleta": [
+    "First-party reviews (tier Full Suite)",
+    "Agregação de review de 7 plataformas",
+    "Widgets no site próprio",
+    "Sincronização de dado a partir do PDV"
+   ],
+   "integracoes": [
+    "Toast",
+    "Square",
+    "Olo",
+    "Google",
+    "Yelp",
+    "Facebook",
+    "Apple Maps",
+    "Bing",
+    "Tripadvisor",
+    "Waze",
+    "DoorDash",
+    "Grubhub",
+    "Uber Eats",
+    "ezCater"
+   ],
+   "diferencial": "Duas mecânicas para copiar. Primeira: o PDV como fonte única de verdade do menu, com propagação automática para o Google — no Brasil ninguém liga Altec/Next ao Google Business Profile, e o menu no Google fica desatualizado por meses. Segunda: cobrar resposta a review POR UNIDADE (USD 0,75 a 2,00), embalagem de preço muito superior a 'plano ilimitado'.",
+   "fraquezas": [
+    "Contrato anual obrigatório nos tiers publicados",
+    "First-party review só no tier mais caro (USD 180/local/mês)",
+    "Resposta a review limitada a Yelp, Google e Facebook — monitora mais canais do que responde",
+    "É gestão de presença e reputação, NÃO tem feedback por item consumido nem alerta em tempo real de mesa",
+    "Integração de PDV limitada a Toast, Square e Olo — nada brasileiro",
+    "Preços de terceiros citam valores antigos e diferentes (USD 74,99/119,99/149,99), sinal de reajustes frequentes"
+   ],
+   "publico_alvo": "Restaurantes independentes e pequenas/médias redes nos EUA",
+   "confianca": "alta",
+   "fontes": [
+    "https://marqii.com/pricing",
+    "https://marqii.com/listings",
+    "https://marqii.com/menu-management",
+    "https://marqii.com/independent-operators",
+    "https://marqii.com/frequently-asked-questions",
+    "https://restauranttools.ai/tools/marqii"
+   ]
+  },
+  {
+   "nome": "Owner.com",
+   "pais": "Estados Unidos",
+   "site": "https://www.owner.com/",
+   "descricao": "Plataforma all-in-one para restaurante independente: site otimizado por IA, pedido online próprio, app de marca, SEO automatizado, loyalty e campanhas de email/SMS, vendida como alternativa às taxas dos marketplaces.",
+   "features": [
+    "Site otimizado por IA e páginas de SEO automatizadas",
+    "Pedido online direto e app móvel de marca própria",
+    "Programa de loyalty",
+    "Campanhas automatizadas de email e SMS",
+    "Proteção contra chargeback",
+    "Automação de marketing com IA",
+    "Suporte 24/7",
+    "Integrações de PDV: Square, Clover, Toast (via Otter)"
+   ],
+   "preco": "USD 249/mês (plano Flex, com 5% de taxa sobre cada pedido) ou USD 499/mês (Flat-Rate, sem comissão por pedido), mês a mês sem contrato longo, mais taxas de entrega e de cliente. Valores de fontes terceiras; NÃO confirmados por leitura da página oficial nesta rodada.",
+   "modelo_cobranca": "Dois planos mês a mês: assinatura menor + comissão por pedido, ou assinatura maior sem comissão. Ponto de equilíbrio citado por terceiro em ~USD 5.000/mês de venda online.",
+   "canais_coleta": [
+    "Pedido online próprio (canal de dado first-party)",
+    "App de marca própria",
+    "Email e SMS de campanha",
+    "Não é uma plataforma de pesquisa de satisfação"
+   ],
+   "integracoes": [
+    "Square",
+    "Clover",
+    "Toast (via Otter)",
+    "Otter"
+   ],
+   "diferencial": "A mecânica a copiar é de PRECIFICAÇÃO, não de feedback: oferecer dois planos onde o cliente escolhe entre pagar menos fixo + variável por pedido, ou mais fixo e zero variável, com ponto de equilíbrio explicitado. Modelo honesto e raro. Também é o melhor exemplo de canal PROPRIETÁRIO de pedido como fonte de dado de cliente.",
+   "fraquezas": [
+    "Não é produto de gestão de experiência: não faz pesquisa de satisfação, não tem feedback por item, nem alerta de recuperação",
+    "Caro para o porte da QT (USD 249-499/mês = ~R$ 1.300 a 2.700/mês)",
+    "Taxas de entrega e de cliente por cima da assinatura",
+    "Preço não verificado em página oficial",
+    "Sem integração com PDV brasileiro"
+   ],
+   "publico_alvo": "Restaurante independente e pequena rede nos EUA, focado em delivery/pickup direto",
+   "confianca": "media",
+   "fontes": [
+    "https://www.owner.com/pricing",
+    "https://www.getsauce.com/post/owner-com-pricing-fees",
+    "https://softwarefinder.com/retail/owner-com",
+    "https://www.savorinsider.com/p/owner-com-basics-is-this-the-all-in-one-tool-your-restaurant-needs",
+    "https://www.softwareadvice.com/retail/owner-com-profile/"
+   ]
+  },
+  {
+   "nome": "Popmenu",
+   "pais": "Estados Unidos",
+   "site": "https://get.popmenu.com/",
+   "descricao": "Plataforma de marketing e presença digital para restaurante, com menu interativo, site, pedido online, waitlist/reserva e atendimento telefônico por IA (AI Answering).",
+   "features": [
+    "Menu interativo com dado de interação por prato",
+    "Site e pedido online",
+    "AI Answering: atendimento telefônico por IA",
+    "Waitlist digital e reserva com gestão de capacidade (feature do tier Premier)",
+    "Campanhas de email e SMS",
+    "Boosts de anúncio pago"
+   ],
+   "preco": "USD 179/mês (Starter), USD 299 (Essentials), USD 499 (Premier), com ~10% de desconto no pré-pago anual. AI Answering citado por terceiros entre ~USD 150/mês (500 chamadas) e USD 349/mês — fontes divergem. Pedido online, AI Answering e boosts de anúncio ficam FORA da assinatura em todos os tiers e são cotados por vendas. Valores de terceiros, não confirmados em página oficial.",
+   "modelo_cobranca": "Assinatura mensal em três tiers, com módulos-chave (pedido, IA de telefone, anúncio) cobrados por fora e cotados por vendas. Sem trial gratuito.",
+   "canais_coleta": [
+    "Interação com menu no site (sinal implícito de interesse por prato)",
+    "Telefone via AI Answering",
+    "Waitlist e reserva",
+    "Não é plataforma de pesquisa de satisfação"
+   ],
+   "integracoes": [
+    "DESCONHECIDO em detalhe"
+   ],
+   "diferencial": "A mecânica interessante é o MENU INTERATIVO como instrumento de medição: cada visualização, curtida e comentário por prato no site vira dado de interesse antes do consumo, complementando o dado de satisfação depois do consumo. É a única forma barata de medir demanda por item que ainda não está no cardápio.",
+   "fraquezas": [
+    "Terceiros relatam que o custo real explode: workflows centrais (pedido, IA de telefone, anúncio) ficam fora da assinatura em TODO tier",
+    "Divergência grande de preço para AI Answering entre fontes (USD 150 vs USD 349), sinal de cotação inconsistente",
+    "Sem trial gratuito",
+    "Artigos de terceiros com título 'PopMenu getting expensive' indicam insatisfação com aumento de preço",
+    "Não faz pesquisa de satisfação, feedback por item consumido nem recuperação de cliente",
+    "Preço não confirmado em página oficial"
+   ],
+   "publico_alvo": "Restaurantes independentes e pequenas redes nos EUA",
+   "confianca": "media",
+   "fontes": [
+    "https://get.popmenu.ca/pricing-packages",
+    "https://www.restolabs.com/blog/popmenu-pricing",
+    "https://zay-os.com/how-much-does-popmenu-cost",
+    "https://restauranttools.ai/tools/popmenu",
+    "https://hostie.ai/resources/popmenu-getting-expensive-5-ai-host-alternatives-for-restaurants"
+   ]
+  },
+  {
+   "nome": "Bikky",
+   "pais": "Estados Unidos",
+   "site": "https://bikky.com/",
+   "descricao": "Customer Data Platform construída exclusivamente para redes de restaurante multi-unidade, integrando PDV, pedido online, processador de pagamento e loyalty para montar perfil de cliente 360 e análise de menu.",
+   "features": [
+    "Perfis de cliente 360 unificando PDV, pedido online, reserva e loyalty",
+    "Integração com provedores novos E LEGADOS, em nuvem ou on-premise",
+    "Rastreamento de até 90% dos clientes e suas transações, dependendo do stack",
+    "Análise de menu (menu analysis)",
+    "Marketing automation para engajamento personalizado",
+    "Módulo de demographics para identificar segmentos valiosos",
+    "Frequência e lifetime value do cliente"
+   ],
+   "preco": "NAO PUBLICO. Modelo declarado: assinatura por loja por mês, SEM taxa de integração nem de implementação.",
+   "modelo_cobranca": "Assinatura por loja por mês, cotação direta. Sem cobrança de integração ou implementação.",
+   "canais_coleta": [
+    "Não coleta feedback diretamente: ingere dado de PDV, pedido online, pagamento e loyalty",
+    "Feedback vem de sistemas integrados"
+   ],
+   "integracoes": [
+    "PDVs em nuvem e ON-PREMISE, incluindo provedores legados",
+    "Sistemas de pedido online",
+    "Processadores de pagamento",
+    "Programas de loyalty"
+   ],
+   "diferencial": "É a única que trata PDV LEGADO E ON-PREMISE como cidadão de primeira classe. Isso é exatamente o problema da QT com Altec/Next: quase todo fornecedor global só integra com PDV em nuvem (Toast, Square). A mecânica a copiar é a de extração de dado de PDV local, e a política comercial de NÃO cobrar pela integração.",
+   "fraquezas": [
+    "Preço totalmente não público",
+    "Declaradamente para redes 'large, multi-unit' — porte errado para uma unidade",
+    "Não coleta feedback: é camada de dado, precisa de uma ferramenta de pesquisa em cima",
+    "Cobertura de até 90% dos clientes depende do stack, ou seja, pode ser muito menor"
+   ],
+   "publico_alvo": "Redes grandes multi-unidade de restaurante",
+   "confianca": "media",
+   "fontes": [
+    "https://bikky.com/",
+    "https://www.bikky.com/integrations",
+    "https://www.bikky.com/menu-analysis",
+    "https://www.capterra.com/p/210364/Bikky/",
+    "https://www.g2.com/products/bikky/reviews?qs=pros-and-cons"
+   ]
+  },
+  {
+   "nome": "Wisely (adquirida pela Olo) / Olo Engage — Guest Data Platform e Sentiment",
+   "pais": "Estados Unidos",
+   "site": "https://www.olo.com/gdp",
+   "descricao": "A Wisely foi adquirida pela Olo em novembro de 2021 por ~USD 187 milhões e hoje existe como Olo Host (reserva, waitlist, gestão de mesa) e Olo Engage (Guest Data Platform, Marketing e Sentiment). É a referência em unificar PDV + pedido + loyalty + feedback num perfil de cliente com predição de ML.",
+   "features": [
+    "Guest Data Platform: unifica PDV, pedido online, loyalty e feedback em perfil individual de cliente",
+    "Guest Lifetime Value (GLV) e churn risk PREDITOS por machine learning",
+    "Sentiment: agrega review de 10+ fontes (Facebook, Google, Grubhub, OpenTable, Tripadvisor, Yelp, Yellow Pages)",
+    "Análise de sentimento FRASE POR FRASE de cada comentário, com categorização de termos",
+    "Pesquisas automatizadas para coletar dado first-party",
+    "Interceptação e engajamento de feedback negativo para prevenir churn",
+    "Incentivo a cliente satisfeito publicar em site de review",
+    "Geração de resposta com IA generativa MAIS biblioteca de respostas pré-aprovadas",
+    "Personalização dinâmica da resposta com nome do cliente, loja e outros detalhes",
+    "Automação de organização, delegação e ESCALAÇÃO de review entrante",
+    "Benchmarking competitivo em tempo de resposta e sentimento",
+    "Detecção de tendência para ação proativa",
+    "Dashboards dinâmicos e relatórios agendáveis"
+   ],
+   "preco": "NAO PUBLICO",
+   "modelo_cobranca": "Enterprise, cotação customizada. Não divulgado.",
+   "canais_coleta": [
+    "Pesquisas automatizadas first-party",
+    "Reviews públicos de 10+ fontes",
+    "Dado de PDV e pedido online via Olo",
+    "Loyalty"
+   ],
+   "integracoes": [
+    "PDVs e sistemas de pedido do ecossistema Olo",
+    "Facebook",
+    "Google",
+    "Grubhub",
+    "OpenTable",
+    "Tripadvisor",
+    "Yelp",
+    "Yellow Pages",
+    "SMG (parceria de experience management)",
+    "Tattle (integração de feedback)"
+   ],
+   "diferencial": "Três mecânicas para copiar. Primeira: sentimento FRASE POR FRASE, para que 'pizza excelente mas demorou 40 minutos' gere um positivo em produto e um negativo em tempo. Segunda: biblioteca de resposta PRÉ-APROVADA combinada com IA generativa, resolvendo o risco de deixar LLM solto respondendo em nome da marca. Terceira: escalação automática de review não respondida, com benchmark do próprio tempo de resposta.",
+   "fraquezas": [
+    "Preço não público, claramente enterprise",
+    "A página de Sentiment não revela mecânica de integração com PDV, workflow de comp automático, especificação de alerta nem detalhe técnico da análise frase por frase",
+    "Depende de estar no ecossistema Olo, que não opera no Brasil",
+    "Marca fragmentada em três renomeações (Wisely → Olo Engage → Olo Host/Sentiment/GDP)",
+    "Sem oferta para independente"
+   ],
+   "publico_alvo": "Redes enterprise de restaurante nos EUA dentro do ecossistema Olo",
+   "confianca": "media",
+   "fontes": [
+    "https://www.olo.com/sentiment",
+    "https://www.olo.com/gdp",
+    "https://www.olo.com/engage",
+    "https://www.olo.com/marketing",
+    "https://www.getwisely.com/",
+    "https://www.getwisely.com/sentiment",
+    "https://www.olo.com/blog/11-ways-olo-uses-ai-to-fuel-restaurant-growth",
+    "https://www.nasdaq.com/press-release/olo-to-acquire-wisely-a-leading-customer-intelligence-and-engagement-platform-for",
+    "https://restauranttools.ai/tools/wisely"
+   ]
+  },
+  {
+   "nome": "Punchh (PAR Technology)",
+   "pais": "Estados Unidos",
+   "site": "https://punchh.com/",
+   "descricao": "Plataforma de loyalty e CRM em nuvem usada por grandes redes de restaurante e franquias, que unifica dado de cliente entre canais físicos e digitais. Hoje parte da PAR Technology.",
+   "features": [
+    "Loyalty e CRM unificando dado de cliente entre loja física e canais digitais",
+    "Captura e unificação de dado transacional de cliente",
+    "Integração nativa com PAR Brink (PDV)",
+    "Aparece como integração de origem de dado em plataformas de feedback (ex: Tattle)"
+   ],
+   "preco": "NAO PUBLICO",
+   "modelo_cobranca": "Enterprise, cotação customizada. Não divulgado.",
+   "canais_coleta": [
+    "App de loyalty e pedido",
+    "PDV",
+    "Canais digitais",
+    "Não é ferramenta de pesquisa: serve como FONTE de identidade e transação para plataformas de feedback"
+   ],
+   "integracoes": [
+    "PAR Brink (PDV)",
+    "Tattle",
+    "Ecossistema PAR"
+   ],
+   "diferencial": "A mecânica de valor é a IDENTIDADE do cliente: o loyalty é o que permite amarrar a resposta da pesquisa ao histórico de consumo do cliente ao longo do tempo, e não a uma visita isolada. Sem identidade persistente, não existe 'o cliente que reclamou da pizza fria mês passado voltou'.",
+   "fraquezas": [
+    "Nada verificado em página oficial nesta rodada",
+    "Preço não público, enterprise, orientado a grande rede",
+    "Não é produto de gestão de experiência: é loyalty/CRM, precisa de camada de feedback em cima",
+    "Sem presença no Brasil identificada"
+   ],
+   "publico_alvo": "Grandes redes de restaurante e franquias",
+   "confianca": "baixa",
+   "fontes": [
+    "https://get.tattleapp.com/features/item-level-feedback/",
+    "https://www.paytronix.com/blog/best-restaurant-loyalty-software-comparison-guide",
+    "https://www.momos.com/blog/best-restaurant-loyalty-software"
+   ]
+  },
+  {
+   "nome": "Paytronix",
+   "pais": "Estados Unidos",
+   "site": "https://www.paytronix.com/",
+   "descricao": "Plataforma all-in-one de engajamento de cliente para restaurante, combinando loyalty, pedido online, CRM, mensageria, gift/stored value e pagamentos — com módulo de pesquisa integrado ao perfil do cliente.",
+   "features": [
+    "Pesquisa disparada IMEDIATAMENTE após a compra, por email no celular do cliente",
+    "Resposta da pesquisa amarrada na hora à CONTA do cliente e disponível para visualização",
+    "Enriquecimento do perfil do cliente com a resposta, habilitando segmentação data-driven",
+    "Disparo por comportamento de compra específico OU por percentual de clientes que batem um critério definido",
+    "RECOMPENSA ao cliente por responder a pesquisa, para elevar taxa de resposta subsequente",
+    "Criação de pesquisa em self-service com branding customizado",
+    "Funcionalidade em tempo real: dado disponível instantaneamente",
+    "Loyalty, pedido online, CRM, mensageria, gift card e pagamento na mesma plataforma"
+   ],
+   "preco": "NAO PUBLICO",
+   "modelo_cobranca": "Enterprise/mid-market, cotação customizada. Não divulgado.",
+   "canais_coleta": [
+    "Email pós-compra imediato",
+    "App de loyalty",
+    "Pedido online",
+    "PDV via loyalty"
+   ],
+   "integracoes": [
+    "Ecossistema próprio de loyalty, pedido, gift e pagamento",
+    "Tattle (como fonte de dado de pedido)",
+    "DESCONHECIDO em detalhe para PDVs de terceiros"
+   ],
+   "diferencial": "Duas mecânicas concretas para copiar. Primeira: RECOMPENSAR quem responde — não com sorteio, mas com crédito imediato, o que compõe taxa de resposta ao longo do tempo. Segunda: amostragem por REGRA — disparar para um percentual dos clientes que batem um critério (ex: 30% de quem pediu a pizza nova), em vez de disparar para todos e queimar a base.",
+   "fraquezas": [
+    "Preço não público",
+    "Fonte principal é um post de blog do próprio fornecedor, sem página de produto verificada nesta rodada",
+    "O post não especifica mecanismo de ALERTA nem de recuperação de insatisfeito",
+    "Pesquisa por email, canal de menor taxa de resposta que SMS",
+    "Voltada a mid-market e enterprise"
+   ],
+   "publico_alvo": "Redes de restaurante mid-market e enterprise nos EUA",
+   "confianca": "media",
+   "fontes": [
+    "https://www.paytronix.com/blog/the-newest-tool-to-gather-customer-feedback",
+    "https://www.paytronix.com/blog/best-restaurant-loyalty-software-comparison-guide",
+    "https://get.tattleapp.com/features/item-level-feedback/"
+   ]
+  },
+  {
+   "nome": "Thanx",
+   "pais": "Estados Unidos",
+   "site": "https://www.thanx.com/",
+   "descricao": "Plataforma de loyalty e engajamento de cliente para restaurante, posicionada para marcas mid-market e enterprise. Aparece como integração de origem de dado em plataformas de feedback como Tattle e Momos.",
+   "features": [
+    "Loyalty e engajamento de cliente para restaurante",
+    "Aparece como fonte de dado integrada em plataformas de feedback (Tattle, Momos)",
+    "DESCONHECIDO em detalhe: não consegui verificar features em página oficial nesta rodada"
+   ],
+   "preco": "NAO PUBLICO. Nenhum valor encontrado em fonte oficial nem em agregador confiável.",
+   "modelo_cobranca": "DESCONHECIDO. Presumivelmente assinatura enterprise por loja, sem confirmação.",
+   "canais_coleta": [
+    "App de loyalty",
+    "Pedido digital",
+    "DESCONHECIDO em detalhe"
+   ],
+   "integracoes": [
+    "Tattle",
+    "Momos",
+    "DESCONHECIDO em detalhe"
+   ],
+   "diferencial": "DESCONHECIDO — não consegui identificar mecânica proprietária verificável nesta rodada de pesquisa. Relevante apenas como camada de identidade de cliente sobre a qual plataformas de feedback se conectam.",
+   "fraquezas": [
+    "Nada verificado em página oficial",
+    "Preço totalmente desconhecido",
+    "Posicionada para mid-market e enterprise, porte errado para uma unidade",
+    "Sem informação sobre mecânica de pesquisa ou recuperação"
+   ],
+   "publico_alvo": "Marcas de restaurante mid-market e enterprise",
+   "confianca": "baixa",
+   "fontes": [
+    "https://www.saasworthy.com/product/thanx-platform/pricing",
+    "https://food.toolsinfo.com/tool/thanx",
+    "https://get.tattleapp.com/features/item-level-feedback/",
+    "https://www.orderout.co/blog/best-loyalty-programs-for-restaurants/"
+   ]
+  },
+  {
+   "nome": "TableSafe (plataforma RAIL)",
+   "pais": "Estados Unidos",
+   "site": "https://www.tablesafe.com/",
+   "descricao": "Plataforma de pagamento à mesa (pay-at-the-table) EMV e PCI compliant para restaurante full service, na qual o cliente controla todo o processo de pagamento — e, ao final dele, responde uma micro-pesquisa ainda sentado à mesa.",
+   "features": [
+    "Pesquisa apresentada AO FIM DO FLUXO DE PAGAMENTO, com o cliente ainda na mesa",
+    "Estrutura de 3 perguntas: a primeira SEMPRE a nota geral da experiência, as duas seguintes customizáveis e ROTACIONADAS ALEATORIAMENTE",
+    "Taxa de resposta relatada: 80% na primeira pergunta e mais de 70% nas duas seguintes",
+    "Auto-cálculo de gorjeta",
+    "Divisão de conta de várias formas, incluindo divisão POR ITEM",
+    "Recibo por email",
+    "Redução de até 85% no uso de papel térmico",
+    "EMV certificado e PCI compliant",
+    "Integração com SevenRooms e TripAdvisor (parceria em Los Angeles)"
+   ],
+   "preco": "NAO PUBLICO",
+   "modelo_cobranca": "DESCONHECIDO. Presumivelmente hardware + assinatura + taxa de processamento, sem confirmação.",
+   "canais_coleta": [
+    "Dispositivo de pagamento à mesa (RAIL), no fechamento da conta",
+    "Recibo por email"
+   ],
+   "integracoes": [
+    "SevenRooms",
+    "TripAdvisor",
+    "PDVs de full service (não enumerados nas fontes consultadas)"
+   ],
+   "diferencial": "É a MELHOR mecânica de captura documentada de todo este levantamento: 80% de resposta na primeira pergunta porque a pesquisa acontece dentro de um fluxo que o cliente já ia completar de qualquer jeito (pagar). E o desenho de 1 pergunta fixa + 2 rotacionadas aleatoriamente resolve o dilema entre profundidade e fricção: um banco de 20 perguntas é coberto ao longo do mês sem nunca mostrar mais de 3 perguntas a ninguém.",
+   "fraquezas": [
+    "Notícias e cases consultados são antigos (2017-2019), sem confirmação de que a empresa e o produto seguem ativos e evoluindo",
+    "Preço totalmente não público",
+    "Depende de hardware dedicado na mesa, investimento alto para uma pizzaria de 22 mesas",
+    "Não faz feedback por item consumido, análise de sentimento nem recuperação de cliente",
+    "A taxa de 80% vem de declaração da própria empresa em material de imprensa, sem metodologia"
+   ],
+   "publico_alvo": "Restaurantes full service de ticket médio-alto nos EUA",
+   "confianca": "media",
+   "fontes": [
+    "https://www.businesswire.com/news/home/20171023005441/en/TableSafe-Launches-EMV-Award-Winning-RAIL-Pay-at-the-Table-Platform",
+    "https://www.hotelmanagement.net/tech/tablesafe-launches-emv-its-rail-pay-at-table-platform",
+    "https://hospitalitytech.com/71above-takami-sushi-implement-pay-table-technology",
+    "https://modernrestaurantmanagement.com/sevenrooms-teams-with-tripadvisor-and-tablesafe-in-l-a/",
+    "https://www.fsrmagazine.com/content/tablesafe-launches-emv-rail-pay-table-platform"
+   ]
+  },
+  {
+   "nome": "Presto (Presto Automation)",
+   "pais": "Estados Unidos",
+   "site": "https://presto.com/",
+   "descricao": "Empresa que era referência em TABLET DE MESA para restaurante (pedido, pagamento e pesquisa na mesa) e que abandonou esse negócio em 2024 para apostar tudo em IA de voz para drive-thru. É o caso de fracasso mais instrutivo do setor.",
+   "features": [
+    "IA de voz para drive-thru (foco atual)",
+    "Negócio histórico de tablet de mesa para pedido, pagamento e pesquisa — DESCONTINUADO/cindido em 2024",
+    "Clientes atuais: Taco John's, Hardee's/Carl's Jr., Fazoli's",
+    "12 marcas de restaurante atendidas",
+    "Meta declarada de milhares de lojas até o fim de 2026"
+   ],
+   "preco": "NAO PUBLICO",
+   "modelo_cobranca": "DESCONHECIDO. Presumivelmente por loja/mês para IA de voz, sem confirmação.",
+   "canais_coleta": [
+    "IA de voz no drive-thru (captura conversa, não pesquisa formal)",
+    "Historicamente: tablet de mesa (descontinuado)"
+   ],
+   "integracoes": [
+    "PDVs de QSR (não enumerados nas fontes consultadas)"
+   ],
+   "diferencial": "O valor aqui é NEGATIVO e serve de aviso: o tablet de mesa como plataforma de pesquisa é um negócio que quebrou. A Presto cindiu o negócio de tablet em 2024, perdeu a maior parte da receita, o papel despencou e a empresa foi DELISTADA da Nasdaq; o credor Metropolitan Partners executou a dívida e assumiu o controle, com nova rodada de USD 10 mi em janeiro de 2026. Diretamente relevante: a incumbente brasileira da QT (Risposta) baseia 90% da coleta em TABLET.",
+   "fraquezas": [
+    "Delistada da Nasdaq após abandonar o negócio principal de tablet",
+    "Passou por execução de dívida e troca de controle (foreclosure pelo credor)",
+    "Base minúscula: 12 marcas",
+    "Não é mais um fornecedor de gestão de experiência do cliente — pivotou para automação de voz",
+    "Preço não público",
+    "Nenhuma feature de pesquisa de satisfação no produto atual"
+   ],
+   "publico_alvo": "Redes de QSR com drive-thru nos EUA",
+   "confianca": "media",
+   "fontes": [
+    "https://presto.com/",
+    "https://www.restaurantdive.com/news/presto-raises-10-million-funding/809128/",
+    "https://www.restaurantdive.com/news/presto-automation-is-risking-its-business-on-drive-thru-voice-ai/709610/",
+    "https://restauranttechnologynews.com/2026/01/presto-raises-10-million-to-scale-voice-ai-deployments-as-restaurant-drive-thru-automation-enters-its-prove-it-era/",
+    "https://www.restaurantbusinessonline.com/technology/ai-supplier-presto-sold-group-including-lender-former-investor"
+   ]
+  },
+  {
+   "nome": "ReviewTrackers",
+   "pais": "Estados Unidos",
+   "site": "https://www.reviewtrackers.com/",
+   "descricao": "Plataforma de gestão de reputação com preço por local, reconhecida por interface limpa e por centralizar review de 100+ fontes. Tem três tiers: Data Only, Starter e Essential.",
+   "features": [
+    "Acesso a dado de review de 100+ fontes",
+    "Tier Data Only: entrega o dado bruto para integrar na plataforma própria do cliente",
+    "Usuários ILIMITADOS",
+    "Dashboards e analytics",
+    "Solicitação de review (review solicitation)",
+    "Resposta a review com IA",
+    "Keywords e alertas",
+    "Widget Amplify (local/mobile) e carrossel de reviews",
+    "Experience analysis e competitor insights (tier Essential)",
+    "Add-ons: gestão de listagens locais, local search rank, managed services, white label, employer brand package, App Store package"
+   ],
+   "preco": "NAO PUBLICO na página oficial: o texto literalmente diz 'Plans start at $[em branco] per location per month paid annually', com o valor omitido, e oferece calculadora interativa (0 a 500+ locais) ou contato com vendas. Estimativas de TERCEIROS: a partir de ~USD 69/mês para uma unidade; USD 500-1.000/mês para 10 locais; USD 5.000+/mês para 100 locais. Um comparativo de concorrente cita 'from $89/month annually'.",
+   "modelo_cobranca": "Por local por mês, pago anualmente, em três tiers, com vários add-ons. Valores omitidos deliberadamente da página pública.",
+   "canais_coleta": [
+    "Solicitação de review por email/SMS",
+    "Agregação de 100+ fontes de review",
+    "Widgets no site próprio"
+   ],
+   "integracoes": [
+    "100+ fontes de review",
+    "API/dado bruto no tier Data Only",
+    "DESCONHECIDO em detalhe para PDV"
+   ],
+   "diferencial": "O tier DATA ONLY é a mecânica de embalagem mais inteligente encontrada: vender só o dado bruto de review, para o cliente processar na própria plataforma, a preço menor. Para quem vai construir o próprio sistema, esse é exatamente o tipo de fornecedor a contratar — dado, não interface. E usuários ilimitados em todos os tiers é postura oposta à do mercado, que cobra por assento.",
+   "fraquezas": [
+    "Deixar o valor do preço EM BRANCO na própria página de planos é opacidade agressiva",
+    "Contrato anual obrigatório",
+    "Muitas features essenciais empurradas para add-on pago (listagens, managed services, white label)",
+    "Nenhuma feature de IA listada em comparativo de terceiro, enquanto concorrentes já têm IA generativa madura",
+    "É gestão de reputação, não de experiência: sem feedback por item, sem comanda, sem alerta de mesa",
+    "Sem integração com PDV comprovada"
+   ],
+   "publico_alvo": "Negócios multi-location de vários setores, incluindo restaurante",
+   "confianca": "alta",
+   "fontes": [
+    "https://www.reviewtrackers.com/plans/",
+    "https://www.itqlick.com/reviewtrackers/pricing",
+    "https://www.rightresponseai.com/blog/reviewtrackers-pricing",
+    "https://www.capterra.com/p/140801/ReviewTrackers/",
+    "https://get.tattleapp.com/blog/2026-03-15-top-20-restaurant-guest-feedback-software-providers-2026/"
+   ]
+  },
+  {
+   "nome": "Intouch Insight",
+   "pais": "Canadá",
+   "site": "https://www.intouchinsight.com/",
+   "descricao": "Provedora de soluções de CX para negócios multi-location que combina CLIENTE OCULTO, auditoria operacional, checklist digital e pesquisa de cliente na MESMA plataforma. Dona do Annual Drive-Thru Study, o benchmark de referência do setor na América do Norte.",
+   "features": [
+    "IntouchShop: cliente oculto (mystery shopping) com tecnologia, medindo dine-in, drive-thru, delivery e pickup",
+    "IntouchAudit: auditoria operacional",
+    "IntouchCheck: checklist e inspeção digital",
+    "IntouchSurvey: pesquisa de feedback de cliente",
+    "Métricas medidas: velocidade de serviço, TEMPERATURA DA COMIDA, simpatia da equipe e precisão do pedido",
+    "Coleta de inteligência competitiva e de PREÇO da concorrência durante a visita",
+    "Medição objetiva de execução de padrão de serviço da marca",
+    "Annual Drive-Thru Study: benchmark de 10 redes de QSR em Velocidade, Precisão do Pedido, Qualidade da Comida e Atendimento (herdado da SeeLevel HX)"
+   ],
+   "preco": "NAO PUBLICO",
+   "modelo_cobranca": "Serviço + software, cotação customizada por programa. Não divulgado.",
+   "canais_coleta": [
+    "Cliente oculto presencial (avaliador treinado)",
+    "Auditoria operacional presencial",
+    "Checklist digital preenchido pela equipe",
+    "Pesquisa de cliente (IntouchSurvey)"
+   ],
+   "integracoes": [
+    "DESCONHECIDO em detalhe"
+   ],
+   "diferencial": "A mecânica a copiar é o CRUZAMENTO: colocar a nota do cliente, o resultado do cliente oculto e o checklist operacional preenchido pela equipe na mesma base, no mesmo turno. Isso responde a pergunta que dashboard de pesquisa nunca responde — 'a nota caiu porque a execução caiu ou porque a expectativa subiu?'. Também vale copiar a coleta de PREÇO da concorrência dentro da mesma visita.",
+   "fraquezas": [
+    "Preço não público",
+    "Cliente oculto é serviço caro e de baixa frequência amostral",
+    "Voltada explicitamente a multi-location; irrelevante em escala de uma unidade",
+    "Nada de IA generativa ou análise de sentimento identificado nas fontes",
+    "Sem integração com PDV comprovada",
+    "Forte viés para QSR e drive-thru, formato inexistente numa pizzaria de salão"
+   ],
+   "publico_alvo": "Redes multi-location de restaurante e varejo na América do Norte",
+   "confianca": "media",
+   "fontes": [
+    "https://www.intouchinsight.com/who-we-are/about-intouch/",
+    "https://www.intouchinsight.com/what-we-do/mystery-shopping-services/restaurants/",
+    "https://www.intouchinsight.com/solutions/restaurant-customer-experience/",
+    "https://www.intouchinsight.com/blog/mystery-shopping-audit-programs-for-restaurants",
+    "https://www.intouchinsight.com/resources/studies/drive-thru-2023/"
+   ]
+  },
+  {
+   "nome": "HappyOrNot",
+   "pais": "Finlândia",
+   "site": "https://www.happy-or-not.com/",
+   "descricao": "Criadora dos totens de carinha (Smiley Terminal). Coleta feedback anônimo, instantâneo e sem fricção no ponto de serviço, com escala de cor de verde-escuro (muito feliz) a vermelho (muito insatisfeito). Modelo de negócio com respostas ILIMITADAS.",
+   "features": [
+    "Smiley Terminal: totem de botão físico, TOTALMENTE SEM FIO, com economia de energia, plug-and-play, sem cabo e sem carga na infra de TI",
+    "Smiley Touch: versão com tela sensível ao toque",
+    "Smiley Digital: versão em display",
+    "Escala de cor de verde-escuro a vermelho",
+    "Feedback ANÔNIMO, registrado instantaneamente e sincronizado com plataforma de analytics em nuvem",
+    "Open feedback AI: análise de texto aberto além da nota",
+    "Modelo de IA treinado em mais de 2 bilhões de respostas (segundo comparativo de terceiro)",
+    "Alertas e colaboração em TEMPO REAL nos planos Professional e Managed",
+    "Sinalização por QR/NFC, além de web e app",
+    "Totalmente GDPR compliant",
+    "Respostas ILIMITADAS em todos os planos: sem custo por volume de feedback, por usuário ou por distribuição de relatório",
+    "Integrações de BI: Power BI, Salesforce, Tableau, Google Data Studio",
+    "Três planos: Essentials (só Smiley Terminal, analytics básico, trending), Professional (todos os produtos, IA, alertas em tempo real), Managed (Professional + gestão de conta e manutenção completas)"
+   ],
+   "preco": "NAO PUBLICO na página oficial: modelo declarado é taxa de SETUP mais assinatura ANUAL, dimensionada pelo mix de pontos de coleta, com manutenção e suporte inclusos e 'sem custo escondido'. Estimativas de TERCEIROS: ~USD 100/mês para uma loja com um totem; faixa geral de USD 100 a 500/mês. Valores NÃO confirmados oficialmente.",
+   "modelo_cobranca": "Setup fee + assinatura anual dimensionada pelo número e tipo de pontos de coleta. Respostas, usuários e relatórios ilimitados — o preço varia por HARDWARE/PONTO, não por volume de dado.",
+   "canais_coleta": [
+    "Totem físico Smiley Terminal (botão) no ponto de serviço",
+    "Smiley Touch (tela)",
+    "Smiley Digital (display)",
+    "QR code e NFC em sinalização",
+    "Site próprio e app"
+   ],
+   "integracoes": [
+    "Power BI",
+    "Salesforce",
+    "Tableau",
+    "Google Data Studio",
+    "Sem integração com PDV identificada"
+   ],
+   "diferencial": "Duas mecânicas. Primeira: ANONIMATO TOTAL como gerador de volume e sinceridade — é por isso que os números de volume são absurdos (13 milhões de insights em um ano na Lidl Finlândia; 23 mil feedbacks em 6 meses em outro case de 180+ lojas). Segunda, e mais importante para quem vai construir: cobrar por PONTO DE COLETA e não por volume de resposta. Respostas ilimitadas é a política de preço correta e o oposto do que fazem SurveySparrow e Delighted.",
+   "fraquezas": [
+    "Preço não público na página oficial; só há estimativa de terceiro",
+    "Exige HARDWARE, com setup fee — investimento inicial num contexto de 'infra próxima de zero'",
+    "Anonimato tem custo alto: sem identidade não existe recuperação individual do cliente insatisfeito, nem histórico, nem amarração à comanda",
+    "Nenhuma integração com PDV: o feedback não sabe o que a pessoa comeu",
+    "Assinatura ANUAL",
+    "Nada específico de restaurante: é produto horizontal (aeroporto, varejo, saúde)",
+    "O número de '2 bilhões de respostas' vem de comparativo escrito por concorrente"
+   ],
+   "publico_alvo": "Qualquer negócio com fluxo físico de pessoas: varejo, aeroporto, saúde, food service",
+   "confianca": "alta",
+   "fontes": [
+    "https://www.happy-or-not.com/en/pricing-and-features/",
+    "https://www.happy-or-not.com/en/solution/smiley-terminal/",
+    "https://www.happy-or-not.com/en/happyornot-cost-and-pricing/",
+    "https://www.surveystance.com/happy-or-not-cost-pricing/",
+    "https://www.featuredcustomers.com/vendor/happyornot/reviews",
+    "https://www.cspdailynews.com/technologyservices/rocket-rolls-out-happyornots-smiley-customer-satisfaction-kiosks",
+    "https://get.tattleapp.com/blog/2026-03-15-top-20-restaurant-guest-feedback-software-providers-2026/"
+   ]
+  },
+  {
+   "nome": "Feedier",
+   "pais": "França",
+   "site": "https://feedier.com/",
+   "descricao": "Plataforma de feedback/experiência de cliente. NÃO CONSEGUI VERIFICAR nada sobre este fornecedor nesta rodada de pesquisa — não apareceu em nenhuma das buscas realizadas, inclusive na busca direta que incluía o nome.",
+   "features": [
+    "DESCONHECIDO - nenhuma feature verificada nesta rodada de pesquisa"
+   ],
+   "preco": "DESCONHECIDO. Nenhuma fonte encontrada. NÃO estimar.",
+   "modelo_cobranca": "DESCONHECIDO",
+   "canais_coleta": [
+    "DESCONHECIDO"
+   ],
+   "integracoes": [
+    "DESCONHECIDO"
+   ],
+   "diferencial": "DESCONHECIDO. Recomendo nova rodada de pesquisa dedicada, incluindo a página oficial, G2 e Capterra, antes de qualquer conclusão. A ausência total em buscas sobre feedback de restaurante sugere que não é player relevante nesse vertical, mas isso é INFERÊNCIA, não fato verificado.",
+   "fraquezas": [
+    "Não verificado",
+    "Ausente de todos os comparativos de fornecedor de feedback para restaurante consultados"
+   ],
+   "publico_alvo": "DESCONHECIDO",
+   "confianca": "baixa",
+   "fontes": []
+  },
+  {
+   "nome": "Zonka Feedback",
+   "pais": "Índia",
+   "site": "https://www.zonkafeedback.com/",
+   "descricao": "Plataforma multicanal de feedback e CX com dois produtos: Feedback Management (coleta e gestão) e AI Feedback Intelligence (inteligência sobre feedback não estruturado em alto volume).",
+   "features": [
+    "Pesquisas multicanal: email, SMS, WhatsApp, kiosk, web, in-app e OFFLINE",
+    "NPS, CSAT e CES",
+    "20+ integrações premium (segundo terceiro)",
+    "Rastreamento de contato e de jornada do usuário",
+    "Gestão de CX por LOCALIDADE e por ATENDENTE (agent-based)",
+    "Automação e workflows de CX",
+    "Gestão de reputação online",
+    "AI Feedback Intelligence: análise GenAI, tendências, inteligência temática e de sentimento, análise de impacto, dashboards por papel (role-based) e inteligência granular de frontline e por localidade",
+    "Teste grátis de 14 dias"
+   ],
+   "preco": "NAO PUBLICO na página oficial: a página de pricing hoje diz apenas 'Get custom pricing based on your feedback volume, scale, and CX goals', sem nenhum tier, valor, limite de resposta ou custo por assento. Valores de TERCEIROS (históricos): ~USD 199/mês para Feedback Management e ~USD 999/mês para AI Feedback Intelligence, com planos Enterprise sob consulta.",
+   "modelo_cobranca": "Cotação customizada por VOLUME DE FEEDBACK e escala. Terceiros descrevem mistura de tier fixo com preço custom por uso e features.",
+   "canais_coleta": [
+    "Email",
+    "SMS",
+    "WhatsApp",
+    "Kiosk / totem",
+    "Web e in-app",
+    "Coleta OFFLINE (sem internet, sincroniza depois)",
+    "Link de pesquisa"
+   ],
+   "integracoes": [
+    "20+ integrações premium declaradas por terceiro; parceiros não enumerados em fonte oficial verificada",
+    "Sem integração com PDV de restaurante identificada"
+   ],
+   "diferencial": "Duas coisas úteis. Primeira: coleta OFFLINE de verdade, que sincroniza quando a conexão volta — relevante para salão com wi-fi instável. Segunda: WhatsApp como canal nativo de pesquisa, o único fornecedor global desta lista com isso, e o canal certo para o Brasil. Terceira: gestão de CX por ATENDENTE, ou seja, nota atribuída a garçom como dimensão de primeira classe.",
+   "fraquezas": [
+    "ABANDONOU a transparência de preço: a página oficial hoje não tem nenhum valor, só formulário — retrocesso em relação ao que terceiros documentam",
+    "Preço estimado (USD 199 e 999/mês) é altíssimo para 50-200 respostas/mês",
+    "Preço amarrado a VOLUME de feedback, modelo ruim para quem quer crescer a coleta",
+    "Ferramenta horizontal de CX: não conhece item de menu, comanda nem cardápio",
+    "Sem integração com PDV de restaurante",
+    "Sem mecânica de recuperação de cliente específica de restaurante"
+   ],
+   "publico_alvo": "Empresas médias e grandes multissetoriais com operação multi-localidade",
+   "confianca": "media",
+   "fontes": [
+    "https://www.zonkafeedback.com/pricing",
+    "https://www.capterra.com/p/137773/Zonka-Feedback/pricing/",
+    "https://www.trustradius.com/products/zonka-feedback/pricing",
+    "https://surveymars.com/knowledge/zonka-feedback-pricing--best-alternatives-for-multi-channel-csat/",
+    "https://www.softwareadvice.com/market-research/zonka-feedback-profile/"
+   ]
+  },
+  {
+   "nome": "SurveySparrow",
+   "pais": "Índia / Estados Unidos",
+   "site": "https://surveysparrow.com/",
+   "descricao": "Plataforma de pesquisa conversacional com plano gratuito, conhecida por pesquisa em formato de chat (uma pergunta por vez) em vez de formulário longo.",
+   "features": [
+    "Pesquisa CONVERSACIONAL: uma pergunta por vez em formato de chat, em vez de formulário de página única",
+    "Plano gratuito com 75 respostas por TRIMESTRE",
+    "Planos Basic, Starter, Business, Professional e Enterprise",
+    "Suítes separadas de CX, NPS e 360 (cobradas como produtos distintos)",
+    "Teste grátis de 14 dias"
+   ],
+   "preco": "A partir de USD 19/mês no plano Basic com cobrança ANUAL, limitado a ~2.500 respostas por ANO e sem acesso a API. Plano gratuito: 75 respostas por trimestre. Plano Business com preço MASCARADO na página oficial (terceiros citam de ~USD 99 a ~USD 149/mês, não confirmado). Professional e Enterprise só sob cotação. Usuário adicional: USD 49/mês. Cobrança anual ou trimestral — NÃO oferece mensal. Valores de terceiros.",
+   "modelo_cobranca": "Assinatura anual ou trimestral (sem opção mensal) por faixa de respostas/ano, mais USD 49/mês por usuário extra, com CX, NPS e 360 vendidos como produtos separados.",
+   "canais_coleta": [
+    "Link de pesquisa conversacional",
+    "Email",
+    "SMS",
+    "Web e in-app",
+    "Kiosk / offline",
+    "QR code"
+   ],
+   "integracoes": [
+    "API só nos tiers superiores",
+    "DESCONHECIDO em detalhe",
+    "Sem integração com PDV de restaurante"
+   ],
+   "diferencial": "A mecânica de UI conversacional (uma pergunta por vez, formato de chat) é o que a QT deveria copiar na tela do QR: percebe-se como conversa curta em vez de formulário, e é a razão pela qual a taxa de conclusão sobe. Barato de implementar e ninguém no Brasil faz bem.",
+   "fraquezas": [
+    "Limite de 2.500 respostas por ANO no plano de USD 19 — a QT com 200 respostas/mês (2.400/ano) já bate o teto no plano de entrada",
+    "Não permite cobrança mensal: só anual ou trimestral",
+    "USD 49/mês por usuário EXTRA é caro e pune o uso em equipe",
+    "Preço do plano Business mascarado na página oficial",
+    "Sem acesso a API no plano barato, matando qualquer integração com PDV",
+    "Ferramenta horizontal: zero conhecimento de restaurante, item de menu ou comanda",
+    "Suítes CX/NPS/360 vendidas como produtos separados infla o custo real"
+   ],
+   "publico_alvo": "Pequenas e médias empresas multissetoriais; equipes de CX e RH",
+   "confianca": "media",
+   "fontes": [
+    "https://www.trustradius.com/products/surveysparrow/pricing",
+    "https://formbricks.com/blog/surveysparrow-pricing",
+    "https://pricingnow.com/question/surveysparrow-pricing/",
+    "https://hackceleration.com/labs/surveysparrow-pricing",
+    "https://pricingsaas.com/companies/surveysparrow"
+   ]
+  },
+  {
+   "nome": "Ipsos (para food service)",
+   "pais": "França",
+   "site": "https://www.ipsos.com/",
+   "descricao": "Instituto global de pesquisa de mercado. NÃO CONSEGUI VERIFICAR nenhuma oferta específica de gestão de experiência do cliente para food service nesta rodada — o termo apareceu no pedido associado à SMG, mas nenhuma das buscas retornou material sobre uma oferta Ipsos para restaurante.",
+   "features": [
+    "DESCONHECIDO - nenhuma oferta específica de food service verificada nesta rodada"
+   ],
+   "preco": "DESCONHECIDO. Nenhuma fonte encontrada. NÃO estimar.",
+   "modelo_cobranca": "DESCONHECIDO. Presumivelmente projeto de pesquisa por escopo, típico de instituto, mas isso é INFERÊNCIA.",
+   "canais_coleta": [
+    "DESCONHECIDO"
+   ],
+   "integracoes": [
+    "DESCONHECIDO"
+   ],
+   "diferencial": "DESCONHECIDO. Recomendo pesquisa dedicada se houver interesse real. Ipsos é instituto de pesquisa, não fornecedor de software de CX contínuo — o modelo é estudo pontual, não plataforma. Isso é inferência sobre o modelo de negócio do setor, não fato verificado sobre uma oferta.",
+   "fraquezas": [
+    "Não verificado",
+    "Nenhuma associação com SMG identificada nas fontes consultadas — a premissa 'SMG/Ipsos' do pedido não foi confirmada"
+   ],
+   "publico_alvo": "DESCONHECIDO",
+   "confianca": "baixa",
+   "fontes": []
+  },
+  {
+   "nome": "Momos",
+   "pais": "Singapura / Estados Unidos",
+   "site": "https://www.momos.com/",
+   "descricao": "Plataforma de guest experience com IA que opera EM CIMA do loyalty que o restaurante já tem (Paytronix, Punchh, Toast Loyalty, Spendgo), transformando loyalty em motor de RECUPERAÇÃO DE SERVIÇO e de atribuição de receita. Atende 600+ marcas globalmente.",
+   "features": [
+    "Detecção de cliente insatisfeito por três canais: review público, plataforma de review de comida e resposta de pesquisa/ticket de suporte",
+    "Workflow automatizado de recuperação com o operador LOCAL respondendo",
+    "Emissão de oferta ou CRÉDITO diretamente no PDV, no loyalty ou nativamente na plataforma",
+    "Após a resolução: pesquisa CSAT de recuperação e prompt automático para o cliente EDITAR a review pública já publicada",
+    "Alfie: agente de IA que detecta review novo instantaneamente e redige resposta on-brand",
+    "Agente de IA que categoriza cada review por contexto e sentimento",
+    "Inbox unificado agregando review, delivery app, social, email, pesquisa e dado de PDV",
+    "Workflows de recuperação personalizados por dado de feedback e sentimento",
+    "Resultados publicados: Papa Murphy's USD 2 mi de receita recuperada; Just Salad -99% no tempo de resposta e 1.200 horas/mês economizadas; Caribou Coffee +61% de reviews em 57 lojas; BBQ Chicken dobrou taxa de resposta e economizou 300+ horas/mês"
+   ],
+   "preco": "NAO PUBLICO. Terceiro afirma que ferramentas de feedback nesse tier tipicamente começam acima de USD 100 por local — estimativa, não valor oficial.",
+   "modelo_cobranca": "Cotação customizada, escalando de unidade única a enterprise. Valores não divulgados.",
+   "canais_coleta": [
+    "Reviews públicos (Google, Facebook, TripAdvisor, Yelp)",
+    "Delivery apps (UberEats, DoorDash)",
+    "Redes sociais",
+    "Email",
+    "Pesquisas próprias",
+    "Dado de PDV (Toast, Revel) e OpenTable"
+   ],
+   "integracoes": [
+    "Paytronix",
+    "Punchh",
+    "Toast Loyalty",
+    "Spendgo",
+    "Toast",
+    "Revel",
+    "OpenTable",
+    "Google",
+    "Facebook",
+    "TripAdvisor",
+    "Yelp",
+    "UberEats",
+    "DoorDash"
+   ],
+   "diferencial": "É o estado da arte em RECUPERAÇÃO como produto, e o mais copiável. Três mecânicas: (1) emitir o crédito de recuperação DENTRO do PDV/loyalty, não como voucher solto que ninguém rastreia; (2) depois de resolver, rodar um CSAT de recuperação e pedir ao cliente para EDITAR a review negativa já publicada, em vez de escrever uma nova; (3) medir e atribuir a RECEITA RECUPERADA como métrica de produto. A tese publicada é forte: o cliente que teve experiência ruim e voltou resgatando uma oferta se torna, na média, um dos clientes de maior frequência.",
+   "fraquezas": [
+    "Preço não público",
+    "Não publica SLA, janela de tempo, procedimento de escalação, especificação do comportamento do agente de IA nem metodologia de atribuição da receita recuperada",
+    "Números de case (USD 2 mi, -99%) são do próprio marketing, sem auditoria",
+    "Opera EM CIMA de loyalty existente: sem loyalty integrado, perde a mecânica central",
+    "Boa parte do conteúdo de referência que encontrei é blog do próprio fornecedor, com viés",
+    "Sem integração com PDV ou loyalty brasileiro"
+   ],
+   "publico_alvo": "Redes de restaurante multi-unidade, de QSR a enterprise, globalmente",
+   "confianca": "media",
+   "fontes": [
+    "https://www.momos.com/product/customer-recovery",
+    "https://www.momos.com/solutions/customer-experience",
+    "https://www.momos.com/product/ai-review-manager",
+    "https://momos.com/solutions/customer-service",
+    "https://www.momos.com/blog/the-recovery-playbook",
+    "https://www.momos.com/blog/restaurant-guest-experience",
+    "https://backofhouse.io/vendors/momos"
+   ]
+  },
+  {
+   "nome": "Podium",
+   "pais": "Estados Unidos",
+   "site": "https://www.podium.com/",
+   "descricao": "Plataforma de comunicação e reputação para negócio local, com pesquisa por SMS com perguntas de follow-up condicionais e roteamento de feedback negativo para resolução em tempo real, tudo num inbox unificado.",
+   "features": [
+    "Pesquisa por SMS com perguntas de FOLLOW-UP CONDICIONAIS (a próxima pergunta depende da resposta anterior)",
+    "Roteamento de feedback negativo para resolução em TEMPO REAL",
+    "Inbox unificado (review, SMS, telefone, pagamento)",
+    "Acompanhamento de NPS",
+    "Disparo de pergunta de follow-up customizada"
+   ],
+   "preco": "A partir de USD 399/mês no plano Core, segundo comparativo de terceiro. Não confirmado em página oficial.",
+   "modelo_cobranca": "Assinatura mensal por tier. Detalhes não verificados oficialmente.",
+   "canais_coleta": [
+    "SMS (canal primário)",
+    "Plataformas de review",
+    "Pagamento",
+    "Telefone"
+   ],
+   "integracoes": [
+    "DESCONHECIDO em detalhe"
+   ],
+   "diferencial": "A mecânica a copiar é a LÓGICA CONDICIONAL por SMS: a segunda pergunta muda de acordo com a primeira resposta, de modo que quem deu nota 5 recebe um caminho e quem deu nota 2 recebe outro. Combinada com o modelo de 2 perguntas da Ovation, é o desenho ideal: 1 nota, 1 follow-up condicional, fim.",
+   "fraquezas": [
+    "USD 399/mês é o preço mais alto por unidade de toda a lista para uma ferramenta que não é vertical de restaurante",
+    "Preço não confirmado em fonte oficial",
+    "Plataforma horizontal de negócio local (dentista, oficina, imobiliária): não conhece cardápio, comanda nem garçom",
+    "Sem integração com PDV de restaurante",
+    "Nada verificado em página oficial nesta rodada"
+   ],
+   "publico_alvo": "Negócio local multissetorial nos EUA",
+   "confianca": "baixa",
+   "fontes": [
+    "https://get.tattleapp.com/blog/2026-03-15-top-20-restaurant-guest-feedback-software-providers-2026/"
+   ]
+  },
+  {
+   "nome": "Cloutly",
+   "pais": "Austrália",
+   "site": "https://cloutly.com/",
+   "descricao": "Ferramenta de campanha de review automatizada com o preço de entrada mais baixo de toda a lista, voltada a negócio local que quer volume de avaliação pública e prova social.",
+   "features": [
+    "Campanhas automatizadas de solicitação de review por SMS, email e QR code",
+    "Automação de resposta treinada por IA",
+    "Widgets de review ao vivo no site para prova social"
+   ],
+   "preco": "A partir de USD 27/mês por local, segundo comparativo de terceiro. Não confirmado em página oficial.",
+   "modelo_cobranca": "Assinatura mensal por local. Detalhes não verificados.",
+   "canais_coleta": [
+    "SMS",
+    "Email",
+    "QR code"
+   ],
+   "integracoes": [
+    "DESCONHECIDO"
+   ],
+   "diferencial": "É a referência de PISO DE PREÇO do mercado global: USD 27/mês por local (~R$ 145/mês) para campanha de review automatizada com IA de resposta. Serve de âncora para a QT calcular quanto o próprio sistema deveria custar — e mostra que os R$ 501-1.000/mês pagos hoje estão muito acima do que a função básica vale no mercado mundial.",
+   "fraquezas": [
+    "Preço não confirmado em fonte oficial",
+    "Escopo estreito: é solicitação e resposta de review, não gestão de experiência",
+    "Sem pesquisa first-party estruturada, sem feedback por item, sem recuperação, sem alerta de mesa",
+    "Sem integração com PDV",
+    "Nada verificado em página oficial nesta rodada"
+   ],
+   "publico_alvo": "Pequeno negócio local, multissetorial",
+   "confianca": "baixa",
+   "fontes": [
+    "https://get.tattleapp.com/blog/2026-03-15-top-20-restaurant-guest-feedback-software-providers-2026/"
+   ]
+  },
+  {
+   "nome": "SevenRooms",
+   "pais": "Estados Unidos",
+   "site": "https://sevenrooms.com/",
+   "descricao": "Plataforma de CRM e gestão de reserva para restaurante que amarra perfil de cliente a feedback, com 15.000+ restaurantes e 100+ integrações declaradas.",
+   "features": [
+    "CRM-first: perfil de cliente integrado ao feedback",
+    "Pesquisas pós-visita para on-premise e off-premise",
+    "Agregação de review de Google, Yelp, TripAdvisor e Facebook",
+    "AI Responses: reduziu tempo de resposta em 27% e aumentou volume de resposta em 35% (números do fornecedor)",
+    "AI Feedback Summary: digest semanal automático",
+    "100+ integrações"
+   ],
+   "preco": "NAO PUBLICO",
+   "modelo_cobranca": "Cotação customizada. Não divulgado.",
+   "canais_coleta": [
+    "Pesquisa pós-visita por email/SMS",
+    "Reviews públicos de 4 plataformas",
+    "Dado de reserva e perfil de cliente"
+   ],
+   "integracoes": [
+    "Google",
+    "Yelp",
+    "TripAdvisor",
+    "Facebook",
+    "TableSafe",
+    "100+ integrações declaradas"
+   ],
+   "diferencial": "A mecânica a copiar é o AI FEEDBACK SUMMARY: um digest semanal automático em linguagem natural, em vez de dashboard que ninguém abre. Para um dono de pizzaria que abre ter-dom só no jantar, receber toda segunda um resumo de 5 linhas do que os clientes disseram na semana vale mais que qualquer painel.",
+   "fraquezas": [
+    "Preço não público",
+    "Nada verificado em página oficial nesta rodada; dados vêm de comparativo escrito por concorrente",
+    "Números de IA (-27% de tempo, +35% de volume) são do próprio fornecedor",
+    "É reserva/CRM primeiro, feedback depois: sem feedback por item consumido",
+    "Sem presença no Brasil identificada"
+   ],
+   "publico_alvo": "Restaurantes full service e grupos de hospitalidade, globalmente",
+   "confianca": "baixa",
+   "fontes": [
+    "https://get.tattleapp.com/blog/2026-03-15-top-20-restaurant-guest-feedback-software-providers-2026/",
+    "https://modernrestaurantmanagement.com/sevenrooms-teams-with-tripadvisor-and-tablesafe-in-l-a/"
+   ]
+  },
+  {
+   "nome": "Falaê (referência brasileira - para contraste)",
+   "pais": "Brasil",
+   "site": "https://www.falae.app/",
+   "descricao": "Plataforma brasileira de pesquisa de satisfação especializada em food service, criada para transformar avaliação de cliente em informação estratégica para restaurante e delivery. Incluída aqui como CONTRASTE: já faz no Brasil parte do que se atribui como novidade internacional.",
+   "features": [
+    "Integração com sistemas de PDV, associando o feedback DIRETAMENTE AOS PEDIDOS realizados",
+    "Identificação de quais PRATOS, atendentes ou processos foram bem ou mal avaliados",
+    "Pesquisa completa cobrindo cada etapa da jornada: recepção até fechamento da conta",
+    "Sistema em nuvem acessível de qualquer dispositivo",
+    "Integração com Repediu (CRM de delivery)"
+   ],
+   "preco": "DESCONHECIDO. Nenhum valor encontrado em fonte oficial nem em terceiro nesta rodada.",
+   "modelo_cobranca": "DESCONHECIDO",
+   "canais_coleta": [
+    "QR code na mesa",
+    "Link no WiFi",
+    "SMS",
+    "WhatsApp",
+    "Email"
+   ],
+   "integracoes": [
+    "Sistemas de PDV brasileiros (não enumerados nas fontes consultadas)",
+    "Repediu (CRM de delivery)"
+   ],
+   "diferencial": "Importante para calibrar a estratégia: amarrar feedback ao pedido do PDV e identificar prato e atendente JÁ EXISTE no Brasil. Coleta por WhatsApp e por link no WiFi também. Portanto o diferencial da QT não pode ser 'integrar com o PDV' — tem que ser a PROFUNDIDADE (atributos separados por item, comparação com a média do cardápio, segunda onda 24h, banco de perguntas rotacionadas, alerta com número de mesa) e o custo próximo de zero.",
+   "fraquezas": [
+    "Preço não público, o que dificulta comparação",
+    "Não identifiquei atributos separados por item (sabor, textura, temperatura), comparação contra média do cardápio, segunda onda de pesquisa, nem atribuição de receita recuperada",
+    "Nenhuma feature de IA generativa identificada nas fontes consultadas",
+    "Fontes disponíveis são a home do produto e um post de parceiro, sem documentação técnica"
+   ],
+   "publico_alvo": "Restaurantes e operações de delivery no Brasil",
+   "confianca": "baixa",
+   "fontes": [
+    "https://www.falae.app/",
+    "https://naturalbot.com.br/falae-pesquisa-para-restaurantes/",
+    "https://repediu.com.br/funcionalidades/integracoes/falae/",
+    "https://conteudo.falae.app/demo-gratuita-site-v2"
+   ]
+  },
+  {
+   "nome": "Risposta (incumbente atual da QT - para contraste)",
+   "pais": "Brasil",
+   "site": "https://www.risposta.app/",
+   "descricao": "Fornecedor brasileiro atual da QT, sediado na Barra da Tijuca (Rio de Janeiro), com pesquisa de satisfação, cliente oculto e questionário para restaurante. Combina TABLET no salão com QR code na mesa ou cardápio.",
+   "features": [
+    "Coleta por TABLET no salão (responsável por ~90% das avaliações, permite resposta ANÔNIMA)",
+    "Coleta por QR code na mesa ou no cardápio (adiciona até 15% em avaliações e cadastros)",
+    "Fluxo de QR em três passos: escanear, avaliar no celular, cadastrar dado do cliente",
+    "Comparação com os melhores restaurantes do país (benchmark)",
+    "Relatórios e recomendações com IA",
+    "Alertas de performance em tempo real",
+    "Marketing automatizado: incentivo de aniversário e desconto de retorno",
+    "Integração com Google Reviews",
+    "Sistema de detecção de FRAUDE",
+    "Produto separado Risposta Tap"
+   ],
+   "preco": "NAO PUBLICO na página oficial que consultei (https://www.risposta.app/risposta-qr-code/ não exibe valor, só direciona para demo/vendas). Um resultado de busca sobre páginas da Risposta menciona planos só-QR a partir de R$ 150/mês, mas NÃO consegui confirmar isso em página oficial — tratar como não confirmado. O que é FATO conhecido do contexto: a QT paga hoje entre R$ 501 e R$ 1.000/mês.",
+   "modelo_cobranca": "Assinatura mensal, provavelmente com tiers separados para QR-apenas e tablet. Não confirmado.",
+   "canais_coleta": [
+    "Tablet no salão (anônimo, ~90% do volume)",
+    "QR code na mesa ou no cardápio (até +15%)",
+    "Risposta Tap"
+   ],
+   "integracoes": [
+    "Google Reviews",
+    "Integração com PDV NÃO identificada nas páginas consultadas"
+   ],
+   "diferencial": "O dado mais valioso que a Risposta publica é sobre a PRÓPRIA limitação do QR: o tablet gera 90% das avaliações porque é anônimo, o QR adiciona só até 15%, e o QR exige salvaguarda antifraude porque a equipe pode manipular respostas. Se a QT vai construir um substituto só-digital, tem que resolver os dois problemas que a Risposta resolve com hardware: percepção de anonimato e antifraude.",
+   "fraquezas": [
+    "Preço não público, o que já é atrito com um cliente que paga R$ 501-1.000/mês",
+    "Modelo dependente de TABLET — exatamente o negócio que quebrou a Presto nos EUA",
+    "Nenhuma integração com PDV identificada: o feedback não se amarra à comanda nem ao item consumido, que é justamente a mecânica mais valiosa do mercado global",
+    "Sem feedback por item com atributos separados, sem comparação contra média do cardápio, sem segunda onda de pesquisa, sem banco de perguntas rotacionadas",
+    "Nenhuma métrica pública de taxa de resposta",
+    "Estratégia de direcionar satisfeito para o Google é review gating",
+    "Custo desproporcional ao volume da QT: R$ 501-1.000/mês para 50-200 respostas/mês equivale a R$ 2,50 a R$ 20 POR RESPOSTA COLETADA"
+   ],
+   "publico_alvo": "Restaurantes e redes no Brasil",
+   "confianca": "media",
+   "fontes": [
+    "https://www.risposta.app/",
+    "https://www.risposta.app/risposta-qr-code/",
+    "https://www.risposta.app/risposta-tap/"
+   ]
+  }
+ ],
+ "fontes": [
+  "https://get.tattleapp.com/pricing/",
+  "https://get.tattleapp.com/item-level-feedback/",
+  "https://get.tattleapp.com/features/item-level-feedback/",
+  "https://get.tattleapp.com/features/feedback-collection/",
+  "https://get.tattleapp.com/blog/2026-03-15-top-20-restaurant-guest-feedback-software-providers-2026/",
+  "https://get.tattleapp.com/blog/2026-03-31-menu-engineering-20-itemlevel-feedback-for-better-ltos/",
+  "https://www.restaurantnews.com/tattle-continues-innovation-with-upgraded-menu-item-level-feedback-and-analytics-dashboard-021524/",
+  "https://ovationup.com/",
+  "https://ovationup.com/platform/feedback/",
+  "https://ovationup.com/news-releases-ovation-adds-custom-questions-to-actionable-guest-feedback-loop/",
+  "https://ovationup.com/news-releases-suggested-response/",
+  "https://ovationup.com/news-releases-new-mobile-app/",
+  "https://ovationup.com/chip/",
+  "https://apps.apple.com/us/app/ovation-guest-feedback/id1462716985",
+  "https://www.capterra.com/p/181479/Ovation/reviews/",
+  "https://www.capterra.com/p/181479/Ovation/",
+  "https://www.restaurant365.com/partners/ovation/",
+  "https://cbsnorthstar.com/how-ovation-and-cbs-northstar-are-transforming-real-time-guest-feedback-in-restaurants/",
+  "https://blackboxintelligence.com/yumpingo/",
+  "https://yumpingo.com/product/guest-interaction",
+  "https://blackboxintelligence.com/product/guest-intelligence/guest-experience-survey/guest-interaction/",
+  "https://blackboxintelligence.com/product/guest-intelligence/guest-experience-survey/devices/",
+  "https://blackboxintelligence.com/guestxm/",
+  "https://www.businesswire.com/news/home/20221114006082/en/Black-Box-Intelligence-Announces-GuestXM-Defining-Next-Generation-of-Customer-Experience-Management-for-Restaurants",
+  "https://www.businesswire.com/news/home/20231109530752/en/CKE-Restaurants-International-Gains-Insights-on-Customer-Experience-with-GuestXM-powered-by-Black-Box-Intelligence",
+  "https://salestechstar.com/sales-engagement/black-box-intelligence-announces-guestxm-defining-next-generation-of-customer-experience-management-for-restaurants/",
+  "https://www.g2.com/products/yumpingo/reviews",
+  "https://www.softwareadvice.com/review-management/yumpingo-profile/",
+  "https://www.getapp.com/customer-service-support-software/a/yumpingo/",
+  "https://www.insightplatforms.com/platforms/yumpingo/",
+  "https://www.guestmeter.com/",
+  "https://www.guestmeter.com/pricing",
+  "https://www.guestmeter.com/restaurant-qr-code-survey",
+  "https://www.guestmeter.com/restaurant-survey-software",
+  "https://www.guestmeter.com/restaurant-feedback-management",
+  "https://www.softwaresuggest.com/guestmeter",
+  "https://hoteltechreport.com/marketing/reputation-management/guestmeter",
+  "https://delighted.com/pricing",
+  "https://www.qualtrics.com/delighted",
+  "https://www.capterra.com/p/157973/Delighted/pricing/",
+  "https://g2.com/products/delighted/pricing",
+  "https://feedsense.co/blog/delighted-alternatives-nps",
+  "https://www.medallia.com/solutions/restaurants-food-service/",
+  "https://www.medallia.com/solutions/location-based-operations/",
+  "https://www.medallia.com/resource/the-complete-guide-to-closing-the-loop/",
+  "https://exp-now.medallia.com/video/closed-loop-automation-demo/",
+  "https://www.medallia.com/customers/",
+  "https://www.medallia.com/platform/",
+  "https://www.cuspera.com/compare/medallia-experience-cloud-vs-inmoment/496/765",
+  "https://www.zigpoll.com/content/medallia-vs-inmoment-compared-2026",
+  "https://smg.com/pricing",
+  "https://smg.com/industries/restaurant",
+  "https://marketing.smg.com/smg-program-methodology-digital-invitations",
+  "https://marketing.smg.com/smg360-services",
+  "https://www.businesswire.com/news/home/20201109005058/en/SMG-Announces-Experience-Management-Partnership-With-Leading-Food-Ordering-Platform-Olo",
+  "https://www.techjockey.com/detail/smg360",
+  "https://www.g2.com/products/smg-service-management-group/pricing",
+  "https://www.g2.com/products/smg-service-management-group/reviews",
+  "https://birdeye.com/blog/what-does-birdeye-cost/",
+  "https://wiserreview.com/blog/birdeye-pricing/",
+  "https://www.replifast.com/blog/birdeye-pricing-2026",
+  "https://www.reviewflowz.com/blog/how-much-does-birdeye-really-cost",
+  "https://www.g2.com/products/birdeye/pricing",
+  "https://www.capterra.com/p/152997/BirdEye/pricing",
+  "https://research.com/software/reviews/chatmeter",
+  "https://marqii.com/pricing",
+  "https://marqii.com/listings",
+  "https://marqii.com/menu-management",
+  "https://marqii.com/independent-operators",
+  "https://marqii.com/frequently-asked-questions",
+  "https://marqii.com/",
+  "https://restauranttools.ai/tools/marqii",
+  "https://www.pluspoint.io/blog/momos-ovation-marqii-pluspoint-comparing-the-leading-guest-experience-for-restaurants",
+  "https://www.owner.com/pricing",
+  "https://www.getsauce.com/post/owner-com-pricing-fees",
+  "https://softwarefinder.com/retail/owner-com",
+  "https://www.savorinsider.com/p/owner-com-basics-is-this-the-all-in-one-tool-your-restaurant-needs",
+  "https://www.softwareadvice.com/retail/owner-com-profile/",
+  "https://sacra.com/c/owner/",
+  "https://get.popmenu.ca/pricing-packages",
+  "https://get.popmenu.com/",
+  "https://www.restolabs.com/blog/popmenu-pricing",
+  "https://zay-os.com/how-much-does-popmenu-cost",
+  "https://restauranttools.ai/tools/popmenu",
+  "https://hostie.ai/resources/popmenu-getting-expensive-5-ai-host-alternatives-for-restaurants",
+  "https://bikky.com/",
+  "https://www.bikky.com/integrations",
+  "https://www.bikky.com/menu-analysis",
+  "https://www.capterra.com/p/210364/Bikky/",
+  "https://www.g2.com/products/bikky/reviews?qs=pros-and-cons",
+  "https://www.cbinsights.com/compare/bikky-vs-wisely-1",
+  "https://www.olo.com/sentiment",
+  "https://www.olo.com/gdp",
+  "https://www.olo.com/engage",
+  "https://www.olo.com/marketing",
+  "https://www.olo.com/blog/11-ways-olo-uses-ai-to-fuel-restaurant-growth",
+  "https://www.getwisely.com/",
+  "https://www.getwisely.com/sentiment",
+  "https://www.nasdaq.com/press-release/olo-to-acquire-wisely-a-leading-customer-intelligence-and-engagement-platform-for",
+  "https://futurumgroup.com/news/restaurant-software-company-olo-to-acquire-customer-personalization-provider-wisely/",
+  "https://restauranttools.ai/tools/wisely",
+  "https://www.paytronix.com/blog/the-newest-tool-to-gather-customer-feedback",
+  "https://www.paytronix.com/blog/best-restaurant-loyalty-software-comparison-guide",
+  "https://www.momos.com/blog/best-restaurant-loyalty-software",
+  "https://www.techloy.com/top-4-loyalty-program-software-for-restaurant-chains-qsrs-in-2026/",
+  "https://www.orderout.co/blog/best-loyalty-programs-for-restaurants/",
+  "https://www.saasworthy.com/product/thanx-platform/pricing",
+  "https://food.toolsinfo.com/tool/thanx",
+  "https://www.businesswire.com/news/home/20171023005441/en/TableSafe-Launches-EMV-Award-Winning-RAIL-Pay-at-the-Table-Platform",
+  "https://www.hotelmanagement.net/tech/tablesafe-launches-emv-its-rail-pay-at-table-platform",
+  "https://hospitalitytech.com/71above-takami-sushi-implement-pay-table-technology",
+  "https://modernrestaurantmanagement.com/sevenrooms-teams-with-tripadvisor-and-tablesafe-in-l-a/",
+  "https://www.fsrmagazine.com/content/tablesafe-launches-emv-rail-pay-table-platform",
+  "https://425business.com/tablesafe-to-launch-improved-restaurant-payment-system/",
+  "https://presto.com/",
+  "https://www.restaurantdive.com/news/presto-raises-10-million-funding/809128/",
+  "https://www.restaurantdive.com/news/presto-automation-is-risking-its-business-on-drive-thru-voice-ai/709610/",
+  "https://restauranttechnologynews.com/2026/01/presto-raises-10-million-to-scale-voice-ai-deployments-as-restaurant-drive-thru-automation-enters-its-prove-it-era/",
+  "https://www.restaurantbusinessonline.com/technology/ai-supplier-presto-sold-group-including-lender-former-investor",
+  "https://www.restaurantbusinessonline.com/technology/presto-raises-10m-fuel-its-ai-drive-thru-system",
+  "https://www.reviewtrackers.com/plans/",
+  "https://www.itqlick.com/reviewtrackers/pricing",
+  "https://www.rightresponseai.com/blog/reviewtrackers-pricing",
+  "https://www.capterra.com/p/140801/ReviewTrackers/",
+  "https://www.softwaresuggest.com/reviewtrackers",
+  "https://birdeye.com/tools/reviewtrackers-reviews/",
+  "https://www.intouchinsight.com/who-we-are/about-intouch/",
+  "https://www.intouchinsight.com/what-we-do/mystery-shopping-services/restaurants/",
+  "https://www.intouchinsight.com/what-we-do/mystery-shopping-services/",
+  "https://www.intouchinsight.com/solutions/restaurant-customer-experience/",
+  "https://www.intouchinsight.com/blog/mystery-shopping-audit-programs-for-restaurants",
+  "https://www.intouchinsight.com/resources/studies/drive-thru-2023/",
+  "https://www.intouchinsight.com/resources/studies/",
+  "https://www.happy-or-not.com/en/pricing-and-features/",
+  "https://www.happy-or-not.com/en/solution/smiley-terminal/",
+  "https://www.happy-or-not.com/en/happyornot-cost-and-pricing/",
+  "https://www.surveystance.com/happy-or-not-cost-pricing/",
+  "https://www.featuredcustomers.com/vendor/happyornot/reviews",
+  "https://www.cspdailynews.com/technologyservices/rocket-rolls-out-happyornots-smiley-customer-satisfaction-kiosks",
+  "https://www.zonkafeedback.com/pricing",
+  "https://www.capterra.com/p/137773/Zonka-Feedback/pricing/",
+  "https://www.trustradius.com/products/zonka-feedback/pricing",
+  "https://surveymars.com/knowledge/zonka-feedback-pricing--best-alternatives-for-multi-channel-csat/",
+  "https://www.softwareadvice.com/market-research/zonka-feedback-profile/",
+  "https://www.getapp.com/customer-management-software/a/zonka-feedback/",
+  "https://www.trustradius.com/products/surveysparrow/pricing",
+  "https://formbricks.com/blog/surveysparrow-pricing",
+  "https://pricingnow.com/question/surveysparrow-pricing/",
+  "https://hackceleration.com/labs/surveysparrow-pricing",
+  "https://pricingsaas.com/companies/surveysparrow",
+  "https://www.momos.com/product/customer-recovery",
+  "https://www.momos.com/solutions/customer-experience",
+  "https://www.momos.com/product/ai-review-manager",
+  "https://momos.com/solutions/customer-service",
+  "https://www.momos.com/blog/the-recovery-playbook",
+  "https://www.momos.com/blog/restaurant-guest-experience",
+  "https://www.momos.com/blog/best-restaurant-customer-data-platform",
+  "https://backofhouse.io/vendors/momos",
+  "https://www.falae.app/",
+  "https://naturalbot.com.br/falae-pesquisa-para-restaurantes/",
+  "https://repediu.com.br/funcionalidades/integracoes/falae/",
+  "https://conteudo.falae.app/demo-gratuita-site-v2",
+  "https://www.risposta.app/",
+  "https://www.risposta.app/risposta-qr-code/",
+  "https://www.risposta.app/risposta-tap/",
+  "https://tagme.com.br/tudo-sobre-pesquisa-de-satisfacao-em-restaurante/",
+  "https://solvis.com.br/descubra-a-melhor-ferramenta-para-pesquisas-de-satisfacao-no-seu-restaurante-corporativo-totem-x-qr-code/",
+  "https://blog.facity.com.br/post/7-formas-integrar-qr-code-atendimento-restaurante",
+  "https://www.lojabrazil.com.br/blog/pesquisa-de-satisfacao-para-restaurante-como-criar-a-sua/",
+  "https://www.questionpro.com/blog/pt-br/pesquisa-de-satisfacao-em-restaurantes/",
+  "https://getsira.ai/blog/best-restaurant-guest-feedback-and-survey-tools-in-2026"
+ ]
+}

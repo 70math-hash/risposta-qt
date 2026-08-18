@@ -1,0 +1,981 @@
+{
+ "resumo": "Mapeei 23 players brasileiros que embutem algum pedaco de CX (CRM, fidelidade, reservas, avaliacao) dentro de suites de gestao de restaurante. Conclusao central para o caso da QT (pizzaria de salao, 22 mesas, PDV Altec/Next): o PDV que o cliente JA PAGA nao resolve nada de CX. A pagina oficial da Altec Sistemas fala de relatorios estrategicos, graficos em tempo real e relatorio de caixa no celular via WhatsApp, e NAO menciona CRM, fidelidade nem pesquisa de satisfacao. Ou seja, hoje nao existe redundancia: o Risposta nao esta sendo pago em duplicidade com o Altec. O risco de redundancia aparece em quatro rotas concretas, todas com pesquisa de satisfacao NATIVA e verificada em pagina oficial: (1) Tagme, com o modulo Tagme Review, coleta por QR code na conta, WhatsApp e e-mail, NPS e CRM no mesmo ecossistema de reservas e fila; (2) Get In, que descreve na propria home a combinacao reservas + fila + cardapio digital + pesquisa de satisfacao + CRM + analytics; (3) Goomer, que dispara pesquisa customizada dentro do cardapio digital ou do tablet de mesa logo depois do checkout, com resultados no mesmo painel de gestao; (4) Zig, que tem modulo de Pesquisa de Satisfacao plugado no CRM proprio com segmentacao por nivel de satisfacao e disparo de giftback/cashback. Fora das suites, a ameaca mais dura ao ticket de R$501 a R$1.000/mes e a Fidelimax, que publica plano gratuito e traz NPS continuo (\"De 0 a 10, quanto voce indicaria nosso restaurante?\") junto de fidelidade, cashback e mais de 50 integracoes nativas de PDV. Fui rigoroso na separacao pedida: Linx Degust, Colibri, Neemo, Cardapio Web (parcialmente), Anota AI e Consumer entregam fidelidade, cashback, campanha de aniversario e disparo de WhatsApp, o que NAO e pesquisa de satisfacao estruturada nem gestao de reputacao. O caso mais enganoso e o Consumer, unico com preco publicado (R$59,90, R$179,90 e R$269,90/mes): o que ele chama de avaliacao e o Disparador WhatsApp pedindo review no Google Meu Negocio, o que e captura de reputacao, nao pesquisa interna com serie historica. A Meep so tem pesquisa porque integra com a Track, um fornecedor externo de CX, e nao por modulo proprio. Teknisa tem app proprio de pesquisa (MyQuest, em totem ou tablet), mas o alvo e refeicao coletiva e nao pizzaria de 20 mesas por noite. Dinerama e app de cashback de supermercado com reclamacoes publicas de encerramento de atividades, e Onfly e gestao de viagens corporativas: nenhum dos dois e concorrente. Nao localizei fornecedor identificavel chamado Oni Sistemas em food service. No plano tecnico, que e o que decide a viabilidade do substituto caseiro: apenas Goomer e Saipos publicam documentacao de API aberta na web, ambas exigindo credenciamento para uso real; a Saipos e a unica que declara explicitamente notificacao de novas vendas (webhook) e suporta pedido de Mesa/Comanda; e a Altec, dona do dado de venda do cliente, nao tem API publica documentada, so exportacao de relatorio e envio por WhatsApp. Isso significa que o substituto proprio vai depender de export manual de planilha ou de leitura direta da base local, e nao de integracao automatica, o que conflita frontalmente com o requisito de nao ter ninguem para manter o sistema depois.",
+ "vendors": [
+  {
+   "nome": "Tagme",
+   "pais": "Brasil",
+   "site": "https://tagme.com.br/",
+   "descricao": "Ecossistema de hospitalidade para restaurantes de salao: reservas (declara-se o sistema de reserva mais usado no Brasil), fila de espera, cardapio digital, review e CRM integrados no mesmo plano.",
+   "publico_alvo": "Restaurantes de salao, casas com reserva e fila, alta gastronomia e redes; posiciona-se como lider no Brasil e America Latina.",
+   "features": [
+    "Tagme Review: modulo dedicado de pesquisa de satisfacao para food service",
+    "NPS como metrica central, com classificacao promotor/neutro/detrator",
+    "Reservas multicanal (site, Instagram, Google)",
+    "Fila de espera",
+    "Cardapio digital",
+    "CRM integrado ao ecossistema",
+    "Plano de hospitalidade com pesquisa de satisfacao e CRM com 5 mil e-mails (fonte terceira/snippet)"
+   ],
+   "canais_coleta": [
+    "QR code na conta ou na mesa",
+    "WhatsApp automatizado pos-visita",
+    "E-mail marketing",
+    "Coleta automatizada apos uso do servico"
+   ],
+   "integracoes": [
+    "Integra com o proprio ecossistema Tagme (reservas, fila, cardapio, CRM)",
+    "Integracao com PDV: NAO MENCIONADO na pagina lida",
+    "Google Reviews: NAO MENCIONADO na pagina lida"
+   ],
+   "modelo_cobranca": "Planos/pacotes de modulos (plano completo de hospitalidade). Modelo exato NAO PUBLICO.",
+   "preco": "NAO PUBLICO - a pagina de pesquisa de satisfacao nao traz preco e a landing (landing.tagme.com.br) retornou HTTP 503 na tentativa de leitura.",
+   "diferencial": "E o unico do levantamento que tem um produto nomeado e dedicado de pesquisa de satisfacao (Tagme Review) dentro de uma suite de salao, com os mesmos canais que o Risposta usa (QR na conta + WhatsApp pos-visita) e NPS explicito.",
+   "fraquezas": [
+    "Preco nao publico, historicamente posicionado em restaurantes de ticket mais alto",
+    "Nao substitui PDV: entra como custo adicional ao Altec, nao como economia",
+    "Integracao com Google Meu Negocio nao comprovada",
+    "Nao encontrei documentacao de API publica"
+   ],
+   "substituiria_risposta": "SIM. E o substituto mais completo entre os indiretos: Tagme Review cobre pesquisa de satisfacao com NPS, os canais de coleta (QR na conta, WhatsApp, e-mail) sao os mesmos, e o CRM da propria Tagme recebe os dados. Se a QT contratasse Tagme para reservas, o Risposta viraria redundante quase integralmente. Nao substitui gestao de reputacao publica (Google) de forma comprovada, e nao resolve o objetivo do cliente de custo proximo de zero, porque e outra mensalidade de fornecedor.",
+   "confianca": "alta",
+   "fontes": [
+    "https://tagme.com.br/tudo-sobre-pesquisa-de-satisfacao-em-restaurante/",
+    "https://tagme.com.br/",
+    "https://landing.tagme.com.br/ (HTTP 503, nao lida)"
+   ]
+  },
+  {
+   "nome": "Get In",
+   "pais": "Brasil",
+   "site": "https://restaurante.getin.app/",
+   "descricao": "Sistema de reservas online e fila de espera digital para restaurantes e bares, com app de descoberta para o consumidor final (mais de 10 mil restaurantes) e camada de CRM, pesquisa de satisfacao e analytics para o restaurante.",
+   "publico_alvo": "Restaurantes e bares de salao, do restaurante de bairro a redes de franquia (segundo a propria pagina de planos).",
+   "features": [
+    "Pesquisa de satisfacao citada como modulo da plataforma",
+    "CRM para restaurantes com gestao de dados do cliente",
+    "Reservas de mesa com lembretes automaticos e confirmacao rapida (reducao de no-show)",
+    "Fila de espera online",
+    "Cardapio digital",
+    "Relatorios de performance e analytics",
+    "Campanhas personalizadas",
+    "Visao 360 do negocio (CRM + Pesquisa + Analytics)"
+   ],
+   "canais_coleta": [
+    "Canal exato de disparo da pesquisa: DESCONHECIDO (site retornou HTTP 403 nas leituras; snippets citam pesquisa de satisfacao pos-visita sem especificar WhatsApp, e-mail ou SMS)"
+   ],
+   "integracoes": [
+    "App proprio para o consumidor final",
+    "Integracao com PDV: DESCONHECIDO",
+    "API publica: nao localizada"
+   ],
+   "modelo_cobranca": "Planos por nivel, com possibilidade de selecionar apenas os modulos necessarios; suporte por WhatsApp em todos os planos (seg a sex, 9h-18h).",
+   "preco": "NAO PUBLICO - existe a pagina https://restaurante.getin.app/planos-e-precos/ mas ela retornou HTTP 403 e os valores nao aparecem nos snippets. Nao invento valor.",
+   "diferencial": "Junta o que o restaurante de salao mais quer (reserva e fila) com pesquisa e CRM no mesmo contrato, e ainda traz demanda de fora via app de descoberta - algo que o Risposta nao faz.",
+   "fraquezas": [
+    "Nao consegui ler o site oficial (403), logo profundidade real do modulo de pesquisa nao verificada em pagina oficial",
+    "Preco nao publico",
+    "Foco em reserva/fila; pizzaria de bairro com 20 mesas/noite pode nao ter dor de reserva suficiente para justificar",
+    "Sem API publica localizada"
+   ],
+   "substituiria_risposta": "SIM, PARCIALMENTE, com forte potencial de ser SIM. A propria descricao do produto lista pesquisa de satisfacao + CRM + analytics junto de reservas, entao um restaurante que ja paga Get In dificilmente justifica um segundo fornecedor so de pesquisa. Ressalva honesta: nao consegui abrir o site oficial para verificar a profundidade da pesquisa (NPS? serie historica? relatorio por garcom?), entao classifico como parcial ate confirmacao direta.",
+   "confianca": "media",
+   "fontes": [
+    "https://restaurante.getin.app/",
+    "https://restaurante.getin.app/solucoes-get-in/ (HTTP 403, nao lida)",
+    "https://restaurante.getin.app/planos-e-precos/ (HTTP 403, nao lida)",
+    "https://www.getinapp.com.br/"
+   ]
+  },
+  {
+   "nome": "Goomer",
+   "pais": "Brasil",
+   "site": "https://goomer.com.br/",
+   "descricao": "Plataforma de autoatendimento e cardapio digital para food service: cardapio por QR code, tablet de mesa com pagamento integrado, totem de autoatendimento e painel de gestao, com pesquisa de satisfacao nativa dentro do fluxo de pedido.",
+   "publico_alvo": "Restaurantes, bares e casas de salao que querem autoatendimento e cardapio digital; tambem delivery.",
+   "features": [
+    "Pesquisa de satisfacao NATIVA dentro do cardapio digital, disparada no fim do checkout",
+    "Perguntas customizaveis sobre qualidade do produto, atendimento, condicoes do estabelecimento e campo aberto",
+    "Resultados no mesmo painel de gestao, com relatorios detalhados, acessivel de qualquer dispositivo",
+    "Tablet de mesa com pagamento integrado e totem vertical",
+    "Programa de fidelidade configuravel",
+    "CRM com gestao de clientes por consumo e campanhas de e-mail marketing segmentadas",
+    "Geracao automatica de avaliacoes no Google (fonte terceira: materia Fispal 2026)",
+    "Partner API REST/JSON documentada publicamente"
+   ],
+   "canais_coleta": [
+    "Tablet na mesa (apos consumo)",
+    "Cardapio por QR code",
+    "Cardapio de delivery",
+    "Sempre pos-checkout, no timing da refeicao"
+   ],
+   "integracoes": [
+    "Partner API propria (partner-api.goomer.app) com OAuth 2.0 client credentials",
+    "Modulo OpenDelivery",
+    "Integracao com Saipos (via suporte Saipos)",
+    "Consta como parceiro do ecossistema Colibri"
+   ],
+   "modelo_cobranca": "Planos Goomer por escopo de solucao (a pagina fala em 'escolher um plano Goomer adequado ao seu negocio'), sem tabela publica.",
+   "preco": "NAO PUBLICO - nenhuma das paginas lidas divulga valor.",
+   "diferencial": "E o unico que captura a pesquisa no momento exato do consumo, dentro do tablet na mesa, sem depender do cliente responder um link depois. Para 20 mesas por noite, taxa de resposta tende a ser muito maior que pesquisa pos-visita. NPS nao e mencionado na pagina lida.",
+   "fraquezas": [
+    "NPS nao mencionado na pagina oficial de pesquisa",
+    "Modelo de tablet/totem exige hardware, o que empurra o custo para cima, nao para zero",
+    "Preco nao publico",
+    "Uso da Partner API exige parceria com a Goomer"
+   ],
+   "substituiria_risposta": "SIM, EM GRANDE PARTE. Se a pizzaria adotasse cardapio digital ou tablet Goomer, teria pesquisa customizada pos-consumo, painel de resultados e CRM no mesmo fornecedor, e o Risposta ficaria redundante para a funcao de coleta e leitura de satisfacao. Fica de fora: NPS formal (nao comprovado) e o componente de cliente oculto que o Risposta vende. Alem disso nao serve ao objetivo de custo zero, porque envolve hardware e mensalidade.",
+   "confianca": "alta",
+   "fontes": [
+    "https://goomer.com.br/blog/pesquisa-de-satisfacao-com-cardapio-digital",
+    "https://partner-api.goomer.app/docs.html",
+    "https://goomer.com.br/parcerias",
+    "https://gironews.com/food-service/goomer-leva-autoatendimento-e-tecnologia-para-fispal-2026/"
+   ]
+  },
+  {
+   "nome": "Zig (ZigPay)",
+   "pais": "Brasil",
+   "site": "https://zig.fun/",
+   "descricao": "Plataforma de gestao, cashless e controle de acesso nascida no mercado de eventos (ZigPay, 2016/2017), hoje vendida como sistema de gestao para bares, restaurantes e casas noturnas, com modulos integrados de vendas, estoque, equipe, financeiro e CRM.",
+   "publico_alvo": "Bares, casas noturnas, casas de show e eventos; restaurantes de operacao alta e cashless.",
+   "features": [
+    "Modulo proprio de Pesquisa de Satisfacao, criado para gestores de bares, restaurantes e eventos",
+    "Pesquisas personalizadas direcionadas ao publico",
+    "Integracao da pesquisa com o CRM proprio: segmentacao de clientes por nivel de satisfacao",
+    "Disparo de Giftback/Cashback para quem avaliou bem e campanha de recuperacao para insatisfeito",
+    "Acompanhamento da evolucao da percepcao ao longo do tempo",
+    "Dashboard em tempo real com relatorios customizaveis, filtros e periodos",
+    "Modulos integrados: vendas, estoque, equipe, financeiro e CRM",
+    "Cashless e controle de acesso integrado a bilheteria"
+   ],
+   "canais_coleta": [
+    "NAO ESPECIFICADO na pagina oficial lida (nao diz se e WhatsApp, QR code ou e-mail)"
+   ],
+   "integracoes": [
+    "API citada para conectar controle de acesso com bilheteria e sistemas de pagamento, e com outras ticketeiras",
+    "Documentacao publica de API para leitura de vendas: nao localizada"
+   ],
+   "modelo_cobranca": "Sistema de gestao + modulos; houve promocao de Black Friday com modulo CRM gratis por 1 ano na contratacao do sistema de gestao.",
+   "preco": "NAO PUBLICO",
+   "diferencial": "Fecha o ciclo pesquisa -> segmentacao -> giftback/cashback -> recuperacao dentro do mesmo CRM, o que e mais do que o Risposta faz se o Risposta parar na leitura da satisfacao.",
+   "fraquezas": [
+    "DNA de evento e casa noturna, nao de pizzaria de salao com jantar de terca a domingo",
+    "Canal de coleta da pesquisa nao divulgado",
+    "Preco nao publico",
+    "Sem doc publica de API de vendas"
+   ],
+   "substituiria_risposta": "SIM para quem ja paga Zig. A Zig tem modulo proprio de pesquisa de satisfacao acoplado ao CRM, entao um bar/restaurante que ja usa Zig nao tem por que pagar um fornecedor separado de pesquisa. Para ESTE cliente, no entanto, e irrelevante como economia: trocar Altec por Zig seria trocar de PDV para ganhar CX, o que aumenta o custo, nao reduz.",
+   "confianca": "alta",
+   "fontes": [
+    "https://blog.zig.fun/pesquisa-de-satisfacao-em-restaurantes-e-bares/",
+    "https://blog.zig.fun/crm-para-bares-e-restaurantes/",
+    "https://blog.zig.fun/conheca-o-dashboard-da-zig/",
+    "https://zig.fun/produtos/controle-de-acesso-integrado/"
+   ]
+  },
+  {
+   "nome": "Meep",
+   "pais": "Brasil",
+   "site": "https://meep.com.br/",
+   "descricao": "Empresa de solucoes de atendimento e pagamento para estabelecimentos desde 2015 (comanda eletronica, cashless, maquininha, portal de gestao), com modulo de CRM e portal de vendas em tempo real.",
+   "publico_alvo": "Bares, restaurantes, casas de eventos e estabelecimentos com atendimento cashless.",
+   "features": [
+    "CRM com frequencia do cliente, niveis de fidelidade, aniversario, ticket medio e dados de contato",
+    "Campanhas por e-mail e push, promocoes personalizadas e dashboard de entrega de campanha",
+    "Pesquisa de satisfacao APENAS via integracao com a Track: 'Ao integrar com a Track, o estabelecimento Meep pode automatizar o envio de pesquisas de satisfacao e ver os resultados no CRM'",
+    "Portal Meep: vendas em tempo real, total por periodo, produtos mais vendidos, vendas por terminal",
+    "Plano Premium citado com CRM, campanhas personalizadas, fidelidade e pesquisas de satisfacao (fonte terceira)",
+    "Portal de desenvolvedor proprio em Azure API Management"
+   ],
+   "canais_coleta": [
+    "Disparo automatizado via Track (fornecedor externo de CX); canal exato NAO ESPECIFICADO"
+   ],
+   "integracoes": [
+    "Track (CX/pesquisa de satisfacao) - integracao chave",
+    "Meep Tickets",
+    "iFood, delivery proprio",
+    "Portal de desenvolvedor publico: https://meep-management.developer.azure-api.net/ (exige signup/signin para ver as APIs)"
+   ],
+   "modelo_cobranca": "Planos (inclui Premium) + hardware/maquininha. Valores sob consulta com consultor.",
+   "preco": "NAO PUBLICO - a pagina oficial de CRM nao traz valor e direciona a 'Entre em contato com um consultor'.",
+   "diferencial": "Tem portal de desenvolvedor formal (Azure APIM), o que e raro nesse mercado, e traz relatorio de vendas por terminal em tempo real.",
+   "fraquezas": [
+    "A pesquisa de satisfacao NAO e modulo proprio: depende de contratar/integrar a Track, ou seja, e mais um fornecedor e provavelmente mais um custo",
+    "Preco nao publico",
+    "Documentacao da API so visivel apos cadastro, entao nao consegui confirmar endpoints de venda nem webhook"
+   ],
+   "substituiria_risposta": "PARCIALMENTE, e com asterisco importante. O CRM e proprio, mas a pesquisa de satisfacao so existe pela integracao com a Track, um terceiro de CX. Um restaurante que paga Meep NAO tem pesquisa de satisfacao inclusa por padrao - ele tem o lugar onde o resultado aparece. Portanto Meep sozinha nao torna o Risposta redundante; Meep + Track torna.",
+   "confianca": "alta",
+   "fontes": [
+    "https://meep.com.br/como-o-crm-pode-te-ajudar-a-fidelizar-clientes-e-vender-mais/",
+    "https://meep.com.br/portal-meep-a-revolucao-na-gestao-de-vendas-e-atendimento/",
+    "https://meep-management.developer.azure-api.net/",
+    "https://saas.meep.com.br/campanha-maquininha"
+   ]
+  },
+  {
+   "nome": "Consumer (Consumer Sistemas)",
+   "pais": "Brasil",
+   "site": "https://loja.consumer.com.br/",
+   "descricao": "Sistema de gestao para restaurantes, bares, lanchonetes e pizzarias, com loja online de planos e forte enfase em integracoes (declara mais de 25 mil integracoes, incluindo iFood, 99Food e Keeta).",
+   "publico_alvo": "Pequeno e medio food service, incluindo pizzarias - segmento exato do cliente.",
+   "features": [
+    "Planos publicados com preco (raro nesse mercado)",
+    "Cardapio Digital MenuDino, versao Completo com programa de fidelidade",
+    "Disparador WhatsApp que 'Solicite avaliacoes do Google Meu Negocio' e reativa/recupera clientes",
+    "Modulo Connect com relatorios de clientes",
+    "Integracoes por chamada de API ja homologadas e prontas para uso"
+   ],
+   "canais_coleta": [
+    "WhatsApp (Disparador) pedindo review no Google Meu Negocio - captura de reputacao publica, NAO pesquisa interna estruturada"
+   ],
+   "integracoes": [
+    "iFood, 99Food, Keeta",
+    "Integracoes ja homologadas via chamada de API (segundo material de terceiro sobre integracoes de CRM)"
+   ],
+   "modelo_cobranca": "Assinatura mensal por plano, com modulos adicionais (cardapio digital, Disparador WhatsApp, Connect).",
+   "preco": "PUBLICADO: Essencial R$ 59,90/mes; Profissional R$ 179,90/mes (marcado como mais escolhido); Alta Performance R$ 269,90/mes. Programa de fidelidade vem no MenuDino Completo, incluido nos planos Profissional e Alta Performance.",
+   "diferencial": "E o unico da lista com tabela de preco publica e valores muito abaixo do que o cliente paga hoje ao Risposta (R$501 a R$1.000/mes). Serve como ancora de negociacao mesmo sem ser substituto de CX.",
+   "fraquezas": [
+    "NAO tem pesquisa de satisfacao estruturada: o que existe e disparo de WhatsApp pedindo review no Google",
+    "Nenhum plano nomeia CRM como ferramenta dedicada; a funcao esta espalhada entre cardapio digital, disparador e relatorios",
+    "Sem NPS, sem serie historica de satisfacao interna, sem cliente oculto"
+   ],
+   "substituiria_risposta": "NAO, apesar do preco atraente. Pedir review no Google via WhatsApp e gestao de reputacao, nao pesquisa de satisfacao: nao gera questionario proprio, nao gera NPS, nao gera serie historica por garcom/prato, e nao captura o cliente insatisfeito ANTES dele publicar. Fidelidade no MenuDino tambem nao e pesquisa. No maximo cobre a fatia 'reputacao' do escopo do Risposta.",
+   "confianca": "alta",
+   "fontes": [
+    "https://loja.consumer.com.br/",
+    "https://repediu.com.br/crm-restaurantes-integracao-sucesso/"
+   ]
+  },
+  {
+   "nome": "Cardapio Web",
+   "pais": "Brasil",
+   "site": "https://cardapioweb.com/",
+   "descricao": "Plataforma de cardapio digital e gestao para delivery e salao que se posiciona como 'o CRM numero 1' do segmento, com modulos de fidelidade, cashback, automacoes de WhatsApp e gestao de mesas e comandas.",
+   "publico_alvo": "Delivery e restaurantes de salao (tem cardapio digital para mesas e gestao de mesas/comandas).",
+   "features": [
+    "Sistema de Avaliacoes e Indice de satisfacao dentro do CRM",
+    "Programa de pontos e fidelidade, cashback",
+    "Automacoes e campanhas segmentadas por WhatsApp",
+    "Dados do cliente: data do ultimo pedido, ticket medio, total de pedidos",
+    "Segmentacao por pontos de fidelidade e numero de compras",
+    "Cardapio Digital para Mesas e Gestao de Mesas e Comandas",
+    "Chatbot de WhatsApp",
+    "Modulo de KPIs/metricas de performance"
+   ],
+   "canais_coleta": [
+    "Avaliacao dentro do fluxo do cardapio digital/CRM; canal e formato exato (NPS? escala?) NAO DETALHADO na pagina"
+   ],
+   "integracoes": [
+    "Integracao com outros sistemas via API (mencionado sem documentacao publica localizada)",
+    "Aparece como integracao disponivel no Repediu"
+   ],
+   "modelo_cobranca": "Plano de gestao com modulos adicionais escolhidos pelo lojista.",
+   "preco": "NAO PUBLICO - a pagina exige contato com consultor ou demonstracao.",
+   "diferencial": "Combina avaliacao/indice de satisfacao com fidelidade, cashback e mesas no mesmo painel, cobrindo salao e delivery.",
+   "fraquezas": [
+    "Nao ficou comprovado se a avaliacao e NPS ou so estrelas; profundidade do relatorio de satisfacao desconhecida",
+    "Preco nao publico",
+    "Sem documentacao de API publica localizada",
+    "Origem delivery-first: o modulo de salao e mais recente"
+   ],
+   "substituiria_risposta": "PARCIALMENTE. Tem sistema de avaliacoes e indice de satisfacao proprios, o que ja e mais que fidelidade, e cobre mesa/comanda. Mas nao comprovei NPS, relatorio por atendente, cliente oculto nem gestao de resposta a review publica. Um restaurante que ja paga Cardapio Web tem um termometro de satisfacao, nao um programa de pesquisa - suficiente para muitos donos considerarem o Risposta dispensavel, insuficiente tecnicamente.",
+   "confianca": "alta",
+   "fontes": [
+    "https://cardapioweb.com/crm/",
+    "https://cardapioweb.com/blog/modulos-da-cardapio-web-no-plano-de-gestao/",
+    "https://cardapioweb.com/cardapio-digital/"
+   ]
+  },
+  {
+   "nome": "Saipos",
+   "pais": "Brasil",
+   "site": "https://saipos.com/",
+   "descricao": "Sistema operacional para restaurantes e deliveries (PDV, ERP, cardapio digital), fundado em 2017 e adquirido pelo iFood em abril de 2025 segundo fontes de mercado. Declara mais de 50 integracoes.",
+   "publico_alvo": "Delivery e restaurantes; forte em pizzaria de delivery.",
+   "features": [
+    "PDV, ERP e cardapio digital",
+    "Order API com documentacao publica (readme.io), incluindo pedidos de Delivery, Retirada, Ficha e Mesa/Comanda",
+    "Recebe e envia: 'enviar seus pedidos ao Sistema Saipos' e 'recebera notificacoes de novas vendas dos parceiros'",
+    "Credenciamento no Saipos Developer + homologacao com evidencias (ate 5 dias uteis) antes de producao",
+    "Integra marketplaces, sites de delivery, bots de WhatsApp, sistemas de tablet para mesas e apps de logistica",
+    "Detem/opera a Neemo",
+    "Conteudo institucional sobre CRM e sobre pesquisa de satisfacao (paginas de marketing, nao de produto)"
+   ],
+   "canais_coleta": [
+    "Modulo proprio de pesquisa de satisfacao: NAO COMPROVADO. As paginas /crm-restaurante e /pesquisa-de-satisfacao-do-cliente-em-restaurante sao conteudo educativo de blog/SEO, nao descricao de funcionalidade"
+   ],
+   "integracoes": [
+    "Order API documentada publicamente",
+    "Goomer (via suporte Saipos)",
+    "iFood, Rappi, Aiqfome",
+    "Foody Delivery e outras 50+"
+   ],
+   "modelo_cobranca": "Assinatura de sistema por modulo. Nao publica tabela.",
+   "preco": "NAO PUBLICO",
+   "diferencial": "Melhor postura tecnica do levantamento junto com a Goomer: doc de API aberta na web, escopo bidirecional e suporte explicito a pedido de Mesa/Comanda, alem de notificacao de novas vendas.",
+   "fraquezas": [
+    "Nao comprovei modulo de pesquisa de satisfacao como produto",
+    "Uso da API exige credenciamento e homologacao de ate 5 dias uteis - nao e self-service",
+    "Sem preco publico",
+    "Trocar Altec por Saipos seria migracao de PDV, projeto pesado para uma casa de 22 mesas"
+   ],
+   "substituiria_risposta": "NAO, ou no maximo PARCIALMENTE. Nao encontrei modulo de pesquisa de satisfacao como produto Saipos: o que existe sao paginas de conteudo educativo sobre CRM e sobre como fazer pesquisa, que e marketing de atracao e nao funcionalidade. Um restaurante que paga Saipos continua sem pesquisa estruturada, sem NPS e sem gestao de reputacao. O valor real da Saipos para o projeto do cliente e outro e e tecnico: e a unica com Order API documentada publicamente que cobre Mesa/Comanda e declara notificacao de novas vendas.",
+   "confianca": "alta",
+   "fontes": [
+    "https://saipos-docs-order-api.readme.io/",
+    "https://saipos.com/",
+    "https://saipos.com/marketing-para-restaurante/crm-restaurante",
+    "https://saipos.com/sistema/restaurante/pesquisa-de-satisfacao-do-cliente-em-restaurante",
+    "https://echoloc.ai/company/saipos/"
+   ]
+  },
+  {
+   "nome": "Teknisa",
+   "pais": "Brasil",
+   "site": "https://www.teknisa.com/",
+   "descricao": "Casa de software de gestao desde 1990, com ERP, sistemas para gestao de alimentacao (TecFood, refeicao coletiva) e automacao comercial para restaurantes, alem de consultoria e BPO.",
+   "publico_alvo": "Refeicao coletiva, restaurante corporativo, grandes operacoes e redes; nao e o segmento de pizzaria de bairro.",
+   "features": [
+    "MyQuest: aplicativo proprio de pesquisa de satisfacao desenvolvido pela Teknisa",
+    "Coleta em dispositivos moveis (celular/tablet) ou totens posicionados no estabelecimento",
+    "Resposta anonima do consumidor, resultados em dashboards intuitivos",
+    "Pesquisa via totem ou app, com gestao de resultados e posicionamento periodico a area de qualidade e ao cliente",
+    "ERP, CRM e Capital Humano integrados",
+    "Autoatendimento para bar, restaurante, pub e lanchonete"
+   ],
+   "canais_coleta": [
+    "Totem no estabelecimento",
+    "App em celular ou tablet",
+    "Resposta anonima"
+   ],
+   "integracoes": [
+    "CRM e Capital Humano integrados ao ERP proprio",
+    "API publica documentada: nao localizada"
+   ],
+   "modelo_cobranca": "Licenca/projeto corporativo com consultoria e BPO. Venda por contato comercial (telefone de vendas publicado no material).",
+   "preco": "NAO PUBLICO",
+   "diferencial": "Tem app de pesquisa nomeado e proprio (MyQuest) com entrega periodica de resultado para a area de qualidade - modelo de contrato corporativo, com SLA de relatorio.",
+   "fraquezas": [
+    "Escala e preco de ERP corporativo, incompativel com pizzaria de um salao",
+    "Pesquisa por totem depende de fluxo de bandeja/refeitorio, nao de mesa com garcom",
+    "Sem API publica documentada"
+   ],
+   "substituiria_risposta": "SIM no segmento dela, NAO para este cliente. A Teknisa realmente embute pesquisa de satisfacao propria (MyQuest) com dashboard, o que tornaria o Risposta redundante em um restaurante corporativo. Mas o alvo e refeicao coletiva/TecFood: para uma pizzaria de 22 mesas aberta so no jantar, o modelo de totem e o contrato corporativo nao fazem sentido, e o custo iria na direcao oposta a do cliente.",
+   "confianca": "media",
+   "fontes": [
+    "https://www.teknisa.com/blog/coletar-feedbacks-dos-consumidores/",
+    "https://www.teknisa.com/en/autoatendimento/",
+    "https://www.teknisa.com/consultorias/"
+   ]
+  },
+  {
+   "nome": "Linx Degust (Linx / Stone)",
+   "pais": "Brasil",
+   "site": "https://www.linx.com.br/",
+   "descricao": "Suite de gestao para food service da Linx (grupo Stone), com versoes para restaurante, fast food, cafeteria e gestao de redes e franquias, PDV, delivery integrado e plataforma de CRM.",
+   "publico_alvo": "Redes, franquias, fast food e cafeterias; operacao media e grande.",
+   "features": [
+    "Plataforma de CRM para conhecer habitos de consumo por cadastro de cliente",
+    "Fidelizacao com acoes automatizadas: desconto, happy hour, clientes VIP",
+    "Campanhas de aniversariante, promocode, cashback e desconto progressivo",
+    "Delivery integrado a iFood e Rappi, pedido cai no PDV e vai para a cozinha",
+    "Licenca mensal com acesso a melhorias continuas e suporte",
+    "Mencao a monitoramento da satisfacao do cliente em tempo real (conteudo de blog, nao especificacao de modulo)"
+   ],
+   "canais_coleta": [
+    "Modulo estruturado de pesquisa de satisfacao: NAO COMPROVADO. A mencao a 'monitoramento da satisfacao em tempo real' vem de conteudo de blog, sem descricao de questionario, canal ou NPS"
+   ],
+   "integracoes": [
+    "iFood, Rappi",
+    "Ecossistema Linx (inclui Neemo)",
+    "API publica documentada para food service: nao localizada"
+   ],
+   "modelo_cobranca": "Licenca mensal do Degust.",
+   "preco": "NAO PUBLICO",
+   "diferencial": "CRM e automacao promocional maduros e integrados ao PDV, com forca em rede e franquia.",
+   "fraquezas": [
+    "Fidelidade e campanha promocional NAO sao pesquisa de satisfacao",
+    "Paginas de produto acessadas via dominio espelho (zlinx.me), material possivelmente legado",
+    "Sem API publica localizada",
+    "Porte de rede/franquia"
+   ],
+   "substituiria_risposta": "NAO. Aqui a distincao pedida e decisiva: o que a Linx Degust entrega e CRM + fidelidade + campanha (aniversariante, promocode, cashback, desconto progressivo). Isso nao coleta opiniao, nao gera NPS, nao gera serie historica de satisfacao e nao gerencia reputacao. Um restaurante que paga Degust continua sem pesquisa de satisfacao.",
+   "confianca": "media",
+   "fontes": [
+    "https://www.linx.com.br/blog/como-reter-os-clientes-que-visitaram-seu-restaurante/",
+    "https://www.linx.com.br/blog/programa-de-fidelidade-em-food-service/",
+    "http://www.zlinx.me/index-43.html",
+    "http://zlinx.me/index-44.html"
+   ]
+  },
+  {
+   "nome": "Colibri (Colibri Sistemas)",
+   "pais": "Brasil",
+   "site": "https://restaurante.colibri.com.br/",
+   "descricao": "Ecossistema de PDV para food service presente em milhares de restaurantes, lanchonetes e franquias, com solucoes proprias de totem de autoatendimento, tablet de mesa e cardapio digital conectados ao PDV Android e ao Easy Hub.",
+   "publico_alvo": "Restaurantes, lanchonetes e franquias de todo o Brasil, incluindo operacoes no Rio de Janeiro.",
+   "features": [
+    "PDV Android, Easy Hub, totem de autoatendimento, tablet de mesa e cardapio digital proprios",
+    "Gestao de mesas e pedidos, controle de estoque automatizado, relatorios financeiros detalhados",
+    "Integracao com plataformas de delivery",
+    "Fidelidade via PARCEIROS (solucoes de bonus de fidelidade de terceiros)",
+    "Ecossistema de parceiros: PagSeguro, Rede, Skytef, iFood, SAP, Goomer, Cielo, Rappi",
+    "Planos flexiveis por modulo ou solucao completa",
+    "Integracao do cliente possivel apenas 'atraves de um projeto, onde a COLIBRI SISTEMAS valida a integracao'"
+   ],
+   "canais_coleta": [
+    "Pesquisa de satisfacao propria: NAO ENCONTRADA. Nao ha modulo de pesquisa nas paginas lidas"
+   ],
+   "integracoes": [
+    "Goomer (parceiro - e por ai que entraria a pesquisa de satisfacao)",
+    "PagSeguro, Rede, Cielo, Skytef, iFood, Rappi, SAP",
+    "Sem API publica: integracao so por projeto validado pela Colibri"
+   ],
+   "modelo_cobranca": "Planos personalizaveis, pagando por modulo escolhido ou solucao completa.",
+   "preco": "NAO PUBLICO",
+   "diferencial": "Hardware proprio de mesa e totem (nao depende de terceiros) e rede de revendas regionais, inclusive RJ.",
+   "fraquezas": [
+    "Nao tem pesquisa de satisfacao; fidelidade e de parceiro, nao nativa",
+    "NAO tem API publica: qualquer integracao passa por projeto validado pela fabricante - pior cenario para quem quer construir sistema proprio",
+    "Preco nao publico"
+   ],
+   "substituiria_risposta": "NAO. Nao ha modulo de pesquisa de satisfacao, e a fidelidade vem de parceiro. Um restaurante que paga Colibri continua precisando de solucao de CX - e, ironicamente, o caminho seria contratar a Goomer, que e parceira do ecossistema e ai sim traz pesquisa nativa.",
+   "confianca": "media",
+   "fontes": [
+    "https://restaurante.colibri.com.br/",
+    "https://www.colibri.com.br/",
+    "https://restaurante.colibri.com.br/site-colibri/",
+    "https://sistemacolibri.inforest.com.br/",
+    "https://www.pekus.com.br/food/"
+   ]
+  },
+  {
+   "nome": "Anota AI",
+   "pais": "Brasil",
+   "site": "https://anota.ai/",
+   "descricao": "Foodtech de automacao de atendimento por WhatsApp com IA (atendente virtual), cardapio digital com QR code, painel de pedidos, KDS e gestao; mais de 15 mil clientes declarados. Plataforma de WhatsApp para restaurantes associada ao iFood.",
+   "publico_alvo": "Delivery de pequeno e medio porte; pizzaria de delivery e caso classico.",
+   "features": [
+    "Atendente virtual no WhatsApp, Instagram e Facebook",
+    "Pesquisa de satisfacao automatizada listada como funcionalidade: 'o atendente virtual tambem pode coletar feedbacks, informar promocoes e enviar uma pesquisa de satisfacao ao final da compra'",
+    "Fidelizacao automatizada com cupons e cashback",
+    "Recuperador de vendas / reengajamento",
+    "Painel de pedidos, cardapio digital QR code, KDS",
+    "Gestao financeira (novo)",
+    "Pedidos ilimitados em todos os planos, sem taxa por pedido nem comissao; trial de 7 dias sem cartao"
+   ],
+   "canais_coleta": [
+    "WhatsApp, ao final da compra, pelo proprio atendente virtual",
+    "Instagram e Facebook (atendimento)"
+   ],
+   "integracoes": [
+    "API oficial do WhatsApp Business",
+    "iFood",
+    "API publica propria documentada: nao localizada"
+   ],
+   "modelo_cobranca": "Assinatura mensal ou anual por plano, sem taxa por pedido nem comissao.",
+   "preco": "PUBLICADO: mensal Start R$ 299,99/mes e Gestao avancada R$ 399,99/mes; anual Start R$ 246,99/mes e Gestao avancada R$ 339,99/mes.",
+   "diferencial": "Preco publicado, sem comissao por pedido, e a pesquisa sai pelo WhatsApp que o cliente ja usa para pedir - zero friccao de canal.",
+   "fraquezas": [
+    "A pesquisa depende do pedido ter passado pelo WhatsApp: em salao com garcom, o cliente nao passa pelo atendente virtual, logo a pesquisa nao dispara",
+    "Pagina de planos nao nomeia pesquisa de satisfacao nem CRM como modulos, so fidelizacao e recuperador",
+    "Foco delivery"
+   ],
+   "substituiria_risposta": "PARCIALMENTE, e so no delivery. A funcionalidade de pesquisa ao final da compra existe e e citada em material da propria empresa, mas ela vive dentro do fluxo de WhatsApp do delivery. Para o cenario da QT - 20 mesas por dia, jantar, atendimento de salao - o gatilho da pesquisa simplesmente nao acontece. Para a operacao de delivery da casa, cobriria; para o salao, nao substitui o Risposta.",
+   "confianca": "alta",
+   "fontes": [
+    "https://anota.ai/blog/planos-principal/",
+    "https://anota.ai/home/funcionalidade/atendente-virtual/",
+    "https://anota.ai/home/funcionalidade/gestao-avancada-anota-ai/",
+    "https://botaihub.com.br/ferramentas/anota-ai/"
+   ]
+  },
+  {
+   "nome": "Neemo (Linx / Saipos)",
+   "pais": "Brasil",
+   "site": "https://www.linx.com.br/neemo/",
+   "descricao": "Plataforma de delivery proprio (site de pedidos, app proprio, robo de WhatsApp) que atende mais de 5 mil restaurantes; historicamente Linx e hoje tambem promovida dentro do portfolio Saipos.",
+   "publico_alvo": "Delivery proprio, sem comissao de marketplace.",
+   "features": [
+    "Site de pedidos, app proprio e atendimento por robo no WhatsApp",
+    "Programas de fidelidade por pontuacao, valor gasto, numero de pedidos ou produtos",
+    "Premiacoes: desconto percentual, valor, item do cardapio ou brinde",
+    "Dados do cliente com historico de pedidos e 'pesquisa de satisfacao' listada entre os dados",
+    "Campanhas por e-mail e push: aniversario, fidelidade, 'sentimos sua falta' e personalizadas",
+    "Fideliza sem pagar comissao"
+   ],
+   "canais_coleta": [
+    "E-mail e push nas campanhas; a pesquisa de satisfacao aparece como dado do cliente sem descricao de canal nem de questionario"
+   ],
+   "integracoes": [
+    "Ecossistema Linx e portfolio Saipos",
+    "Fidelizii (central de ajuda de terceiro cita integracao Neemo Delivery)",
+    "API publica: nao localizada"
+   ],
+   "modelo_cobranca": "Assinatura por plano. Ha mencao a descontos de R$ 60 e R$ 100 conforme o plano, mas sem tabela de precos completa - nao trato isso como preco.",
+   "preco": "NAO PUBLICO (so mencao de descontos de R$ 60 e R$ 100 conforme plano, sem valores de mensalidade)",
+   "diferencial": "Canal proprio de delivery sem comissao, com fidelidade nativa.",
+   "fraquezas": [
+    "Produto de delivery: nao atende salao/mesa",
+    "A 'pesquisa de satisfacao' aparece so como item de lista, sem produto descrito - nao consegui confirmar em pagina oficial (neemo.com.br redireciona e a pagina de funcionalidades da Linx retornou 404)",
+    "Preco nao publico"
+   ],
+   "substituiria_risposta": "NAO para este cliente. Mesmo dando o beneficio da duvida sobre a pesquisa de satisfacao citada, o produto e delivery-only: nao ha ponto de coleta na mesa nem pos-visita ao salao. E o que esta claramente entregue e fidelidade por pontos e campanhas de e-mail/push, que nao e pesquisa de satisfacao.",
+   "confianca": "baixa",
+   "fontes": [
+    "https://www.linx.com.br/neemo/",
+    "https://saipos.com/neemo",
+    "https://ajuda.fidelizii.com.br/pt-br/article/neemo-delivery-1ozb5se/",
+    "https://anota.ai/blog/neemo/"
+   ]
+  },
+  {
+   "nome": "Fidelimax",
+   "pais": "Brasil",
+   "site": "https://www.fidelimax.com.br/clientes/restaurantes/",
+   "descricao": "Plataforma de fidelidade, cashback e relacionamento para restaurantes que embute NPS continuo e oferece PDV proprio gratuito integrado ao programa de fidelidade.",
+   "publico_alvo": "Restaurantes de todos os portes, com forte apelo em pequeno negocio pelo plano gratuito.",
+   "features": [
+    "NPS explicito como 'pesquisa de satisfacao continua', com a pergunta 'De 0 a 10, quanto voce indicaria nosso restaurante?'",
+    "Programa de fidelidade, cashback e categorias de clientes",
+    "Plataforma gratis para comecar, sem cartao de credito",
+    "Mais de 50 integracoes nativas",
+    "PDV proprio gratuito: 'Caixa simples e leve, ja integrado ao programa de fidelidade'",
+    "Combos Start e Pro (sem valores publicados)"
+   ],
+   "canais_coleta": [
+    "NPS continuo dentro do fluxo do programa de fidelidade; canal exato de disparo nao detalhado na pagina"
+   ],
+   "integracoes": [
+    "Mais de 50 integracoes nativas com PDV",
+    "PDV proprio gratuito",
+    "API publica documentada: nao localizada"
+   ],
+   "modelo_cobranca": "Freemium: plataforma gratis para comecar, com combos pagos Start e Pro.",
+   "preco": "PARCIALMENTE PUBLICO: existe plano gratuito confirmado ('Plataforma gratis pra comecar', sem cartao de credito). Os valores dos combos Start e Pro NAO estao publicados na pagina.",
+   "diferencial": "E a unica rota verificada que junta NPS a custo declarado de entrada zero, com mais de 50 integracoes nativas de PDV - exatamente o perfil de solucao que o cliente esta buscando ao querer 'custo de infra proximo de zero'.",
+   "fraquezas": [
+    "Preco dos combos pagos nao publicado: o gratuito provavelmente tem limite de contatos/disparos nao divulgado",
+    "NPS de uma pergunta e mais raso que um questionario multi-dimensao (prato, atendimento, ambiente, garcom)",
+    "Nao faz cliente oculto nem gestao de resposta a review publica",
+    "Nao confirmei integracao nativa especifica com Altec/Next"
+   ],
+   "substituiria_risposta": "PARCIALMENTE - e e a ameaca mais relevante ao preco. Nao e suite de gestao, e sim camada de fidelidade, mas embute NPS continuo e tem plano gratuito. Para uma pizzaria que quer sair de R$501-1.000/mes, cobrir o NPS na Fidelimax de graca e mais realista do que construir sistema proprio sem ninguem para manter. O que NAO cobre: questionario multi-dimensional, cliente oculto, e gestao de reputacao publica.",
+   "confianca": "alta",
+   "fontes": [
+    "https://www.fidelimax.com.br/clientes/restaurantes/",
+    "https://www.fidelimax.com.br/segmentos/restaurantes"
+   ]
+  },
+  {
+   "nome": "Sischef",
+   "pais": "Brasil",
+   "site": "https://sischef.com/",
+   "descricao": "Sistema de gestao para restaurantes com PDV, comanda eletronica, controle de mesas, cardapio digital por QR code (Qrpedir) e integracao a iFood; declara mais de 1000 clientes em todos os estados.",
+   "publico_alvo": "Restaurantes de salao e delivery, pequeno e medio porte.",
+   "features": [
+    "PDV e comanda eletronica com controle de mesas e contas",
+    "Qrpedir: pedido por link ou QR code, em delivery e em mesa",
+    "CRM que centraliza o historico de pedidos por cliente e permite segmentacao",
+    "Mais de 20 integracoes (iFood, Neemo, 99Food, Rappi e outras)",
+    "Planos com previsibilidade de investimento; pagamento por boleto, cartao e Pix"
+   ],
+   "canais_coleta": [
+    "Modulo proprio de pesquisa de satisfacao: NAO CONFIRMADO. Verifiquei diretamente a pagina de CRM da Sischef: a mencao a 'mensagem de WhatsApp enviada 2 horas depois da refeicao' e recomendacao editorial de boa pratica, e NAO descricao de funcionalidade do produto"
+   ],
+   "integracoes": [
+    "iFood, Neemo, 99Food, Rappi (20+)",
+    "Aparece como integracao disponivel no Repediu",
+    "API publica documentada: nao localizada"
+   ],
+   "modelo_cobranca": "Planos por estagio do negocio; boleto, cartao de credito e Pix.",
+   "preco": "NAO PUBLICO",
+   "diferencial": "Cobre mesa e QR code no mesmo sistema, com CRM de historico por cliente.",
+   "fraquezas": [
+    "Pesquisa de satisfacao nao comprovada como funcionalidade - este e um caso onde o snippet de busca sugeria o contrario e a leitura da pagina oficial derrubou a hipotese",
+    "Preco nao publico",
+    "Sem API publica localizada"
+   ],
+   "substituiria_risposta": "NAO CONFIRMADO, provavelmente NAO. O que esta comprovado e CRM de historico de pedidos e segmentacao. A pesquisa via WhatsApp 2h apos a refeicao, que aparece em resumos de busca, e conselho de blog e nao feature - registrei isso explicitamente porque e o tipo de confusao que gera conclusao errada.",
+   "confianca": "media",
+   "fontes": [
+    "https://sischef.com/crm-para-restaurantes-dados-de-clientes-para-vender-mais/",
+    "https://sischef.com/",
+    "https://sischef.com/home-cardapio-digital/"
+   ]
+  },
+  {
+   "nome": "Repediu",
+   "pais": "Brasil",
+   "site": "https://repediu.com.br/",
+   "descricao": "CRM e food marketing para delivery e restaurante, focado em retencao, LTV e recompra, que se posiciona como camada de unificacao de dados sobre os sistemas existentes.",
+   "publico_alvo": "Delivery e restaurantes que ja tem PDV/cardapio digital e querem camada de CRM/retencao.",
+   "features": [
+    "Unifica multiplas fontes em visao unica do cliente: 'se voce possui um cardapio digital, um ERP e tambem uma plataforma de pesquisa de satisfacao, podera ativar todas essas fontes de dados'",
+    "Catalogo grande de integracoes com PDVs e cardapios brasileiros (Saipos, Goomer, Sischef, Cardapio Web, OPDV, CCM Pedidos, Degusta.ai, V4 Food, Meu Cardapio e outros)",
+    "Campanhas de recompra e reativacao"
+   ],
+   "canais_coleta": [
+    "NAO tem coleta propria de pesquisa: ele CONSOME a plataforma de pesquisa de satisfacao como fonte de dados externa"
+   ],
+   "integracoes": [
+    "Saipos, Goomer, Sischef, Cardapio Web, OPDV, CCM Pedidos, Degusta.ai, V4 Food, Meu Cardapio (catalogo publico de integracoes)"
+   ],
+   "modelo_cobranca": "Assinatura de CRM. Nao publica tabela.",
+   "preco": "NAO PUBLICO",
+   "diferencial": "O melhor mapa publico de quem integra com quem no mercado brasileiro de PDV - util como fonte de pesquisa de integracao disponivel por sistema.",
+   "fraquezas": [
+    "Nao coleta satisfacao: depende de um fornecedor de pesquisa existir",
+    "Preco nao publico",
+    "Delivery-first"
+   ],
+   "substituiria_risposta": "NAO - e o contrario. O proprio material do Repediu trata 'plataforma de pesquisa de satisfacao' como fonte externa que ele consome. Ou seja, Repediu e complementar ao Risposta, nao substituto: ele precisa que alguem faca a pesquisa.",
+   "confianca": "media",
+   "fontes": [
+    "https://repediu.com.br/",
+    "https://repediu.com.br/crm-restaurantes-integracao-sucesso/",
+    "https://repediu.com.br/funcionalidades/integracoes/saipos/",
+    "https://repediu.com.br/funcionalidades/integracoes/cardapio-web/"
+   ]
+  },
+  {
+   "nome": "Falae",
+   "pais": "Brasil",
+   "site": "https://www.falae.app/",
+   "descricao": "Plataforma de pesquisa de satisfacao especializada em food service, criada para transformar avaliacoes de clientes em informacao estrategica. Apareceu na pesquisa e e concorrente DIRETO do Risposta, nao indireto.",
+   "publico_alvo": "Restaurantes e redes de food service.",
+   "features": [
+    "Pesquisa de satisfacao dedicada a food service",
+    "Transformacao de avaliacoes em informacao estrategica (posicionamento declarado)",
+    "Demais funcionalidades: DESCONHECIDO - nao li a pagina oficial nesta rodada"
+   ],
+   "canais_coleta": [
+    "DESCONHECIDO"
+   ],
+   "integracoes": [
+    "DESCONHECIDO"
+   ],
+   "modelo_cobranca": "DESCONHECIDO",
+   "preco": "DESCONHECIDO",
+   "diferencial": "Concorrente direto vertical: mesmo escopo do Risposta, o que faz dele referencia obrigatoria de benchmark de preco antes de decidir construir sistema proprio.",
+   "fraquezas": [
+    "Nao verificado em profundidade nesta rodada (fora do escopo de concorrente indireto pedido)"
+   ],
+   "substituiria_risposta": "SIM por definicao, mas fora do escopo desta pergunta: e concorrente direto (pesquisa de satisfacao para restaurante), nao suite de gestao que torna o Risposta redundante. Registro como achado para benchmark de preco.",
+   "confianca": "baixa",
+   "fontes": [
+    "https://www.falae.app/",
+    "https://naturalbot.com.br/falae-pesquisa-para-restaurantes/"
+   ]
+  },
+  {
+   "nome": "Zenvia",
+   "pais": "Brasil",
+   "site": "https://zenvia.com/",
+   "descricao": "CPaaS brasileira (WhatsApp Business API, SMS, atendimento) com APIs publicas documentadas. Nao e suite de restaurante: e a infraestrutura de mensageria com que se CONSTROI uma pesquisa de satisfacao.",
+   "publico_alvo": "Empresas de qualquer setor que precisam de canal de mensagem em escala; food service e caso de uso, nao vertical de produto.",
+   "features": [
+    "APIs publicas documentadas em zenvia.com/en/devs/, com endpoints como POST /v2/channels/whatsapp/messages e POST /v2/templates",
+    "NPS via WhatsApp como caso de uso documentado",
+    "Conversas programadas, alertas e avisos automatizados, botoes de compra em mensagem",
+    "Conteudo tecnico proprio sobre NPS e avaliacao de atendimento"
+   ],
+   "canais_coleta": [
+    "WhatsApp (API oficial)",
+    "SMS",
+    "E-mail e outros canais do portfolio"
+   ],
+   "integracoes": [
+    "API REST publica documentada",
+    "WhatsApp Business API como BSP oficial"
+   ],
+   "modelo_cobranca": "Por conversa/mensagem + taxa de plataforma, com cotacao por volume e simulador de custo.",
+   "preco": "PARCIALMENTE PUBLICO: material da propria Zenvia indica taxa de plataforma do BSP entre R$ 0,02 e R$ 0,15 por conversa, conforme o nivel de SaaS contratado, alem do custo da conversa cobrado pela Meta. Valor de mensalidade: NAO PUBLICO.",
+   "diferencial": "E a peca de infraestrutura mais realista para o substituto proprio: API documentada e publica, custo por conversa na casa de centavos. Para 50 a 200 respostas/mes, o custo de mensageria e marginal.",
+   "fraquezas": [
+    "Nao entrega produto pronto: nao tem questionario, painel, serie historica, alerta de detrator nem relatorio - tudo isso teria que ser construido e MANTIDO",
+    "Exige aprovacao de template no WhatsApp e gestao de conta BSP",
+    "Custo por conversa exige verificacao com cotacao (faixa citada e material da propria empresa, nao contrato)"
+   ],
+   "substituiria_risposta": "NAO. Zenvia nao substitui o Risposta: ela e o encanamento com que alguem constroi um substituto. Registro aqui porque e diretamente relevante ao objetivo do cliente - e tambem porque expoe o furo do plano: a mensageria custa centavos, mas o painel, a serie historica e a manutencao continuam sem dono, e o cliente disse explicitamente que nao tera ninguem para manter o sistema.",
+   "confianca": "media",
+   "fontes": [
+    "https://zenvia.com/en/devs/",
+    "https://zenvia.com/blog/nps-no-whatsapp/",
+    "https://zenvia.com/blog/whatsapp-business-api-o-que-e-como-funciona-e-vantagens-fundamentais-para-empresas/",
+    "https://zenvia.com/blog/o-que-e-nps/"
+   ]
+  },
+  {
+   "nome": "Altec Sistemas (Altec/Next - PDV atual do cliente)",
+   "pais": "Brasil",
+   "site": "https://www.altecsistemas.com.br/",
+   "descricao": "Fornecedora de tecnologia para bares, restaurantes, padarias, food trucks e redes de franquias desde 2003, com sede em Sao Paulo. E o PDV que a QT ja paga - incluido aqui porque e a fonte do dado de venda e o parametro de redundancia.",
+   "publico_alvo": "Bares, restaurantes, padarias, food trucks e franquias.",
+   "features": [
+    "Relatorios Estrategicos: relatorios de vendas, custos e performance",
+    "Graficos em tempo real",
+    "Relatorios de caixa direto no celular via WhatsApp em tempo real",
+    "13 relatorios analiticos exportaveis para PDF e Excel (fonte: resumo de busca sobre a pagina Relatorios Web; a pagina oficial retornou 404 na leitura)",
+    "Integracao nativa com iFood e, segundo resumo de busca, 99Food, Rappi, Keeta e Ai Que Fome",
+    "NAO menciona CRM",
+    "NAO menciona programa de fidelidade",
+    "NAO menciona pesquisa de satisfacao"
+   ],
+   "canais_coleta": [
+    "NENHUM - nao tem modulo de CX"
+   ],
+   "integracoes": [
+    "iFood (nativa, confirmada em pagina oficial)",
+    "Marketplaces de delivery (fonte de terceiro)",
+    "API publica documentada: NAO LOCALIZADA",
+    "Webhook: NAO LOCALIZADO"
+   ],
+   "modelo_cobranca": "Venda por contato comercial ('FALAR COM VENDAS', 'SOLICITAR DEMONSTRACAO GRATUITA').",
+   "preco": "NAO PUBLICO",
+   "diferencial": "Ja esta pago e instalado, e ja tem o dado de venda que o sistema novo vai precisar ler.",
+   "fraquezas": [
+    "Zero cobertura de CX: sem CRM, sem fidelidade, sem pesquisa, sem reputacao",
+    "Sem API publica documentada e sem webhook localizado - o pior gargalo do projeto do cliente",
+    "A pagina de Relatorios Web nao abriu (404 em duas URLs), entao o numero de relatorios e os formatos de exportacao ficam como confianca media"
+   ],
+   "substituiria_risposta": "NAO - e este e o achado mais importante do levantamento. O PDV que o cliente JA PAGA nao resolve pesquisa de satisfacao, nao resolve CRM e nao resolve reputacao: a pagina oficial nao menciona nenhum dos tres. Portanto hoje NAO existe redundancia entre Altec e Risposta, e o argumento de cancelar o Risposta 'porque o PDV ja faz' e falso neste caso. O que o Altec da e a materia-prima: relatorio de vendas exportavel e relatorio de caixa por WhatsApp.",
+   "confianca": "media",
+   "fontes": [
+    "https://www.altecsistemas.com.br/",
+    "https://www.altecsistemas.com.br/quem-somos",
+    "https://altec.ws/",
+    "https://altec.ws/solucoes/relatorios-web/ (redireciona; destino retornou 404)"
+   ]
+  },
+  {
+   "nome": "Dinerama",
+   "pais": "Brasil",
+   "site": "https://dinerama.com.br/",
+   "descricao": "Aplicativo de cashback de compras em supermercado, que concentra cashback de varias marcas em um lugar em vez de o consumidor se inscrever em muitos programas de fidelidade. NAO e suite de gestao de restaurante.",
+   "publico_alvo": "Consumidor final de supermercado e industria de bens de consumo.",
+   "features": [
+    "Cashback agregado de compras em supermercado",
+    "Valor do cashback baseado em valor medio nacional do produto informado pela industria",
+    "Nao possui modulo de gestao de restaurante, CRM de restaurante nem pesquisa de satisfacao"
+   ],
+   "canais_coleta": [
+    "NENHUM aplicavel a restaurante"
+   ],
+   "integracoes": [
+    "Nao aplicavel"
+   ],
+   "modelo_cobranca": "Nao aplicavel ao food service.",
+   "preco": "NAO APLICAVEL / DESCONHECIDO",
+   "diferencial": "Nenhum no contexto de restaurante.",
+   "fraquezas": [
+    "Nao e concorrente do Risposta em nenhuma dimensao",
+    "Existem reclamacoes publicas no Reclame Aqui relatando encerramento de atividades e clientes sem receber valores - risco reputacional relevante antes de considerar qualquer contato"
+   ],
+   "substituiria_risposta": "NAO, de forma alguma. Produto de cashback de supermercado para consumidor final, sem qualquer modulo de gestao de restaurante, pesquisa de satisfacao ou CRM de food service. Alem disso, ha relatos publicos de encerramento de atividades. Descartar.",
+   "confianca": "media",
+   "fontes": [
+    "https://dinerama.com.br/",
+    "https://www.reclameaqui.com.br/empresa/dinerama/"
+   ]
+  },
+  {
+   "nome": "Onfly",
+   "pais": "Brasil",
+   "site": "https://www.onfly.com.br/",
+   "descricao": "Plataforma de gestao de viagens e despesas corporativas (reservas de aereo, hotel, onibus, aluguel de carro, cartao corporativo pre-pago e reembolso), declarada como a maior travel tech B2B da America Latina, com mais de 3.500 empresas. NADA a ver com food service.",
+   "publico_alvo": "Departamentos financeiros e de viagens de empresas.",
+   "features": [
+    "Reserva de passagem, hospedagem, onibus e aluguel de carro com fluxo de aprovacao",
+    "Cartao corporativo pre-pago com conciliacao por IA",
+    "Automacao de reembolso de despesas",
+    "Relatorios de despesa corporativa"
+   ],
+   "canais_coleta": [
+    "NENHUM aplicavel a restaurante"
+   ],
+   "integracoes": [
+    "ERPs financeiros corporativos (nao verificado em detalhe)"
+   ],
+   "modelo_cobranca": "SaaS corporativo de travel management.",
+   "preco": "NAO PUBLICO / NAO APLICAVEL",
+   "diferencial": "Nenhum no contexto de restaurante. A palavra 'reservas' aqui significa reserva de viagem, nao reserva de mesa - provavel origem da confusao que colocou a Onfly na lista.",
+   "fraquezas": [
+    "Fora de escopo total"
+   ],
+   "substituiria_risposta": "NAO. E gestao de viagens corporativas. A unica sobreposicao semantica e a palavra 'reserva', que aqui significa passagem aerea e hotel, nao mesa de restaurante. Descartar da analise competitiva.",
+   "confianca": "alta",
+   "fontes": [
+    "https://www.onfly.com.br/",
+    "https://www.onfly.com.br/gestao-viagens-e-despesas/",
+    "https://www.onfly.com.br/plataforma-de-viagens-corporativas/"
+   ]
+  },
+  {
+   "nome": "Oni Sistemas",
+   "pais": "DESCONHECIDO (provavelmente Brasil)",
+   "site": "DESCONHECIDO",
+   "descricao": "NAO LOCALIZADO. Fiz duas buscas especificas ('Oni Sistemas' restaurante PDV CRM fidelidade pesquisa satisfacao modulo e 'Oni' sistemas food service PDV restaurante onisistemas site oficial modulos) e nenhuma retornou fornecedor identificavel de food service com esse nome. As buscas trouxeram apenas outros sistemas (TOTVS Food Service, Food Sistemas, Sistema Pallas, SisFood, Soften).",
+   "publico_alvo": "DESCONHECIDO",
+   "features": [
+    "DESCONHECIDO - nao registro nenhuma feature porque nao encontrei o fornecedor"
+   ],
+   "canais_coleta": [
+    "DESCONHECIDO"
+   ],
+   "integracoes": [
+    "DESCONHECIDO"
+   ],
+   "modelo_cobranca": "DESCONHECIDO",
+   "preco": "DESCONHECIDO",
+   "diferencial": "DESCONHECIDO",
+   "fraquezas": [
+    "Fornecedor nao identificado nas buscas - pode ser revenda regional, nome parcial ou grafia diferente. Recomendo o cliente confirmar o nome exato ou o site."
+   ],
+   "substituiria_risposta": "DESCONHECIDO - impossivel avaliar sem identificar o fornecedor. Nao vou inventar features nem preco para preencher a lacuna.",
+   "confianca": "baixa",
+   "fontes": [
+    "Busca sem resultado identificavel; melhores aproximacoes retornadas: https://www.totvs.com/varejo/food-service/, https://foodsistemas.com.br/segmentos/sistema-para-restaurante/, https://www.sisfood.com.br/"
+   ]
+  },
+  {
+   "nome": "TOTVS Food Service",
+   "pais": "Brasil",
+   "site": "https://www.totvs.com/varejo/food-service/",
+   "descricao": "Suite de gestao para restaurantes e food service da TOTVS, apareceu recorrentemente nas buscas de sistemas para restaurante. Registro como lacuna consciente: nao li a pagina oficial nesta rodada, entao nao afirmo features.",
+   "publico_alvo": "Redes e operacoes de porte medio e grande (perfil TOTVS).",
+   "features": [
+    "DESCONHECIDO - nao verificado nesta rodada",
+    "Presenca de modulo de CX/pesquisa de satisfacao: NAO VERIFICADO"
+   ],
+   "canais_coleta": [
+    "DESCONHECIDO"
+   ],
+   "integracoes": [
+    "DESCONHECIDO"
+   ],
+   "modelo_cobranca": "DESCONHECIDO",
+   "preco": "NAO PUBLICO / DESCONHECIDO",
+   "diferencial": "DESCONHECIDO",
+   "fraquezas": [
+    "Nao verificado - registrado apenas para nao omitir um player relevante que apareceu nas buscas"
+   ],
+   "substituiria_risposta": "DESCONHECIDO. Porte de rede grande, provavelmente irrelevante para pizzaria de 22 mesas, mas nao verifiquei e por isso nao concluo. Fica como pendencia se o cliente quiser cobertura completa.",
+   "confianca": "baixa",
+   "fontes": [
+    "https://www.totvs.com/varejo/food-service/"
+   ]
+  }
+ ],
+ "achados_tecnicos": [
+  "API PUBLICA DOCUMENTADA - so DOIS fornecedores brasileiros de food service publicam documentacao de API navegavel na web aberta: (1) Goomer Partner API em https://partner-api.goomer.app/docs.html - REST, JSON, autenticacao OAuth 2.0 no fluxo client credentials (server-to-server), versionamento por prefixo, modulos Partner e OpenDelivery; (2) Saipos Order API em https://saipos-docs-order-api.readme.io/ - cobre pedidos de Delivery, Retirada, Ficha e Mesa/Comanda.",
+  "LEITURA DE VENDAS (o que o cliente precisa) - a Goomer Partner API e a unica que confirma explicitamente leitura: a documentacao declara que permite 'consultar historico de pedidos' e 'obter informacoes estatisticas de pedidos'. A Saipos e bidirecional: 'enviar seus pedidos ao Sistema Saipos' e 'recebera notificacoes de novas vendas dos parceiros' - ou seja, o fluxo de leitura existe mas e desenhado para o parceiro que ORIGINA o pedido, nao para um terceiro que quer ler o faturamento total da loja.",
+  "WEBHOOK - unico com webhook/callback declarado em documentacao publica: Saipos ('recebera notificacoes de novas vendas'), sem detalhes tecnicos na pagina introdutoria. Na Goomer, webhook vs polling NAO E MENCIONADO na pagina de docs lida (o modulo OpenDelivery fala de ciclo de vida completo do pedido, mas nao especifica o mecanismo de entrega) - fica DESCONHECIDO. Nenhum outro fornecedor do levantamento documenta webhook publicamente. Zenvia tem webhooks de mensageria por ser CPaaS, mas eu NAO verifiquei a doc de webhook nesta rodada - nao afirmo.",
+  "BARREIRA DE CREDENCIAMENTO - ler a doc e publico, usar nao e. Saipos exige processo formal de tres etapas: credenciamento no Saipos Developer, homologacao com evidencias funcionais (prazo declarado de ate 5 dias uteis) e oficializacao para producao; sem aprovacao nao ha acesso a lojas reais. Goomer restringe a API a 'parceiros e estabelecimentos', ou seja, exige relacao comercial. Consequencia pratica: nenhuma dessas APIs e self-service para um restaurante que quer plugar um script proprio no fim de semana.",
+  "MEEP - tem portal de desenvolvedor formal e publicamente acessivel em https://meep-management.developer.azure-api.net/ (Azure API Management), com links 'Meep API' e 'Explore APIs', MAS exige Sign up / Sign in para ver a lista de APIs e a documentacao. Endpoints de venda e webhook NAO sao visiveis sem conta. Classifico como 'portal publico, documentacao fechada'.",
+  "COLIBRI - explicitamente SEM API publica. O material do ecossistema diz que a integracao do cliente so e possivel 'atraves de um projeto, onde a COLIBRI SISTEMAS valida a integracao' (podendo ser app, site de vendas ou app de promocoes). E o pior cenario possivel para quem quer construir sistema proprio: cada integracao passa por aprovacao caso a caso da fabricante.",
+  "ALTEC/NEXT (PDV do cliente) - NAO encontrei API publica documentada nem webhook. O que a pagina oficial confirma: 'Relatorios Estrategicos', 'relatorios de vendas, custos e performance', 'Graficos em Tempo Real' e 'Relatorios de caixa direto no celular' entregues por WhatsApp em tempo real, alem de integracao nativa com iFood. Resumo de busca sobre a pagina Relatorios Web menciona 13 relatorios analiticos exportaveis para PDF e Excel, mas a pagina retornou 404 em duas URLs (altec.ws e altecsistemas.com.br), logo esse numero fica como confianca media, nao verificada em pagina oficial.",
+  "EXPORTACAO PROGRAMADA DE RELATORIO DE VENDAS - nenhum fornecedor do levantamento documenta publicamente 'exportacao agendada por e-mail/FTP/S3' com essa clareza. O mais proximo de agendamento real e a Altec, com relatorio de caixa entregue automaticamente no celular via WhatsApp em tempo real. Depois vem: Zig (dashboard com relatorios customizaveis, definicao de periodos e filtros - mas envio agendado nao confirmado); Meep (Portal com vendas em tempo real, total por periodo, produtos mais vendidos e vendas por terminal - export programado nao confirmado); Goomer (estatisticas de pedidos legiveis via Partner API, o que substitui export agendado por polling proprio); Consumer (modulo Connect com relatorios de clientes).",
+  "IMPLICACAO DIRETA PARA O PROJETO DO CLIENTE - o substituto proprio nao tera fonte automatica de dados de venda. O PDV pago (Altec/Next) nao expoe API nem webhook, so relatorio exportado e WhatsApp. As duas unicas APIs documentadas do mercado (Goomer e Saipos) pertencem a fornecedores que a QT NAO usa, exigem credenciamento e homologacao, e em ambos os casos o dado de venda que fica acessivel e o do pedido digital/delivery, nao o faturamento de salao com garcom. Consequencia: a arquitetura viavel e ingestao periodica de planilha exportada do Altec (o mesmo padrao R3/Vendas por Produto que a operacao ja usa hoje) ou leitura direta da base local do PDV - as duas com passo manual ou com dependencia tecnica de manutencao.",
+  "CONTRADICAO ENTRE OS REQUISITOS DO CLIENTE - 'custo de infra proximo de zero' e compativel com o volume (50 a 200 respostas/mes cabe em qualquer plano gratuito e a mensageria WhatsApp via CPaaS custa centavos por conversa, com taxa de plataforma BSP declarada entre R$ 0,02 e R$ 0,15 por conversa segundo material da Zenvia). Mas 'sem ninguem para manter o sistema depois' e incompativel com integracao caseira de PDV: template de WhatsApp muda, o export do PDV muda de layout, token expira. Rota de menor manutencao identificada: usar formulario/QR estatico com backend gerenciado e assumir digitacao/export manual da venda, ou cobrir o NPS pelo plano gratuito da Fidelimax (que declara mais de 50 integracoes nativas de PDV e PDV proprio gratuito).",
+  "PADRAO OPEN DELIVERY - a Goomer expoe modulo OpenDelivery documentado (https://partner-api.goomer.app/opendelivery/docs.html) e a Saipos integra dezenas de marketplaces. Open Delivery e o unico padrao aberto de interoperabilidade que apareceu no levantamento, mas cobre PEDIDO DE DELIVERY, nao venda de salao - portanto nao resolve o caso de uma pizzaria cujo faturamento principal e mesa.",
+  "REFERENCIA DE PRECO VERIFICADA (util para renegociar o Risposta) - apenas dois fornecedores publicam tabela: Consumer (R$ 59,90 / R$ 179,90 / R$ 269,90 por mes) e Anota AI (mensal R$ 299,99 e R$ 399,99; anual R$ 246,99 e R$ 339,99 por mes). Ambos ficam ABAIXO da faixa de R$ 501 a R$ 1.000/mes que a QT paga hoje so de pesquisa de satisfacao - e ambos entregam PDV/atendimento inteiro. Isso e argumento de negociacao forte, ainda que nenhum dos dois substitua tecnicamente o escopo de CX do Risposta.",
+  "MERCADO EM CONSOLIDACAO (risco de fornecedor) - Saipos foi adquirida pelo iFood em abril de 2025 (fonte terceira: CB Insights / echoloc, nao confirmado em pagina oficial da Saipos); Neemo aparece simultaneamente no portfolio da Linx (linx.com.br/neemo) e em pagina da Saipos (saipos.com/neemo), indicando movimentacao societaria nao esclarecida nas fontes publicas; Linx pertence ao grupo Stone. Dinerama tem reclamacoes publicas de encerramento de atividades. Vale considerar esse risco antes de amarrar a operacao de CX a qualquer um deles."
+ ],
+ "fontes": [
+  "https://blog.zig.fun/pesquisa-de-satisfacao-em-restaurantes-e-bares/",
+  "https://blog.zig.fun/crm-para-bares-e-restaurantes/",
+  "https://blog.zig.fun/conheca-o-dashboard-da-zig/",
+  "https://zig.fun/",
+  "https://zig.fun/solucoes/",
+  "https://zig.fun/produtos/controle-de-acesso-integrado/",
+  "https://zigpay.com.br/en/",
+  "https://www.idinheiro.com.br/negocios/zigpay/",
+  "https://meep.com.br/como-o-crm-pode-te-ajudar-a-fidelizar-clientes-e-vender-mais/",
+  "https://meep.com.br/portal-meep-a-revolucao-na-gestao-de-vendas-e-atendimento/",
+  "https://meep-management.developer.azure-api.net/",
+  "https://saas.meep.com.br/campanha-maquininha",
+  "https://goomer.com.br/blog/pesquisa-de-satisfacao-com-cardapio-digital",
+  "https://goomer.com.br/blog/goomer-experiencia-do-cliente-fidelizacao",
+  "https://goomer.com.br/parcerias",
+  "https://partner-api.goomer.app/",
+  "https://partner-api.goomer.app/docs.html",
+  "https://partner-api.goomer.app/opendelivery/docs.html",
+  "https://ajuda.goomer.com.br/goomergo/painel/integracoes",
+  "https://ajuda.goomer.com.br/goomergo/painel/relatorios/estatisticas",
+  "https://gironews.com/food-service/goomer-leva-autoatendimento-e-tecnologia-para-fispal-2026/",
+  "https://saipos-docs-order-api.readme.io/",
+  "https://saipos.com/",
+  "https://saipos.com/marketing-para-restaurante/crm-restaurante",
+  "https://saipos.com/sistema/restaurante/pesquisa-de-satisfacao-do-cliente-em-restaurante",
+  "https://saipos.com/integracoes/goomer",
+  "https://saipos.com/neemo",
+  "https://meajuda.saipos.com/hc/pt-br/articles/20211287094548-Com-quais-plataformas-a-Saipos-possui-integracao",
+  "https://echoloc.ai/company/saipos/",
+  "https://www.cbinsights.com/company/saipos",
+  "https://loja.consumer.com.br/",
+  "https://www.teknisa.com/blog/coletar-feedbacks-dos-consumidores/",
+  "https://www.teknisa.com/en/autoatendimento/",
+  "https://www.teknisa.com/consultorias/",
+  "https://www.linx.com.br/blog/como-reter-os-clientes-que-visitaram-seu-restaurante/",
+  "https://www.linx.com.br/blog/programa-de-fidelidade-em-food-service/",
+  "http://www.zlinx.me/index-43.html",
+  "http://zlinx.me/index-44.html",
+  "http://www.zlinx.me/index-41.html",
+  "https://www.linx.com.br/neemo/",
+  "https://ajuda.fidelizii.com.br/pt-br/article/neemo-delivery-1ozb5se/",
+  "https://anota.ai/blog/neemo/",
+  "https://restaurante.colibri.com.br/",
+  "https://www.colibri.com.br/",
+  "https://restaurante.colibri.com.br/site-colibri/",
+  "https://sistemacolibri.inforest.com.br/",
+  "https://www.pekus.com.br/food/",
+  "https://planautomacao.com.br/ncr-colibri",
+  "https://anota.ai/blog/planos-principal/",
+  "https://anota.ai/home/funcionalidade/atendente-virtual/",
+  "https://anota.ai/home/funcionalidade/gestao-avancada-anota-ai/",
+  "https://anota.ai/blog/pesquisa-de-satisfacao/",
+  "https://botaihub.com.br/ferramentas/anota-ai/",
+  "https://restaurante.getin.app/",
+  "https://restaurante.getin.app/solucoes-get-in/",
+  "https://restaurante.getin.app/planos-e-precos/",
+  "https://www.getinapp.com.br/",
+  "https://blog.getinapp.com.br/crm-restaurantes-get-in/",
+  "https://tagme.com.br/",
+  "https://tagme.com.br/tudo-sobre-pesquisa-de-satisfacao-em-restaurante/",
+  "https://landing.tagme.com.br/",
+  "https://dinerama.com.br/",
+  "https://www.reclameaqui.com.br/empresa/dinerama/",
+  "https://cardapioweb.com/crm/",
+  "https://cardapioweb.com/cardapio-digital/",
+  "https://cardapioweb.com/blog/modulos-da-cardapio-web-no-plano-de-gestao/",
+  "https://zenvia.com/en/devs/",
+  "https://zenvia.com/blog/nps-no-whatsapp/",
+  "https://zenvia.com/blog/o-que-e-nps/",
+  "https://zenvia.com/blog/whatsapp-business-api-o-que-e-como-funciona-e-vantagens-fundamentais-para-empresas/",
+  "https://www.onfly.com.br/",
+  "https://www.onfly.com.br/gestao-viagens-e-despesas/",
+  "https://www.onfly.com.br/plataforma-de-viagens-corporativas/",
+  "https://www.altecsistemas.com.br/",
+  "https://www.altecsistemas.com.br/quem-somos",
+  "https://altec.ws/",
+  "https://altec.ws/solucoes/relatorios-web/",
+  "https://www.fidelimax.com.br/clientes/restaurantes/",
+  "https://www.fidelimax.com.br/segmentos/restaurantes",
+  "https://sischef.com/",
+  "https://sischef.com/crm-para-restaurantes-dados-de-clientes-para-vender-mais/",
+  "https://sischef.com/home-cardapio-digital/",
+  "https://repediu.com.br/",
+  "https://repediu.com.br/crm-restaurantes-integracao-sucesso/",
+  "https://repediu.com.br/funcionalidades/integracoes/saipos/",
+  "https://repediu.com.br/funcionalidades/integracoes/cardapio-web/",
+  "https://repediu.com.br/funcionalidades/integracoes/sischef/",
+  "https://www.falae.app/",
+  "https://naturalbot.com.br/falae-pesquisa-para-restaurantes/",
+  "https://www.totvs.com/varejo/food-service/",
+  "https://www.risposta.app/",
+  "https://www.risposta.app/risposta-qr-code/"
+ ]
+}

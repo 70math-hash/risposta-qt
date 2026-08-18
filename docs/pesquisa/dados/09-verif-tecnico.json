@@ -1,0 +1,104 @@
+{
+ "veredito": "PARCIAL",
+ "correcoes": [
+  {
+   "item": "Netlify Free — limites do plano",
+   "afirmacao_original": "NETLIFY FREE (modelo novo por créditos, 2026): 300 créditos por mês, 100 GB de banda, 300 minutos de build, 125.000 invocações de function, 1.000.000 de invocações de edge function e 10 GB de storage, sem cartão de crédito.",
+   "problema": "ERRO MATERIAL: a frente fundiu dois modelos de preço mutuamente excludentes. O plano Free atual é SÓ crédito: 'US$0/month, forever, for 300 credits/month with a hard limit and no auto recharge option', sem nenhuma verba separada de banda, minutos de build ou invocações. Os números de 100 GB / 300 min / 125k / 1M / 10 GB são do plano Free ANTIGO (blog de lançamento), e são aritmeticamente incompatíveis com 300 créditos: a própria tabela oficial cobra 20 créditos por GB de banda, ou seja 100 GB custariam 2.000 créditos, 6,7x o saldo mensal inteiro. Com 15 créditos por deploy de produção, os 300 créditos dão ~20 deploys/mês e nada mais. Isso aperta o Netlify muito além do que a frente descreve.",
+   "valor_correto": "Netlify Free = 300 créditos/mês, limite duro, sem auto-recharge, sem verbas de recurso separadas. Custo em crédito (oficial): 1 deploy de produção = 15 créditos; 1 GB de banda = 20 créditos; 1 GB-hora de compute = 10 créditos.",
+   "fonte": "https://docs.netlify.com/manage/accounts-and-billing/billing/billing-for-credit-based-plans/credit-based-pricing-plans/ e https://www.netlify.com/pricing/"
+  },
+  {
+   "item": "Netlify Free — o que acontece ao estourar",
+   "afirmacao_original": "Texto oficial sobre estouro: 'If your app or site exceeds the Free plan limits for the month, it will be suspended for the remaining days in the calendar month' — ou seja, o site sai do ar até virar o mês. A tabela de créditos (15 créditos por deploy de produção, 20 créditos por GB de banda, 10 créditos por GB-hora de compute) vem de fontes de terceiros.",
+   "problema": "Duas imprecisões de procedência. (1) A citação de suspensão vem do blog de lançamento do plano Free antigo, não do modelo de crédito vigente; hoje o mecanismo documentado é 'credit hard limit' sem auto-recharge, com os projetos parando de consumir recurso até o próximo ciclo de cobrança (que não coincide necessariamente com o mês civil). (2) A tabela de créditos NÃO é de terceiro: está publicada na doc oficial de billing da Netlify. Atribuir dado oficial a terceiro rebaixa indevidamente a confiança de um número que é citável.",
+   "valor_correto": "Mecanismo vigente: limite duro de crédito, sem recarga automática, recursos pausam até o próximo ciclo de cobrança. A tabela de créditos é OFICIAL (docs.netlify.com), não de terceiro.",
+   "fonte": "https://docs.netlify.com/manage/accounts-and-billing/billing/billing-for-credit-based-plans/credit-based-pricing-plans/ e https://docs.netlify.com/manage/accounts-and-billing/billing/billing-for-credit-based-plans/how-credits-work/"
+  },
+  {
+   "item": "Fully Kiosk Browser PLUS — preço",
+   "afirmacao_original": "Preço na página oficial não foi exposto na coleta; fonte de terceiro cita EUR 7,90 por dispositivo, licença única.",
+   "problema": "Duplo erro: o preço ESTÁ na página oficial (fully-kiosk.com), e o valor de terceiro está errado. A página oficial cobra 8,90 EUR, 12,7% acima do citado. Também é dado oficial, não estimativa.",
+   "valor_correto": "Fully Kiosk PLUS: '8.90 € (or 10.99 US$) + tax per device', pagamento único, com desconto por volume a partir de 10 dispositivos. Fully Cloud: 'Max. 1.18 €/month + tax per device' no pagamento anual (esse número da frente estava certo).",
+   "fonte": "https://www.fully-kiosk.com/"
+  },
+  {
+   "item": "WhatsApp Business — preços do Brasil marcados como não públicos",
+   "afirmacao_original": "o rate card oficial da Meta é uma ferramenta interativa (você seleciona mercado, moeda e categoria) e não expõe os valores em página estática — portanto os números oficiais são NÃO PÚBLICOS na forma que consigo citar.",
+   "problema": "REFUTADO. A doc oficial da Meta publica rate cards baixáveis por moeda, BRL incluído, em CSV (rates), CSV (volume tiers) e PDF (rates + volume tiers), e diz explicitamente 'Per-message rates in BRL are now published below'. O site de marketing é interativo, mas a doc de desenvolvedor não é. Havia caminho oficial e ele não foi percorrido, o que fez a frente basear uma decisão de dinheiro em terceiros sem necessidade.",
+   "valor_correto": "Os preços por mensagem do Brasil em BRL são PÚBLICOS, como rate card oficial em CSV e PDF na página de pricing da Meta (moedas listadas: USD, AED, ARS, AUD, BRL, CLP, COP, EUR, GBP, IDR, INR, MXN, MYR, PEN, SAR, SGD).",
+   "fonte": "https://developers.facebook.com/docs/whatsapp/pricing/updates-to-pricing e https://developers.facebook.com/docs/whatsapp/pricing"
+  },
+  {
+   "item": "WhatsApp Business — estimativa de preço Brasil e o cenário de ~R$21/mês",
+   "afirmacao_original": "Fontes de terceiros brasileiras, confiança média, convergem para: Utility entre R$0,03 e R$0,05; Authentication entre R$0,15 e R$0,19; Marketing entre R$0,31 e R$0,38. (...) Se você disparar a pesquisa ativamente como template Utility a R$0,04, dá cerca de R$21/mês.",
+   "problema": "A palavra 'convergem' é falsa. Outras fontes de terceiros do mesmo período dão Utility R$0,08, Marketing R$0,39 e Authentication R$0,0945 — Utility com o dobro do valor usado na conta, e Authentication com metade da faixa citada. Não há convergência, há dispersão de 2x em Utility. A conta de ~R$21/mês para 520 disparos herda essa incerteza inteira e pode ser ~R$42/mês.",
+   "valor_correto": "Trate a faixa como não estabelecida: Utility citado entre R$0,03 e R$0,08 por fontes de terceiros conflitantes. Cenário de 520 disparos/mês vai de ~R$16 a ~R$42/mês, não '~R$21'. O número decisório só sai do rate card BRL oficial da Meta.",
+   "fonte": "Conflito entre https://www.messagecentral.com/blog/whatsapp-business-api-pricing-brazil, https://whautomate.com/whatsapp-business-api-pricing-brazil e https://ominiflow.com/whatsapp-api-pricing/brazil; resolução oficial em https://developers.facebook.com/docs/whatsapp/pricing"
+  },
+  {
+   "item": "Google Business Profile API — cota 0 QPM antes da aprovação",
+   "afirmacao_original": "A GBP API não é aberta por padrão: projeto novo no Google Cloud nasce com cota 0 QPM e só passa a 300 QPM depois de aprovado. (...) sem aprovação da Google não existe leitura de reviews via GBP API, e o projeto fica com 0 QPM.",
+   "problema": "O número 0 QPM não aparece em nenhuma das páginas oficiais citadas. O FAQ diz apenas que o aprovado recebe 'a standard default quota for all eight APIs', sem informar quanto era antes; a página de limites informa o default de 300 QPM pós-aprovação. A conclusão prática (sem aprovação não se lê review) está certa, mas o número '0 QPM' está afirmado com confiança alta sem fonte oficial.",
+   "valor_correto": "Oficial: acesso depende de aprovação e o aprovado recebe cota padrão; Business Information API (sob a qual cai Reviews) tem 'Default requests: 300 QPM'. O valor da cota ANTES da aprovação não é publicado — trate como não verificado, não como 0.",
+   "fonte": "https://developers.google.com/my-business/content/faq e https://developers.google.com/my-business/content/limits"
+  },
+  {
+   "item": "Places API — SKU escolhido no Plano B",
+   "afirmacao_original": "Plano B enquanto espera: Places API Enterprise + Atmosphere 1x/dia só para capturar rating e userRatingCount agregados (dentro do free tier).",
+   "problema": "Inconsistência interna com o que a própria frente apurou corretamente: rating e userRatingCount ficam no SKU Place Details Enterprise (US$20/1.000), não em Enterprise + Atmosphere (US$25/1.000, que é o SKU acionado por 'reviews'). Pedir Enterprise + Atmosphere para buscar só nota agregada escolhe o SKU 25% mais caro sem necessidade e, pior, aciona o campo justamente proibido de armazenar. No volume do cliente ambos ficam no free tier de 1.000 chamadas/mês, então o custo hoje é R$0 nos dois — mas o desenho está errado e fura no primeiro dia de volume.",
+   "valor_correto": "Para nota agregada, pedir apenas os campos do SKU Place Details Enterprise: US$20,00/1.000 na faixa 0–100K, 1.000 chamadas grátis/mês. Enterprise + Atmosphere (US$25,00/1.000, 1.000 grátis/mês) só se for buscar 'reviews'.",
+   "fonte": "https://developers.google.com/maps/billing-and-pricing/pricing"
+  },
+  {
+   "item": "Samsung Galaxy Tab A11 — versão de Android e RAM",
+   "afirmacao_original": "Samsung Galaxy Tab A11 — (...) 4 ou 8 GB de RAM, 64 ou 128 GB, chega ao Brasil com Android 16 e One UI 8. (...) limites: Galaxy Tab A11: 8,7\", 1340x800, 90 Hz, Helio G99, 4/8 GB, Android 16.",
+   "problema": "O aparelho sai de fábrica com Android 15, atualizável para Android 16/One UI 8. Afirmar 'Android 16' como especificação de fábrica é otimista, e a frente usou 'Android 13+' como requisito mínimo justamente por causa de WebView/service worker — logo a versão de fábrica é dado sensível à decisão. A lista de RAM também está incompleta.",
+   "valor_correto": "Galaxy Tab A11: 8,7\", 800x1340, 90 Hz, Helio G99, opções de 4 GB/64 GB e 4, 6 ou 8 GB/128 GB, 'Android 15, upgradable to Android 16, One UI 8', anunciado em 12/09/2025.",
+   "fonte": "https://www.gsmarena.com/samsung_galaxy_tab_a11-14141.php"
+  },
+  {
+   "item": "Samsung Galaxy Tab A11 — preço no Brasil",
+   "afirmacao_original": "lançamento em setembro de 2025 a R$1.099, encontrado por volta de R$950 em 2026 (preço de terceiro). (...) Único custo de capital: o tablet, na faixa de R$900 a R$1.200 (fonte de terceiro).",
+   "problema": "Não verificável em fonte oficial. A loja Samsung Brasil não expõe preço em conteúdo raspável (confirmei o mesmo bloqueio na página do Tab A11+), e a única referência de preço obtida em fonte independente é ~180 EUR na GSMArena, que não se traduz direto em varejo brasileiro por causa de tributo e câmbio. A faixa R$900–R$1.200 é o único item de CAPEX do projeto e está apoiada só em terceiro.",
+   "valor_correto": "Manter como NÃO VERIFICADO. Referência independente disponível: 'About 180 EUR' (GSMArena). Preço em BRL exige cotação em varejista no momento da compra.",
+   "fonte": "https://www.gsmarena.com/samsung_galaxy_tab_a11-14141.php e https://shop.samsung.com.br/tab-a11-plus/p (preço não renderizado)"
+  },
+  {
+   "item": "Resolução CD/ANPD nº 2/2022 — prazo de 15 dias da declaração simplificada",
+   "afirmacao_original": "art. 14, prazo em dobro para atender solicitações do titular, comunicar incidente e fornecer declarações (exceto a declaração simplificada, que continua em 15 dias).",
+   "problema": "Citação de artigo errada, num tema em que a própria frente pediu para validar os números de artigo antes de publicar. O prazo de 15 dias da declaração simplificada do art. 19, I, da LGPD está no art. 15 da Resolução, artigo autônomo, não numa exceção dentro do art. 14.",
+   "valor_correto": "Res. CD/ANPD nº 2/2022, art. 15: 'Os agentes de tratamento de pequeno porte podem fornecer a declaração simplificada de que trata o art. 19, I, da LGPD no prazo de até quinze dias, contados da data do requerimento do titular.' O art. 14 trata do prazo em dobro. Arts. 9 (registro simplificado), 11 (dispensa de encarregado) e 13 (política simplificada) estão corretos.",
+   "fonte": "https://www.gov.br/anpd/pt-br/acesso-a-informacao/institucional/atos-normativos/regulamentacoes_anpd/resolucao-cd-anpd-no-2-de-27-de-janeiro-de-2022"
+  },
+  {
+   "item": "Supabase — preço do plano Pro marcado como não capturado",
+   "afirmacao_original": "plano Pro US$25/mês por organização (valor citado nas comparações; a página de preços do Supabase foi lida mas o número do Pro não foi capturado no recorte — trate como referência).",
+   "problema": "Hedge desnecessário: o número está na própria página de preços que a frente diz ter lido. Marcar como 'referência' um preço oficial e citável enfraquece sem motivo a única rota de saída paga do plano Free.",
+   "valor_correto": "Supabase Pro: US$25/mês, confirmado na página oficial de preços. Não é estimativa.",
+   "fonte": "https://supabase.com/pricing"
+  },
+  {
+   "item": "Supabase — janela de restauração de projeto pausado",
+   "afirmacao_original": "a doc atual fala em janela de até 1 ano para restaurar pelo Studio; um changelog de 2024 falou em 90 dias — trate o prazo como incerto e não conte com ele.",
+   "problema": "A doc vigente é inequívoca e um changelog de 2024 não a contradiz, apenas a antecede. Declarar 'prazo incerto' com base em fonte superada é criar dúvida onde a fonte oficial atual é clara — o oposto do erro habitual, mas ainda é imprecisão de relatório.",
+   "valor_correto": "Oficial e atual: 'Once the project is paused, there is a 1-year window to restore the project on the platform from within Supabase Studio.' A recomendação de backup próprio (pg_dump) continua boa prática, mas não por incerteza de prazo.",
+   "fonte": "https://supabase.com/docs/guides/platform/free-project-pausing"
+  }
+ ],
+ "lacunas": [
+  "Rate card BRL oficial da Meta (WhatsApp): os arquivos CSV/PDF por moeda são referenciados na doc mas as URLs de download não foram alcançáveis por fetch. Falta baixar manualmente o CSV de BRL em developers.facebook.com/docs/whatsapp/pricing e substituir toda a faixa de terceiros pelos valores oficiais de Utility, Marketing, Authentication e pelos volume tiers. Sem isso não existe número confiável para decidir entre 'cliente inicia' e 'restaurante dispara'.",
+  "Brevo plano gratuito: os 300 e-mails/dia continuam sem confirmação em página da própria Brevo. A página de preços e a de e-mail transacional não renderizam conteúdo raspável (mesmo bloqueio relatado pela frente). O número segue exclusivamente de terceiro e não deve entrar como 'degrau seguinte gratuito' garantido.",
+  "iFood: developer.ifood.com.br devolveu HTTP 403 em FAQ, termos de uso e página de homologação. Ficam não verificados: a espera de 15 dias após reprovação, a janela exata de histórico da Review API ('últimos dias'), o texto literal dos termos sobre raspagem e a existência de exportação CSV das avaliações no Portal do Parceiro. O requisito de CNPJ com CNAE de tecnologia e a gratuidade das APIs foram confirmados por trecho indexado do próprio FAQ do iFood.",
+  "Vercel Hobby: 'máximo 1 build concorrente' e 'não permite conectar projeto Hobby a repositório de organização do Git' não aparecem na página do plano Hobby nem na de limites que li. O restante dos números Hobby foi confirmado (100 GB Fast Data Transfer, 1M invocações, 4 CPU-hrs, 360 GB-hrs, 1M edge requests, 200 projetos, 100 deploys/dia, log de runtime 1 hora, build máximo de 45 minutos).",
+  "Cloudflare Cron Triggers: a página de Cron Triggers não declara disponibilidade no plano Free; a disponibilidade e os '5 por conta' vêm da tabela de limites do Workers (Free 5 / Paid 250). A granularidade de 1 minuto está confirmada pela sintaxe de 5 campos com minuto 0-59. Vale confirmar na doc de pricing se o Cron Trigger no Free consome a mesma cota de 100.000 requisições/dia.",
+  "Termos do Google Maps Platform: cloud.google.com/maps-platform/terms voltou truncado. A exceção de 30 dias para latitude/longitude não foi verificada no texto contratual. O que ficou confirmado na página de políticas do Places: place_id armazenável indefinidamente, proibição de pré-buscar/cachear/armazenar conteúdo fora das exceções, atribuição obrigatória do autor (avatar, nome, link de perfil; mínimo o avatar) e acesso à review original via googleMapsUri.",
+  "Preços em BRL do Galaxy Tab A11+ e do Lenovo Tab M11: não expostos nas páginas oficiais. O CAPEX do projeto segue sem cotação verificável.",
+  "Raspberry Pi: consumo (0,7 W idle / 1,4 W em carga no Zero 2 W; 3,0 a 8,8 W no Pi 5) e preço de varejo no Brasil não foram reverificados nesta rodada — permanecem de terceiro. A tarifa de energia do Rio também não foi verificada, como a própria frente admite.",
+  "Gemini free tier: os números de RPM/RPD de terceiros e o corte de 50% a 80% em dezembro de 2025 são inverificáveis por construção, porque a doc oficial removeu os números ('rate limits depend on a variety of factors (such as your usage tier) and can be viewed in Google AI Studio'). Só se resolve logando no AI Studio da conta.",
+  "Mistral tier Experiment: limites seguem não publicados (o DESCONHECIDO da frente se mantém).",
+  "Texto da Lei 13.709: não reverificado no Planalto nesta rodada. Os artigos 7 (I e IX), 11 e 16 continuam apoiados em fonte secundária. Os artigos da Resolução CD/ANPD 2/2022, ao contrário, foram verificados direto na fonte da ANPD.",
+  "Capacidade do PDV Altec/Next de expor relatório por API, e-mail agendado ou CSV: não pesquisado nesta verificação. Continua sendo, como a frente diz, a pergunta que decide o tema 10."
+ ],
+ "observacoes": "O núcleo técnico da frente resistiu bem à checagem independente, e vale registrar isso com a mesma firmeza das correções. Verifiquei palavra por palavra e CONFIRMEI: a restrição de uso comercial do Vercel Hobby ('the Hobby plan restricts users to non-commercial, personal use only') — o achado que decide o tema 4 está certo; o cron do Hobby (100 por projeto, mínimo 1x/dia, precisão por hora ±59 min, com falha de deploy em expressões mais frequentes); Cloudflare Workers Free (100.000 req/dia, 10 ms de CPU, 50 subrequests, 5 Cron Triggers) e os dois textos que fecham a conta ('Requests to static assets are free and unlimited' e 'There are no additional charges for data transfer (egress) or throughput (bandwidth)'); Cloudflare Pages Free (500 builds/mês, 1 concorrente, 20.000 arquivos, 25 MiB, 100 domínios); Supabase Free inteiro (500 MB, 50k MAU, 5 GB + 5 GB, 1 GB storage, 500k Edge Functions, 2 projetos ativos, log de 1 dia, pausa após 1 semana) e todo o comportamento de estouro, inclusive o 402 em toda a API, o modo somente leitura, a aplicação a todos os projetos da organização e a ausência de segundo período de graça; Resend Free (3.000/mês, 100/dia, 1 domínio, retenção 30 dias, 10.000 automation runs); Mailgun Free (100/dia, 1 domínio, log de 1 dia, permanente) e Basic a US$15/mês por 10.000; Amazon SES sem tier gratuito permanente, US$200 em créditos por 6 meses, US$0,16/1.000 e US$0,12/GB de anexo; limites do Google Workspace (2.000/dia, 1.500 mail merge, 500 em trial, 100 destinatários em SMTP/POP/IMAP, 10.000 destinatários/dia); Groq free tier número por número nos dois modelos e a cláusula contratual de não treinamento, com o detalhe extra de que existe configuração de zero data retention para clientes elegíveis; Cerebras (5 RPM, 30k TPM, 1M TPH, 1M TPD, US$5 que expiram em 30 dias); OpenRouter (20 RPM, 50 RPD, 1.000 RPD com US$10); GBP API gratuita ('at no charge'), análise em até 14 dias, perfil verificado e ativo há 60+ dias, 300 QPM, 10 edições/minuto não aumentável e o alerta de que acesso à API não é acesso a dado; toda a tabela de SKUs do Places API, incluindo IDs Only ilimitado e gratuito, e o 'A maximum of 5 reviews can be returned'; os termos da Gemini API nos dois tiers, com as três frases decisivas literais; WhatsApp por mensagem entregue desde 01/07/2025, serviço gratuito desde 01/11/2024, não-template gratuito na janela aberta, utility em janela aberta gratuito, e as datas de BRL (01/07/2026 e 30/06/2027); a exigência de PIN/padrão/senha para desafixar app no Android; e as cotas de storage do MDN com a evicção de origin inteiro e os 7 dias do Safari. Dois padrões saltam do resultado. Primeiro: todo erro material que encontrei está em número de terceiro. Onde a frente leu a fonte primária, acertou; onde citou terceiro, errou em Netlify, Fully Kiosk, preço do WhatsApp Brasil e preço do tablet. Segundo, e mais grave para o cliente: em dois casos a frente declarou não público um dado que era público (rate card BRL da Meta, preço do Fully Kiosk) e em dois casos declarou incerto um dado oficialmente claro (Pro do Supabase, janela de 1 ano de restauração). Esse viés nas duas direções é o que precisa de disciplina, porque um faz o cliente decidir com estimativa quando havia número, e o outro faz ele desconfiar do que estava firme. A correção com maior impacto de arquitetura é a do Netlify: com 300 créditos duros e 20 créditos por GB de banda, o Netlify não é o 'terceiro colocado confortável' que o comparativo sugere, e o argumento pró-Cloudflare fica ainda mais forte do que a frente escreveu. Uma refinação menor no tema 9: no Firefox o modo persistent vai até 50% do disco com teto de 8 TiB, teto que a frente omitiu; irrelevante no caso, mas é o tipo de recorte que envelhece mal."
+}

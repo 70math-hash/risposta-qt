@@ -1,0 +1,90 @@
+{
+ "veredito": "PARCIAL",
+ "correcoes": [
+  {
+   "item": "Falae — canais de coleta (tablet/totem)",
+   "afirmacao_original": "'NAO documenta coleta por tablet ou totem fisico em mesa — so QR Code, WiFi, SMS, WhatsApp e e-mail. Isso e uma lacuna material: o proprio Risposta afirma que tablets respondem por cerca de 90% das avaliacoes' (fraqueza marcada com confianca alta)",
+   "problema": "REFUTADO em pagina oficial. A landing oficial do Falae (subdominio conteudo.falae.app) diz literalmente que a pesquisa e acessivel por Tablet e Totem. Esta e a correcao mais grave do lote: a suposta 'lacuna material' do concorrente direto n1 nao existe, e ela era justamente o pilar que sustentava o diferencial de hardware do Risposta na analise.",
+   "valor_correto": "Falae documenta Tablet e Totem: 'A pesquisa é um link que pode ser acessado a partir de um QR Code, Tablet, Totem ou ser enviado pelo WhatsApp.' Canais confirmados: QR Code, Tablet, Totem, WhatsApp (e, na home, QR Code na mesa, link no WiFi, SMS, WhatsApp ou email).",
+   "fonte": "https://conteudo.falae.app/demo-gratuita-site-v2 e https://falae.app/"
+  },
+  {
+   "item": "Falae — centralizacao de Google / iFood / TripAdvisor",
+   "afirmacao_original": "'A home oficial NAO menciona integracao com Google nem com iFood; a centralizacao de avaliacoes externas so aparece descrita por terceiros' — e, no resumo: 'Centralizacao de Google + iFood no mesmo painel aparece de forma verificavel so no Risposta (Google + Risposta + iFood) e na Harmo'",
+   "problema": "REFUTADO em pagina oficial do proprio dominio falae.app, nao por terceiro. A home menciona Google, e uma pagina institucional do falae.app menciona os tres canais externos explicitamente. Logo a afirmacao de exclusividade do resumo (so Risposta e Harmo) cai, e com ela parte do argumento de diferenciacao do fornecedor atual.",
+   "valor_correto": "falae.app/conheca-o-falae-p3/: 'Monitore e melhore sua reputação online em Google, TripAdvisor e iFood.' Home falae.app: 'Melhore sua nota no Google.' Sao TRES os fornecedores com centralizacao externa verificavel (Risposta, Harmo, Falae) — e o Falae cobre um canal a mais (TripAdvisor).",
+   "fonte": "https://falae.app/conheca-o-falae-p3/ e https://falae.app/"
+  },
+  {
+   "item": "Falae — escala (numero de operacoes/restaurantes)",
+   "afirmacao_original": "'1.600+ operacoes no site oficial, 2.000+ restaurantes na imprensa' apresentado como dado assentado, com confianca alta",
+   "problema": "PARCIAL. O proprio fornecedor publica tres numeros incompativeis simultaneamente, o que torna a base instalada nao auditavel. Nao se deve tratar como dado firme nem usar para dimensionar mercado.",
+   "valor_correto": "'Mais de 1600 operações' (falae.app e /conheca-o-falae-p3/); '1.563 restaurantes' (conteudo.falae.app/demo-gratuita-site-v2); 'Mais de 700 restaurantes' (material de parceiro Natural Bot); 'mais de 2.000 restaurantes' (imprensa, abr/2026). Faixa real nao determinada.",
+   "fonte": "https://falae.app/ , https://conteudo.falae.app/demo-gratuita-site-v2 , https://naturalbot.com.br/falae-pesquisa-para-restaurantes/ , https://startups.com.br/negocios/rodada-de-investimento/falae-capta-r-15-milhao-com-investidores-vc-em-primeira-rodada/"
+  },
+  {
+   "item": "Risposta — fontes trocadas nas duas afirmacoes mais load-bearing",
+   "afirmacao_original": "achados_tecnicos: alegacao dos '90% das avaliacoes por tablet' com 'Fonte: https://www.risposta.app/risposta-tap/'; ficha do vendor: 'Modulo somente QR Code: planos a partir de 150 reais mensais' listando risposta-qr-code entre as fontes",
+   "problema": "As duas citacoes estao invertidas. A /risposta-tap/ NAO contem o numero 90% (so uma tabela comparativa com 'Alto' vs 'Baixo'); a /risposta-qr-code/ NAO contem preco nenhum. As afirmacoes existem, mas nas paginas opostas. Como sao exatamente os dois numeros usados para sustentar renegociacao e requisito de projeto, a citacao errada inviabiliza a conferencia pelo cliente.",
+   "valor_correto": "90% -> https://www.risposta.app/risposta-qr-code/ : 'Os tablets normalmente são responsáveis por 90% das avaliações' e 'com cerca de 90% das opiniões registradas'. Piso de R$150 -> https://www.risposta.app/risposta-tap/ : 'Clientes que queiram optar somente por QR Codes têm planos a partir de 150 reais mensais.' O piso de R$200 com 30 dias de teste esta confirmado na home.",
+   "fonte": "https://www.risposta.app/risposta-qr-code/ , https://www.risposta.app/risposta-tap/ , https://www.risposta.app/"
+  },
+  {
+   "item": "Avalio — piso de preco usado como teto de referencia do build",
+   "afirmacao_original": "'Avalio a 12x R$ 64,00/mes', 'o justo de mercado para esse volume e a faixa de R$64 a R$90/mes', 'TETO DE REFERENCIA PARA O BUILD PROPRIO: Avalio Starter a 12x R$ 64,00/mes'",
+   "problema": "PARCIAL — os valores existem na pagina, mas a analise elegeu como benchmark a opcao MAIS CARA do mesmo plano. A pagina oferece o Starter por R$ 575,00 anual (equivalente a R$ 47,92/mes) ou R$ 768,00 em 12x de R$ 64,00. Usar R$64 infla o teto de referencia em 34% e afrouxa o criterio economico do build proprio.",
+   "valor_correto": "Starter: R$ 575,00 anual OU R$ 768,00 em 12x R$ 64,00 — piso real equivalente R$ 47,92/mes. Standard R$ 810,00 anual (12x R$ 90,00 = R$ 1.080,00). Premium R$ 1.262,25 anual (12x R$ 140,25 = R$ 1.683,00). Platinum R$ 2.800,00 anual (12x R$ 312,00 = R$ 3.744,00). Limites de respostas/ano (16.000 / 20.000 / 50.000 / 100.000), Modo totem, IA e API em todos os planos: CONFIRMADOS.",
+   "fonte": "https://avalio.com.br/planos"
+  },
+  {
+   "item": "Harmo — nao seria produto de pesquisa, sem canal em ponto de venda",
+   "afirmacao_original": "'Nao e produto de pesquisa em mesa: o nucleo e reputacao publica pos-visita, nao captura de feedback anonimo no momento do consumo. Nao documenta tablet nem totem'; canais_coleta listados como reviews externos + 'Pesquisas proprietarias (survey)'",
+   "problema": "PARCIAL. A Harmo documenta pesquisa propria multicanal com QR Code — que e captura em ponto de venda — e se posiciona explicitamente como plataforma de pesquisa NPS/CES/CSAT somada a reputacao, nao so reputacao. A ficha subdimensiona o concorrente. Correto apenas o trecho sobre tablet/totem, que de fato nao aparecem.",
+   "valor_correto": "harmo.me: 'Pesquisa via WhatsApp, E-mail, SMS, QRcode, Push, widget e link.' Posicionamento: 'a primeira e única plataforma do mercado a integrar gestão de reputação online (reviews) com pesquisas NPS, CES e CSAT'. Tablet e totem: nao documentados (esta parte procede).",
+   "fonte": "https://harmo.me/ e https://www.b2bstack.com.br/product/harmo"
+  },
+  {
+   "item": "Harmo — lista de integracoes marcada com confianca alta",
+   "afirmacao_original": "integracoes: 'Google, iFood, TripAdvisor, Facebook, Reclame Aqui' com confianca alta",
+   "problema": "NAO VERIFICADO na pagina oficial. Na leitura de harmo.me nao ha lista publica de fontes de review integradas; so o Google Perfil de Empresas aparece de forma inequivoca. iFood, TripAdvisor, Facebook e Reclame Aqui nao foram confirmados como conectores tecnicos (Reclame Aqui e socio acionario, o que nao implica integracao de produto). Confianca deve cair para media/baixa nesse campo.",
+   "valor_correto": "Confirmado: Google Business Profile como nucleo. Nao confirmado em fonte oficial: iFood, TripAdvisor, Facebook, Reclame Aqui como integracoes de leitura de review.",
+   "fonte": "https://harmo.me/"
+  },
+  {
+   "item": "iFood — barreira de acesso a API de avaliacoes (viabilidade tecnica)",
+   "afirmacao_original": "'o iFood so libera isso para gestores de reputacao homologados no portal de developers — barreira real para um build proprio'",
+   "problema": "PARCIAL / NAO VERIFICAVEL como escrito. O modulo Review e publicamente documentado, com endpoints abertos na doc (GET /merchants/{merchantId}/reviews, GET .../{reviewId}, POST .../answers) e Criterios de Homologacao publicados. A doc lista cinco CATEGORIAS de empresa integradora (PDV, conciliadoras, operadoras logisticas, BI e Gerenciadores de avaliacoes) — uma lista de categorias nao e regra de exclusividade, e a homologacao vale para todo modulo, nao e um pedagio especifico de reputacao. O acesso direto a developer.ifood.com.br retornou HTTP 403 nas duas tentativas, portanto a clausula de exclusividade nao foi confirmada em fonte primaria e nao pode sustentar 'barreira real'.",
+   "valor_correto": "Reformular: a API de Review do iFood e publica e documentada, exige homologacao com loja de teste (como qualquer modulo) e a doc cita 'Gerenciadores de avaliacoes' entre os tipos de integrador. Custo de entrada = processo de homologacao, nao veto categorico. Regras tecnicas confirmadas: resposta so em review com status NOT_REPLIED, texto de 10 a 300 caracteres, review nao respondido publica automaticamente em 5 dias.",
+   "fonte": "https://developer.ifood.com.br/pt-BR/docs/guides/modules/review/intro/ (403 no fetch direto; conteudo via indexacao) e https://medium.com/ifood-developer/como-utilizar-a-api-de-reviews-do-ifood-do-zero-bbb408f5f824"
+  },
+  {
+   "item": "Get In — R$ 239,00/mes no benchmark de preco publico",
+   "afirmacao_original": "'BENCHMARK COMPLETO DE PRECO PUBLICO (unicos fornecedores que publicam valor): ... Get In Starter R$239/mes' e 'Plano Starter: R$ 239,00/mes'",
+   "problema": "NAO VERIFICAVEL. Reproduzi o acesso: restaurante.getin.app/planos-e-precos/ retorna HTTP 403 tambem para mim, e busca dedicada nao trouxe nenhum valor em reais atribuivel a pagina oficial. A ficha admite o 403 mas o numero foi promovido ao 'benchmark completo de preco publico', onde passa a ter peso de dado confirmado. Preco nao publicado nao pode entrar em tabela de preco publicado.",
+   "valor_correto": "Get In: preco NAO VERIFICADO. Remover R$239/mes da tabela de benchmark ou marcar explicitamente como resumo de mecanismo de busca nao confirmado. A pagina oficial confirma apenas a existencia de faixas de plano e suporte WhatsApp seg-sex 9h-18h.",
+   "fonte": "https://restaurante.getin.app/planos-e-precos/ (HTTP 403)"
+  },
+  {
+   "item": "Opinae — ausencia total de API/integracao",
+   "afirmacao_original": "'Nenhuma integracao com terceiros documentada — nem Google, nem iFood, nem PDV, nem API citada'",
+   "problema": "Impreciso. O site referencia a WhatsApp API Oficial para o recurso 'OPINAE Msg'. O restante procede (sem Google, sem iFood, sem PDV, sem IA).",
+   "valor_correto": "Ha mencao a 'WhatsApp API Oficial' vinculada ao recurso OPINAE Msg. Confirmados: offline com sincronizacao ('Colete os dados da pesquisa offline e sincronize quando estiver online!'), QR Code dinamico ('altere as pesquisas e mantenha o mesmo QR Code'), modo quiosque de tela cheia, ausencia de IA e ausencia de preco publico (paginas /precos/ e PLANOS existem sem valores).",
+   "fonte": "https://opinae.com.br/"
+  }
+ ],
+ "lacunas": [
+  "Track.co: nunca verificado em fonte oficial (403 na frente original e nao reaberto aqui). Toda a ficha segue sem base primaria — nem preco, nem integracoes, nem canais.",
+  "Tagme: landing.tagme.com.br/planos/ retornou 503 e nao foi reaberta. O plano com '10.000 envios de e-mail por mes' vem de terceiro e continua nao confirmado.",
+  "Ecoa (Geengoo): nenhuma pagina oficial do produto foi lida em nenhum momento — 100% da ficha vem de um unico artigo de terceiro (Mundo Food Service). A arquitetura de automacao por perfil promotor/neutro/detrator, que o relatorio chama de 'padrao de ouro funcional' e recomenda copiar integralmente, esta apoiada em fonte unica nao primaria.",
+  "Avalio 'planos a partir de R$ 29': segue nao confirmado; nao foi verificado se e plano legado, promocao ou erro de terceiro.",
+  "Falae: nao verifiquei se /planos realmente retorna 404 hoje, nem qual PDV especifico integra (o parceiro Natural Bot afirma 'integracoes com sistemas de PDV que permitem associar os feedbacks diretamente aos pedidos realizados' — nome do sistema e doc de API nao localizados).",
+  "Altec/Next: nao consultei altec.ws nesta rodada. A existencia ou nao de API publica do PDV do cliente continua DESCONHECIDA, e ela e o gargalo real de qualquer build proprio que pretenda ler o PDV.",
+  "Politica de avaliacoes do Google sobre review gating: nenhuma fonte primaria do Google foi lida. O risco atribuido a ReviewBR, Ecoa e ao proprio Risposta permanece inferencia sem respaldo documental.",
+  "Preco efetivo dos planos superiores do Risposta (tablet + cliente oculto): so o piso publicado foi confirmado. A tese de sobrepreco de 2,5x a 5x compara o que o cliente paga com um piso de escopo diferente (QR-only), o que nao e comparacao de igual para igual e precisa de proposta comercial real para fechar.",
+  "SoluCX e Solvis: preco nao publico confirmado por ausencia, mas nenhuma proposta ou faixa foi obtida. Nao ha como afirmar onde caem em relacao a faixa do cliente.",
+  "Reviewax: nenhum dominio, CNPJ ou pagina institucional localizado. A ficha inteira repousa em um advertorial. Nao deveria constar do mapa nem como risco nomeado sem fonte primaria.",
+  "Nao busquei presenca em G2/Capterra/Reclame Aqui para Falae e Risposta nesta rodada; as afirmacoes de 'zero social proof auditavel' seguem nao reconfirmadas.",
+  "binds.co: a logica dos rotulos '12x R$ 899,99', '12x R$ 1.499,99' e '12x R$ 5.999,99' (que nao fecham com 12 vezes a mensalidade exibida) permanece sem explicacao — pode indicar preco anual mais alto que o mensal ou erro na pagina, e nao foi esclarecido."
+ ],
+ "observacoes": "O que resistiu a checagem independente: Avalio (4 planos, valores, limites de respostas/ano, Modo totem + IA + API em todos os planos) conferido linha a linha; ReviewBR R$ 79,90 / R$ 139,90 / R$ 299,00 com 100, 1.500 e ilimitados fluxos WhatsApp conferido; NPS Fast R$ 250 / R$ 350 / R$ 450, trial de 7 dias, API so na Completa e ausencia total de IA conferidos; binds.co R$ 499,99 / R$ 799,99 / R$ 2.499,99 com limites de 500, 1.000 e 5.000 ENVIOS/mes, 20 envios gratuitos e quarto plano 'Preço personalizado' conferidos (o relatorio escreveu 'Sob Consulta', o site diz 'Preço personalizado'); Risposta R$ 200/mes com 30 dias de teste e R$ 150/mes QR-only conferidos; Harmo sem preco publico e com formula de mensalidade nos Termos (quantidade de locais + locais de concorrentes + valor unitario por local, em 3 planos de assinatura) conferida, alem de 30 mil lojas e Reclame Aqui com 20% inicial rumo a 50%; Solvis 20+ anos, 4.000 restaurantes, IA na coleta e na analise, sem preco publico, conferidos (a ressalva e que os 4.000 nao estao na home, e sim em paginas internas); Opinion Box 'a partir de R$ 300' no Painel de Respondentes conferido; Falae com rodada de R$ 1,5 milhao liderada pela Investidores.vc conferido em imprensa independente, inclusive a meta de 5.000 restaurantes ate 2027.\n\nOnde a analise fica mais fragil depois das correcoes: a tese de que existem so dois concorrentes diretos e de que o Risposta e o unico a somar coleta em mesa com painel Google+iFood nao se sustenta como escrito — o Falae documenta Tablet, Totem, QR Code e reputacao em Google, TripAdvisor e iFood, e a Harmo faz pesquisa NPS/CES/CSAT por QR Code alem de reputacao. Isso nao muda a conclusao economica (que continua bem sustentada: ha plataformas com preco publico entregando capacidade muito acima de 50-200 respostas/mes por R$48 a R$90/mes), mas muda o mapa competitivo e enfraquece o argumento de que o hardware do Risposta e um diferencial isolado. Recomendo rebaixar de 'alta' para 'media' a confianca das fichas Falae (campos features, canais_coleta, integracoes e fraquezas) e Harmo (campos features, canais_coleta e integracoes), e retirar Get In da tabela de precos publicos.\n\nUma nota de rigor sobre citacao: 'confianca alta' foi atribuida em varios pontos onde a fonte apontada nao contem a afirmacao (caso das duas fontes trocadas do Risposta) ou onde a fonte e um resumo de mecanismo de busca (Get In). Confianca alta deveria exigir a frase textual localizada na URL citada — como o proprio relatorio fez bem no caso da formula de precificacao da Harmo, extraida dos Termos de Uso."
+}

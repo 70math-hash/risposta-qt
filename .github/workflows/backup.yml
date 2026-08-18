@@ -1,0 +1,216 @@
+# Backup do banco: pg_dump, cifrado com age, enviado ao Backblaze B2.
+#
+# Decisao D7. Duas escolhas fazem o trabalho, e as duas sao gratuitas:
+#
+# 1. Backblaze B2 e nao artefato do GitHub Actions. Os Termos Adicionais do GitHub vedam
+#    "any other activity unrelated to the production, testing, deployment, or publication of
+#    the software project", com punicao que inclui suspensao de conta. Essa punicao levaria o
+#    repositorio E os backups no mesmo evento, que e o modo de falha de fornecedor unico pelo
+#    qual o Supabase Storage foi corretamente reprovado.
+#
+# 2. age ASSIMETRICO, com a chave publica aqui e a privada fora. Com chave simetrica, o
+#    GitHub guardaria o pacote cifrado e a chave que o abre no mesmo lugar, e quem tivesse
+#    admin do repositorio leria nome, WhatsApp, e-mail e nascimento dos clientes. Com
+#    assimetrica, este runner ESCREVE backup e nao consegue ler nenhum, nem os que ele mesmo
+#    escreveu.
+#
+# A chave do B2 e presa a um bucket, com writeFiles e listBuckets, SEM readFiles, SEM
+# deleteFiles e SEM expiracao. Se o segredo vazar, o atacante escreve lixo e nao le nem apaga
+# nenhum backup. Ausencia de expiracao e obrigatoria: chave com prazo faria o backup morrer
+# calado em menos de tres anos.
+#
+# A retencao de 8 semanas NAO esta aqui: e lifecycle rule do bucket
+# (daysFromUploadingToHiding = 56, daysFromHidingToDeleting = 1), configurada uma vez no
+# painel do B2 e nunca mais tocada.
+
+name: backup_semanal
+
+on:
+  schedule:
+    # Domingo e quarta, 04h em America/Sao_Paulo (UTC-3, sem horario de verao em 2026).
+    # Duas vezes por semana e nao uma, porque este job tambem e o keep-alive do banco
+    # enquanto o digest das 16h nao existir: projeto gratuito do Supabase e pausado depois
+    # de 1 semana de inatividade, e a casa fecha segunda.
+    # SE O HORARIO DE VERAO VOLTAR, esta expressao muda.
+    - cron: '0 7 * * 0,3'
+  workflow_dispatch:
+
+# Sem permissao de escrita: este job nao mexe no repositorio.
+permissions:
+  contents: read
+
+concurrency:
+  group: backup_semanal
+  cancel-in-progress: false
+
+jobs:
+  dump:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Instalar age e rclone
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends age rclone
+
+      - name: Instalar cliente Postgres na versao certa
+        # Versao FIXADA, e nao herdada da imagem do runner: incompatibilidade entre pg_dump e
+        # a versao do servidor e um dos dois modos de morte mais provaveis deste job, e a
+        # versao que a imagem traz muda sem aviso.
+        env:
+          PG_MAJOR: '17'
+        run: |
+          set -euo pipefail
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc \
+            https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] \
+            https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
+            | sudo tee /etc/apt/sources.list.d/pgdg.list > /dev/null
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends "postgresql-client-${PG_MAJOR}"
+          pg_dump --version
+
+      - name: Dump, cifrar e enviar
+        # `id` para o passo seguinte poder ler `steps.dump.outcome` e registrar sucesso ou erro em
+        # `execucao_rotina`. Sem ele, `steps.dump.outcome` vem vazio e todo backup seria registrado
+        # como erro.
+        id: dump
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          AGE_PUB: ${{ vars.AGE_PUBLIC_KEY }}
+          B2_KEY_ID: ${{ secrets.B2_KEY_ID }}
+          B2_APP_KEY: ${{ secrets.B2_APP_KEY }}
+          B2_BUCKET: ${{ vars.B2_BUCKET }}
+        run: |
+          set -euo pipefail
+
+          for v in DB_URL AGE_PUB B2_KEY_ID B2_APP_KEY B2_BUCKET; do
+            if [ -z "${!v:-}" ]; then
+              echo "::error::$v ausente. Configure segredos e variaveis do repositorio."
+              exit 1
+            fi
+          done
+
+          STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
+          mkdir -p /tmp/bkp
+          cd /tmp/bkp
+
+          # --no-owner e --no-privileges para o dump restaurar em qualquer projeto, e nao
+          # depender dos papeis do projeto de origem existirem no destino. E por isso que
+          # `sql/papeis.sql` existe e roda ANTES do dump numa restauracao: sem os papeis, os
+          # GRANT que o dump nao traz tambem nao podem ser refeitos a mao.
+          #
+          # AS DUAS ESCOLHAS DESTE COMANDO, DECLARADAS
+          #
+          # 1. O DUMP LEVA `public` JUNTO, e isso e decisao e nao descuido. `experiencia` vive no
+          #    MESMO projeto que o sistema fiscal, entao um dump so de `experiencia` deixaria
+          #    `notas`, `itens_nota`, `fornecedores` e `insumos_master` — 422 notas fiscais e a
+          #    serie de precos reconstruida delas — sem backup nenhum. Levar tudo e o certo.
+          #
+          #    A consequencia esta registrada em `docs/registro-tratamento.md`, secao 5: o arquivo
+          #    que sai do Brasil contem dado de fornecedor. E por isso que ele sai CIFRADO com
+          #    chave assimetrica, e quem opera o B2 nao tem a chave privada.
+          #
+          # 2. SEM `--enable-row-security`, de proposito, e isto e o inverso do que parece.
+          #    Com a opcao, o `pg_dump` RESPEITA as politicas e despeja so as linhas que o papel
+          #    da conexao enxerga — um backup silenciosamente parcial, que so se descobre
+          #    restaurando. Sem ela, o Postgres exige que o papel possa passar por cima de RLS e
+          #    ERRA se ele nao puder, o que e uma falha alta e visivel no domingo de manha.
+          #
+          #    Backup parcial que parece completo e o pior estado possivel: ele sobrescreve, semana
+          #    a semana, a lembranca de que existiu um bom.
+          pg_dump --no-owner --no-privileges --format=custom --compress=9 \
+            "$DB_URL" > "qt-$STAMP.dump"
+
+          BYTES="$(stat -c%s "qt-$STAMP.dump")"
+          echo "dump com $BYTES bytes"
+          # Dump minusculo quase sempre significa conexao que abriu e nao trouxe nada, o que e
+          # pior que falhar: passaria por sucesso e o backup do proximo domingo sobrescreveria
+          # a lembranca de que existiu um bom.
+          if [ "$BYTES" -lt 4096 ]; then
+            echo "::error::dump suspeito de vazio ($BYTES bytes). Nada foi enviado."
+            exit 1
+          fi
+
+          # A CONFERENCIA QUE O TAMANHO NAO FAZ.
+          #
+          # Um dump que perdeu a metade das tabelas por RLS continua tendo megabytes, entao o piso
+          # de 4 KB nao pega o modo de falha que importa. `pg_restore --list` enumera o que o
+          # arquivo contem SEM restaurar nada, e comparar essa contagem com o banco e o que
+          # distingue "grande" de "completo".
+          TABELAS_NO_BANCO="$(psql -tAX "$DB_URL" -c \
+            "select count(*) from pg_class c join pg_namespace n on n.oid = c.relnamespace
+             where n.nspname in ('experiencia','public') and c.relkind = 'r'")"
+          TABELAS_NO_DUMP="$(pg_restore --list "qt-$STAMP.dump" | grep -c ' TABLE DATA ' || true)"
+          echo "tabelas: $TABELAS_NO_DUMP no dump, $TABELAS_NO_BANCO no banco"
+
+          # `TABLE DATA` so aparece para tabela com pelo menos uma linha, entao o dump legitimamente
+          # tem MENOS entradas que o banco tem tabelas. O que nao pode e o dump ter um punhado
+          # quando o banco tem dezenas — essa e a assinatura do backup mutilado por RLS.
+          if [ "$TABELAS_NO_DUMP" -lt $(( TABELAS_NO_BANCO / 3 )) ]; then
+            echo "::error::o dump tem $TABELAS_NO_DUMP tabelas com dado e o banco tem $TABELAS_NO_BANCO tabelas. Suspeita de dump mutilado por row-level security. Nada foi enviado."
+            exit 1
+          fi
+
+          age -r "$AGE_PUB" -o "qt-$STAMP.dump.age" "qt-$STAMP.dump"
+          # O dump em claro sai do disco antes de qualquer passo seguinte.
+          shred -u "qt-$STAMP.dump" 2>/dev/null || rm -f "qt-$STAMP.dump"
+
+          rclone --config /dev/null \
+            --b2-account "$B2_KEY_ID" --b2-key "$B2_APP_KEY" \
+            copy "qt-$STAMP.dump.age" ":b2:$B2_BUCKET/"
+
+          echo "enviado: qt-$STAMP.dump.age"
+
+      - name: Registrar a execucao, que e tambem o keep-alive
+        # Passo SEPARADO do dump de proposito: se o envio ao B2 falhar, o banco ainda foi
+        # tocado e nao entra em pausa por inatividade. Sao dois objetivos diferentes no mesmo
+        # job, e um nao pode derrubar o outro.
+        #
+        # ANTES ELE ERA `select 1`, E ISSO ERA UM BURACO
+        #   `backup_semanal` e uma das cinco rotinas do dominio fechado de `execucao_rotina`, e
+        #   `/painel/saude` tem uma linha esperando por ela. Nada nunca escrevia essa linha, entao
+        #   a tela mostrava as outras quatro rotinas e, do backup, NADA — indistinguivel de um
+        #   backup que nunca rodou.
+        #
+        #   O `select 1` cumpria o keep-alive e mais nada. Trocar por um INSERT cumpre os dois: a
+        #   escrita toca o banco do mesmo jeito, e deixa o rastro que a tela procura.
+        #
+        # `if: always()` E `steps.*.outcome`
+        #   O passo roda mesmo com o dump quebrado, e grava `erro` nesse caso. Registrar so o
+        #   sucesso faria a tela mostrar silencio para as duas coisas diferentes que mais importam
+        #   distinguir: "nao rodou" e "rodou e falhou".
+        if: always()
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          RESULTADO: ${{ steps.dump.outcome }}
+        run: |
+          set -euo pipefail
+          if [ -z "${DB_URL:-}" ]; then
+            echo "DB_URL ausente: nada a registrar"
+            exit 0
+          fi
+
+          if [ "${RESULTADO:-failure}" = "success" ]; then
+            STATUS=sucesso
+            ERRO=NULL
+          else
+            STATUS=erro
+            # `execucao_rotina_erro_tem_mensagem` recusa status `erro` com mensagem vazia, entao a
+            # mensagem nao e enfeite: sem ela o INSERT falha e o registro se perde justamente no
+            # caso em que ele mais importa.
+            ERRO="'o passo de dump e envio terminou como ${RESULTADO:-failure}. Ver o log da execucao no GitHub Actions.'"
+          fi
+
+          psql -v ON_ERROR_STOP=1 "$DB_URL" -c \
+            "insert into experiencia.execucao_rotina (rotina, iniciado_em, terminado_em, status, erro)
+             values ('backup_semanal', now(), now(), '$STATUS', $ERRO)" > /dev/null
+
+          echo "banco tocado e execucao registrada como $STATUS"
+# Vigilancia sem manutencao: `set -euo pipefail` derruba o job em qualquer falha, e o GitHub
+# manda e-mail automatico de workflow falho para o dono do repositorio. Isso cobre os tres
+# modos de morte silenciosa mais provaveis: senha do banco rotacionada, chave do B2 revogada e
+# incompatibilidade de versao do pg_dump.

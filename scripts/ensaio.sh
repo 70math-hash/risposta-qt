@@ -90,9 +90,13 @@ if [[ "${1:-}" == "--dados" ]]; then
   psql_ -f "$COPIA"
   # Reaplicar, para provar que o UNIQUE em id_origem torna a migracao repetivel.
   psql_ -f "$COPIA" >/dev/null
-  rm -f "$COPIA"
 
   psql_ -f "$RAIZ/scripts/ensaio-semente-confere.sql"
+
+  # A38: o mesmo arquivo de semente, agora com DOIS cadastros de mesmo nome. Roda em transacao
+  # desfeita, entao o cenario nao sobra para os casos do Worker mais abaixo.
+  psql_ -v copia="$COPIA" -f "$RAIZ/scripts/ensaio-semente-homonimo.sql"
+  rm -f "$COPIA"
 
   # ---------------------------------------------------------------------------
   # O Worker, rodando de verdade contra este banco.

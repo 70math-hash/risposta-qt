@@ -117,6 +117,26 @@ where btrim(o.garcom) <> ''
 -- -----------------------------------------------------------------------------
 -- 3. As 74 linhas, com `criado_em` preservado.
 -- Idempotente pelo UNIQUE em `id_origem`: reaplicar nao dobra nada.
+--
+-- A JUNCAO POR NOME NAO E POR CHAVE UNICA, E ISSO TINHA DUAS CONSEQUENCIAS (A38)
+--   `lower(btrim(nome))` nao tem indice unico, e nao pode ter: duas pessoas chamadas Joao
+--   trabalhando na mesma casa e normal, e um `unique` ali recusaria o cadastro da segunda.
+--
+--   O `left join` simples multiplicava a linha da origem por quantos homonimos houvesse, e o
+--   `on conflict (id_origem) do nothing` engolia a multiplicacao: a PRIMEIRA linha que chegasse
+--   vencia, e as demais sumiam sem erro. O clique ficava atribuido a um Joao ARBITRARIO — o que a
+--   ordem fisica do plano de execucao decidisse naquele dia — e a conferencia de 74 do passo 4
+--   continuava passando, porque o total nao muda.
+--
+--   Atribuicao arbitraria e pior que atribuicao ausente. Nula, a tela de administracao mostra o
+--   texto cru e um humano resolve. Arbitraria, ela parece resolvida, entra em contagem por garcom,
+--   e ninguem tem motivo para conferir.
+--
+-- O QUE PASSA A ACONTECER
+--   `lateral` com `limit 1`, entao a origem nunca multiplica. E a resolucao so acontece quando o
+--   nome identifica UMA pessoa: com homonimo, `garcom_id` fica NULO de proposito, e o passo 4
+--   conta e nomeia esses casos. O texto cru continua em `convite_clique.garcom` nos dois casos,
+--   entao nada se perde — o que muda e o sistema parar de afirmar o que nao sabe.
 -- -----------------------------------------------------------------------------
 insert into experiencia.convite_clique (
   id_origem, garcom, garcom_id, criado_em, user_agent, referrer)
@@ -127,7 +147,16 @@ select o.id,
        o.user_agent,
        o.referrer
 from origem_cliques_avaliacao o
-left join experiencia.garcom g on lower(btrim(g.nome)) = lower(btrim(o.garcom))
+left join lateral (
+  select gg.id
+  from experiencia.garcom gg
+  where lower(btrim(gg.nome)) = lower(btrim(o.garcom))
+    -- Homonimo: nenhuma escolha aqui e defensavel, entao nao se escolhe. Fica nulo, e o passo 4
+    -- avisa com os nomes.
+    and (select count(*) from experiencia.garcom h
+         where lower(btrim(h.nome)) = lower(btrim(o.garcom))) = 1
+  limit 1
+) g on true
 on conflict (id_origem) do nothing;
 
 -- -----------------------------------------------------------------------------
@@ -142,6 +171,9 @@ declare
   v_sem_garcom integer;
   v_min      timestamptz;
   v_max      timestamptz;
+  v_nome     text;
+  v_quantos  integer;
+  v_ambiguos integer := 0;
 begin
   select count(*) into v_origem  from origem_cliques_avaliacao;
   select count(*), min(criado_em), max(criado_em) into v_destino, v_min, v_max
@@ -168,6 +200,32 @@ begin
 
   raise notice 'convite_clique: % linhas migradas, de % a %. Linhas sem garcom resolvido: %.',
     v_destino, v_min, v_max, v_sem_garcom;
+
+  -- A38: os nomes que aparecem em mais de um cadastro. Sao a razao de algumas linhas ficarem sem
+  -- garcom resolvido, e sem esta lista o numero acima seria um enigma. Nao derruba a migration:
+  -- homonimo e fato da casa, e o clique de um Joao entre dois Joaos e ambiguidade da ORIGEM, que
+  -- nenhuma consulta desfaz. O que se pode fazer e dizer quais sao, para o proprietario resolver na
+  -- tela de administracao com o que ele sabe e o banco nao.
+  for v_nome, v_quantos in
+    select lower(btrim(g.nome)), count(*)
+    from experiencia.garcom g
+    where exists (select 1 from experiencia.convite_clique c
+                  where lower(btrim(c.garcom)) = lower(btrim(g.nome)))
+    group by 1
+    having count(*) > 1
+    order by 1
+  loop
+    v_ambiguos := v_ambiguos + 1;
+    raise notice 'AMBIGUO: `%` tem % cadastros de garcom, e os cliques com esse nome ficaram SEM '
+                 'atribuicao de proposito. Escolher um seria arbitrario, e arbitrario num painel '
+                 'por garcom nao parece erro.', v_nome, v_quantos;
+  end loop;
+
+  if v_ambiguos > 0 then
+    raise notice '% nome(s) ambiguo(s). Resolver em /painel/admin, onde o texto cru de cada clique '
+                 'continua visivel.', v_ambiguos;
+  end if;
+
   raise notice 'Proximo passo: conferir estes numeros contra a origem em qt-avaliacoes ANTES de pausar o projeto.';
 end
 $$;

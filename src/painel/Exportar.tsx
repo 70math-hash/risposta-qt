@@ -26,7 +26,7 @@
  */
 
 import { useState } from 'react'
-import { baixaCsv, le } from './dados.js'
+import { baixaCsv, le, registraExportacao } from './dados.js'
 import { Aviso, Cartao, Marca, Tabela } from './componentes.jsx'
 
 interface Recorte {
@@ -99,6 +99,18 @@ export function Exportar(): React.ReactElement {
       baixaCsv(`qt-${r.nome}`, dados)
       setLinhas((l) => ({ ...l, [r.view]: dados.length }))
       setEstado((e) => ({ ...e, [r.view]: 'pronto' }))
+
+      // O registro vem DEPOIS do arquivo, e a falha dele nao desfaz nada: o CSV ja esta com quem
+      // baixou. `vw_exportacao_cliente` e a unica leitura que entrega dado pessoal em bloco, e a
+      // folha canonica manda registrar quem a usou.
+      const reg = await registraExportacao(r.view, dados.length)
+      if (reg.ok !== true) {
+        setErros((s) => ({
+          ...s,
+          [r.view]:
+            `o arquivo foi gerado, e o REGISTRO de quem baixou falhou: ${reg.erro ?? 'motivo não informado'}`,
+        }))
+      }
     } catch (e) {
       setEstado((s) => ({ ...s, [r.view]: 'erro' }))
       setErros((s) => ({

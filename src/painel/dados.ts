@@ -759,3 +759,13 @@ export const registraContatoAlerta = (respostaId: string): Promise<RespostaAdmin
 /** Atende um pedido de exclusao de titular: anonimiza e carimba, na mesma transacao. */
 export const atendeExclusao = (pedidoId: string): Promise<RespostaAdmin> =>
   comSessao('/api/atende-exclusao', 'POST', { pedido_id: pedidoId })
+
+/**
+ * Registra que uma exportacao foi baixada.
+ *
+ * Chamada DEPOIS de o arquivo ter sido gerado, e o resultado dela nao impede nada: o arquivo ja
+ * esta com quem baixou quando esta funcao roda. Falha aqui vira aviso na tela, e nao erro de
+ * exportacao — recusar o download porque o registro falhou seria punir quem cumpriu a regra.
+ */
+export const registraExportacao = (view: string, linhas: number): Promise<RespostaAdmin> =>
+  comSessao('/api/registra-exportacao', 'POST', { view, linhas })

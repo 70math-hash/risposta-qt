@@ -214,7 +214,13 @@ cache, e é a mesma resposta HTTP para os cinco aparelhos.
 
 Duas consequências declaradas, porque as duas são visíveis para quem opera:
 
-1. **O sorteio da pergunta vive em `fn_sorteia_pergunta`, no banco, e não é copiado para o cliente.** Sem
+1. **O sorteio da pergunta tem DUAS implementações, e isso é declarado e não acidental.** A afirmação
+   anterior aqui — "vive no banco e não é copiado para o cliente" — nunca foi verdade: nada no
+   sistema chama `fn_sorteia_pergunta`, e quem sorteia é o cliente. Elas existem porque o sorteio
+   acontece no meio do fluxo, antes de a resposta existir, e o quiosque tem de funcionar sem rede.
+   As duas implementam cinco das seis regras; a sexta (não repetir na mesma mesa na mesma noite) só
+   existe no banco, porque depende do que outros aparelhos sortearam. Ver a seção 6.6 da folha
+   canônica. Sem
    rede, o aparelho **pula as telas rotacionadas** e a resposta sai sem linha em
    `resposta_pergunta_sorteada`. A alternativa seria repetir as sete regras de sorteio dentro do PWA, o que
    criaria duas definições do mesmo sorteio, e duas definições é como se produz divergência que ninguém
@@ -223,7 +229,7 @@ Duas consequências declaradas, porque as duas são visíveis para quem opera:
    rede, `versao_texto` aponta para a versão antiga, que é exatamente o que a prova de consentimento exige.
 
 O sinal de vida do aparelho (`ultimo_sinal_em`, fila pendente e `versao_app` em `dispositivo`) é a segunda e
-última escrita que o PWA provoca, a cada abertura e a cada hora (`F08`). Ela **não** cabe em
+última escrita que o PWA provoca, a cada abertura e a cada 30 minutos (`F08`). Ela **não** cabe em
 `fn_grava_resposta`, porque acontece sem resposta nenhuma. Proposta: uma função própria de escopo mínimo,
 `fn_registra_sinal(jsonb) returns void` (**nome novo, não consta na folha canônica**), que só toca as colunas
 de sinal de `dispositivo`. Com ela, a frase da folha canônica passa a ser "duas funções, e só duas, escrevem

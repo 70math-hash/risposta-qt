@@ -458,6 +458,52 @@ async function postAtendeExclusao(req: Request, env: Ambiente): Promise<Response
   }
 }
 
+/**
+ * Registra que alguem baixou uma exportacao.
+ *
+ * `vw_exportacao_cliente` e a UNICA leitura do sistema que entrega dado pessoal em bloco, e por isso
+ * a folha canonica manda registrar o uso. O registro tem tabela propria e nao entra em
+ * `execucao_rotina`: exportacao nao tem agendamento nem passo, e misturar as duas faria a tela de
+ * saude responder "o sistema rodou" e "alguem baixou um arquivo" com a mesma tabela.
+ *
+ * Exige sessao, e o e-mail vem dela: "quem baixou" respondido pelo proprio requerente nao responde
+ * nada.
+ */
+async function postRegistraExportacao(req: Request, env: Ambiente): Promise<Response> {
+  let usuario
+  try {
+    usuario = await usuarioDaRequisicao(req, env)
+  } catch (e) {
+    if (e instanceof SemSessao) return erro(e.motivo, 401)
+    return erro(e instanceof Error ? e.message : 'erro desconhecido', 500)
+  }
+
+  let corpo: { view?: string; linhas?: number }
+  try {
+    corpo = (await req.json()) as typeof corpo
+  } catch {
+    return erro('corpo nao e JSON valido', 400)
+  }
+  if (corpo.view === undefined || corpo.view === '') return erro('view e obrigatorio', 422)
+
+  try {
+    await insere(env, 'exportacao_registro', [
+      {
+        view_exportada: corpo.view,
+        quem: usuario.email,
+        ...(typeof corpo.linhas === 'number' ? { linhas: corpo.linhas } : {}),
+      },
+    ])
+    return ok()
+  } catch (e) {
+    // Falhar o registro NAO pode impedir a exportacao, que ja aconteceu no navegador quando esta
+    // rota e chamada. O erro sobe para a tela dizer que o registro falhou, e o arquivo continua com
+    // quem baixou: recusar aqui seria punir quem cumpriu a regra.
+    if (e instanceof ErroBanco) return erro(`banco: ${e.detalhe}`, 502)
+    return erro(e instanceof Error ? e.message : 'erro desconhecido', 500)
+  }
+}
+
 export default {
   async fetch(req: Request, env: Ambiente): Promise<Response> {
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS })
@@ -490,6 +536,8 @@ export default {
         return postContatoAlerta(req, env)
       case 'POST /api/atende-exclusao':
         return postAtendeExclusao(req, env)
+      case 'POST /api/registra-exportacao':
+        return postRegistraExportacao(req, env)
       case 'GET /api/saude': {
         // Sonda simples, sem tocar o banco: responde se o Worker esta no ar.
         //

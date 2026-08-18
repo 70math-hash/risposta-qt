@@ -155,11 +155,15 @@ begin
   from pg_class c join pg_namespace n on n.oid = c.relnamespace
   where n.nspname = 'experiencia' and c.relkind = 'r';
 
-  -- Vinte e seis tabelas. E a lista da secao 2.2 da folha canonica, e ela e a lei.
-  -- Se este numero mudar, foi porque alguem criou ou removeu tabela, e nesse caso a
-  -- folha canonica precisa ser editada ANTES desta linha.
-  if v_tabelas <> 26 then
-    raise exception 'esperadas 26 tabelas no schema experiencia, encontradas %', v_tabelas;
+  -- PISO, e nao numero exato. As 26 da secao 2.2 da folha tem de existir ATE AQUI; migrations
+  -- posteriores podem legitimamente acrescentar tabela, e uma delas ja acrescentou.
+  --
+  -- A conferencia do numero EXATO mudou para a ultima migration da cadeia, que e a unica que
+  -- enxerga o estado final. Aqui ela nao servia: este arquivo roda no meio, entao ele aprovava um
+  -- numero que deixava de ser verdade tres migrations depois — e uma conferencia que descreve um
+  -- estado intermediario como se fosse o final da uma falsa sensacao de trava.
+  if v_tabelas < 26 then
+    raise exception 'esperadas ao menos as 26 tabelas da secao 2.2, encontradas %', v_tabelas;
   end if;
 
   select count(*) into v_sem_politica

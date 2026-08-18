@@ -316,6 +316,11 @@ export interface PerguntaBanco {
   dimensao: Dimensao
   fator?: string
   peso: Peso
+  /**
+   * Em foco neste periodo. Recebe peso extra no sorteio (regra 4), e o proprietario a rotaciona
+   * pela aba de administracao, uma vez por mes.
+   */
+  emFoco?: boolean
   /** Verdadeiro quando a pergunta morre ao entrar uma integracao. Banco que so cresce e sinal de que ninguem olha as integracoes. */
   temporaria: boolean
   saiQuando: string
@@ -364,32 +369,85 @@ export function quantasRotacionadas(nota: number): number {
 }
 
 /**
- * Sorteio por peso, sem repeticao dentro da mesma resposta.
+ * O sorteio das perguntas rotacionadas, no cliente.
  *
- * `aleatorio` entra por parametro para o teste ser deterministico. Peso `alto` recebe
- * cerca de duas vezes o sorteio de `medio`, e `baixo` cerca de metade.
+ * POR QUE ELE EXISTE, JA QUE `fn_sorteia_pergunta` EXISTE NO BANCO
+ *   Porque o sorteio acontece NO MEIO do fluxo, com o cliente na mesa, antes de a resposta existir
+ *   — e o quiosque tem de funcionar sem rede. Uma ida ao banco ali transformaria uma tela de dois
+ *   segundos numa espera, e uma noite sem Wi-Fi em nenhuma pergunta rotacionada.
+ *
+ *   `01-arquitetura` afirmava que o sorteio "vive no banco e nao e copiado para o cliente". Isso
+ *   nunca foi verdade: esta funcao sempre foi a unica que roda de verdade, e NADA no sistema chama
+ *   `fn_sorteia_pergunta`. A afirmacao foi corrigida no documento.
+ *
+ * AS SEIS REGRAS, E QUAL DELAS FICA DE FORA
+ *   1. Quantidade pela faixa: promotor 2, neutro 1, detrator 0. Em `quantasRotacionadas`.
+ *   2. Uma por dimensao. AQUI.
+ *   3. Suprime a dimensao que a ramificacao de nota baixa ja cobriu. AQUI, por `dimensoesCobertas`.
+ *   4. Fator de foco: as em foco recebem peso igual ao das demais somadas. AQUI.
+ *   5. Sem repeticao dentro da mesma resposta. AQUI, por construcao.
+ *   6. Nao repetir a mesma pergunta na mesma mesa na mesma noite. **NAO IMPLEMENTADA AQUI**, e e a
+ *      unica divergencia declarada: ela depende do que OUTROS aparelhos sortearam esta noite, e
+ *      nenhum aparelho sabe isso sem rede. `fn_sorteia_pergunta` a implementa, e e por isso que a
+ *      funcao continua existindo — ela e a definicao completa, para o dia em que houver um caminho
+ *      online.
+ *
+ *   A consequencia da regra 6 ausente e limitada e conhecida: duas festas na mesma mesa na mesma
+ *   noite podem receber a mesma pergunta. Com 20 perguntas no banco e 2 sorteadas por promotor, a
+ *   chance e baixa, e o custo de errar e uma repeticao, e nao um numero errado.
+ *
+ * `aleatorio` entra por parametro para o teste ser deterministico.
  */
 export function sorteiaPerguntas(
   ativas: readonly PerguntaBanco[],
   quantidade: number,
   aleatorio: () => number = Math.random,
+  /**
+   * As dimensoes que a ramificacao de nota baixa ja cobriu (regra 3).
+   *
+   * Quem ja disse que o problema foi a comida nao precisa de uma pergunta sobre comida: ela gastaria
+   * uma das duas telas rotacionadas perguntando o que a pessoa acabou de responder.
+   */
+  dimensoesCobertas: readonly string[] = [],
 ): readonly PerguntaBanco[] {
-  const disponiveis = [...ativas]
+  // Regra 3: fora as dimensoes ja cobertas.
+  const disponiveis = ativas.filter((p) => !dimensoesCobertas.includes(p.dimensao))
   const escolhidas: PerguntaBanco[] = []
 
-  while (escolhidas.length < quantidade && disponiveis.length > 0) {
-    const total = disponiveis.reduce((s, p) => s + PESO_NUMERICO[p.peso], 0)
+  // Regra 4: o fator de foco iguala o peso total das em foco ao das demais. Aproximadamente metade
+  // das impressoes vai para as em foco — aproximadamente, e nao exatamente, porque a deduplicacao
+  // por dimensao muda o conjunto a cada resposta.
+  const pesoFoco = disponiveis
+    .filter((p) => p.emFoco === true)
+    .reduce((s, p) => s + PESO_NUMERICO[p.peso], 0)
+  const pesoResto = disponiveis
+    .filter((p) => p.emFoco !== true)
+    .reduce((s, p) => s + PESO_NUMERICO[p.peso], 0)
+  const peso = (p: PerguntaBanco): number =>
+    PESO_NUMERICO[p.peso] * (p.emFoco === true && pesoFoco > 0 ? pesoResto / pesoFoco : 1)
+
+  // Regra 2: uma por dimensao. As dimensoes ja escolhidas saem do conjunto junto com a pergunta.
+  const dimensoesUsadas = new Set<string>()
+  const restantes = [...disponiveis]
+
+  while (escolhidas.length < quantidade && restantes.length > 0) {
+    const elegiveis = restantes.filter((p) => !dimensoesUsadas.has(p.dimensao))
+    if (elegiveis.length === 0) break
+
+    const total = elegiveis.reduce((s, p) => s + peso(p), 0)
     let alvo = aleatorio() * total
-    let indice = disponiveis.length - 1
-    for (let i = 0; i < disponiveis.length; i++) {
-      alvo -= PESO_NUMERICO[disponiveis[i]!.peso]
+    let escolhida = elegiveis[elegiveis.length - 1]!
+    for (const p of elegiveis) {
+      alvo -= peso(p)
       if (alvo <= 0) {
-        indice = i
+        escolhida = p
         break
       }
     }
-    escolhidas.push(disponiveis[indice]!)
-    disponiveis.splice(indice, 1)
+
+    escolhidas.push(escolhida)
+    dimensoesUsadas.add(escolhida.dimensao)
+    restantes.splice(restantes.indexOf(escolhida), 1)
   }
 
   return escolhidas

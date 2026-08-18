@@ -148,6 +148,14 @@ Vinte e seis tabelas. Cada linha traz o nome literal, o que a tabela guarda e o 
 |---|---|---|
 | `convite_clique` | As 74 linhas de `cliques_avaliacao` do projeto `qt-avaliacoes`, com `garcom` cru, `criado_em`, `user_agent` e `referrer` preservados | Um clique em convite, do histórico |
 
+**Bloco H. Acrescentado depois da implementação**
+
+| Tabela | O que guarda | Grão (uma linha é) |
+|---|---|---|
+| `exportacao_registro` | Quem baixou qual exportação, e quando. **Resolve uma contradição interna desta folha**: a seção 6.3 mandava registrar o uso de `vw_exportacao_cliente` em `execucao_rotina`, e a seção 3.3 fecha `rotina` em cinco valores, nenhum de exportação. Tabela própria em vez de um sexto valor: exportação não tem agendamento nem passo, e misturá-la faria `vw_saude_rotina` responder duas perguntas diferentes | Uma exportação baixada |
+
+Com ela, são **27** tabelas, e a invariante que confere esse número roda na ÚLTIMA migration da cadeia — a única que enxerga o estado final. Ela morava na migration de RLS, que roda no meio: aprovava um número que deixava de ser verdade três migrations depois.
+
 ### 2.3 Fora do Postgres, e mesmo assim com nome fixado
 
 | Nome | Onde vive | O que guarda |
@@ -535,13 +543,39 @@ desatualizada, porque folha desatualizada é pior que folha ausente: ela tem pre
 | `fn_faixa_nps(smallint) returns text` | Devolve `detrator`, `neutro` ou `promotor` |
 | `fn_fator_valido(text, text) returns boolean` | O par (dimensão, fator) da seção 3.3. Sustenta o `CHECK` de `resposta_opcao`, `classificacao_texto` e `pergunta_banco` |
 | `fn_casa_abre(date) returns boolean` | Padrão semanal (fecha segunda) com `calendario_operacao` sobrepondo. É o que faz o digest escrever `casa fechada` em vez de `nenhuma resposta coletada` |
-| `fn_sorteia_pergunta(uuid, text) returns setof uuid` | As sete regras de sorteio do banco, em código, nunca em planilha |
+| `fn_sorteia_pergunta(uuid, text, timestamptz) returns setof uuid` | As regras de sorteio do banco, em código, nunca em planilha. **NÃO está no caminho ativo hoje**: quem sorteia é o cliente, porque o sorteio acontece no meio do fluxo e o quiosque tem de funcionar sem rede. Ela é a definição completa — a única que implementa a regra 6, que depende do que outros aparelhos sortearam na mesma noite — e fica para o dia em que houver caminho online. Ver a seção 6.6 |
 | `fn_grava_resposta(jsonb) returns uuid` | O único caminho de escrita do PWA para resposta, com escopo restrito. O tablet não tem `INSERT` direto e não lê a base de clientes |
 | `fn_registra_sinal(jsonb) returns void` | O heartbeat do aparelho. É escrita **sem resposta associada**, e por isso não cabe em `fn_grava_resposta`. Não cria linha: aparelho desconhecido é ignorado, porque o cadastro dos 5 tablets é ato humano e não efeito de heartbeat |
 | `fn_mascara_contato(text) returns text` | A varredura de telefone, e-mail e CPF em texto livre (`D4`). Sem ela, os 12 meses de retenção são contornados pelo próprio texto que se pretende preservar |
 | `fn_aplica_retencao(integer) returns jsonb` | A rotina **mensal**: anonimiza quem passou de 12 meses da última visita e varre o texto. `UPDATE` para nulo, nunca `DELETE` |
+| `fn_marca_atualizado() returns trigger` | Carimba `atualizado_em`. Existe porque a coluna tinha `default now()` e **nada a escrevia**: ela dizia, para sempre, que o parâmetro foi atualizado quando ele foi criado |
 | `fn_atende_exclusao(uuid, text) returns jsonb` | O pedido **individual** de titular. Anonimiza e carimba o pedido na mesma transação: em duas chamadas existiria um estado com o pedido atendido e o dado ainda no banco |
 | `fn_grava_resposta` e `fn_registra_sinal` | são as **duas, e só duas**, que o PWA chama |
+
+### 6.6 As duas implementações do sorteio, e por que existem duas
+
+`01-arquitetura` afirmava que o sorteio "vive em `fn_sorteia_pergunta`, no banco, e **não é copiado
+para o cliente**", com a razão certa ("duas definições é como se produz divergência que ninguém
+audita"). **Isso nunca foi verdade**, e a afirmação foi corrigida: `sorteiaPerguntas` em
+`src/coleta/questionario.ts` sempre foi a única que roda, e nada no sistema chama a função do banco.
+
+Duas existem porque o sorteio acontece **no meio do fluxo**, com o cliente na mesa, antes de a
+resposta existir — e o quiosque tem de funcionar sem rede. Uma ida ao banco ali transformaria uma
+tela de dois segundos numa espera, e uma noite sem Wi-Fi em nenhuma pergunta rotacionada.
+
+| Regra | Cliente | Banco |
+|---|---|---|
+| 1. Quantidade pela faixa (promotor 2, neutro 1, detrator 0) | sim | sim |
+| 2. Uma por dimensão | sim | sim |
+| 3. Suprime a dimensão coberta pela ramificação de nota baixa | sim | sim |
+| 4. Fator de foco | sim | sim |
+| 5. Sem repetição dentro da mesma resposta | sim | sim |
+| 6. Não repetir na mesma mesa na mesma noite | **não** | sim |
+
+A regra 6 é a única divergência, e ela é declarada e não acidental: depende do que **outros
+aparelhos** sortearam na mesma noite, e nenhum aparelho sabe isso sem rede. A consequência é
+limitada — duas festas na mesma mesa na mesma noite podem receber a mesma pergunta — e o custo de
+errar é uma repetição, e não um número errado.
 
 ### 6.5 Os papéis do banco
 

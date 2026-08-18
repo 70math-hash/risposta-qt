@@ -1280,7 +1280,7 @@ A conferência, com os cinco casos de borda que `src/comum/dia-operacional.ts` t
 | Segunda, 01h20 | **domingo** | A madrugada de domingo para segunda é da noite de domingo. Segunda nunca recebe resposta, porque a casa fecha |
 
 O espelho em TypeScript é `diaOperacional` de [`src/comum/dia-operacional.ts`](../../src/comum/dia-operacional.ts),
-com 21 testes. Ele trata a hora de parede como se fosse UTC, subtrai o corte e lê a data, que é exatamente o que
+com testes próprios (a contagem exata envelhece a cada commit, e por isso não entra aqui). Ele trata a hora de parede como se fosse UTC, subtrai o corte e lê a data, que é exatamente o que
 `at time zone` seguido de `- interval '6 hours'` faz no Postgres. **São duas implementações da mesma regra, e
 isso é risco declarado:** a defesa é que a versão do banco produz a coluna e a versão do front só exibe, e que
 os cinco casos de borda acima são teste nas duas pontas.

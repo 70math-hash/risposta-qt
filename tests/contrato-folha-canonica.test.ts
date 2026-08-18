@@ -286,3 +286,50 @@ describe('todo caminho de arquivo citado nos documentos existe', () => {
     ).toBe(true)
   })
 })
+
+/**
+ * A crítica adversarial não pode mentir sobre o próprio estado.
+ *
+ * `06-critica.md` abre com `REPROVADO` e 46 achados, e é o primeiro documento que alguém lê para
+ * saber em que pé o sistema está. Depois que os achados foram fechados, o veredito passou a
+ * descrever um sistema que não existe mais — e um documento de crítica desatualizado comete
+ * exatamente o erro que ele denuncia, com o agravante de ter precedência na leitura.
+ *
+ * A seção 0 resolve isso declarando o estado, e este caso confere que ela continua batendo com a
+ * tabela de achados. Acrescentar um achado sem atualizar o estado derruba aqui.
+ */
+describe('a crítica declara o próprio estado, e o número bate', () => {
+  const CRITICA = readFileSync(join(process.cwd(), 'docs', 'arquitetura', '06-critica.md'), 'utf8')
+
+  const achados = new Set(
+    [...CRITICA.matchAll(/^\| \*\*(A\d{2})\*\* \| /gm)].map((m) => m[1]!),
+  )
+
+  it('a tabela de achados foi encontrada', () => {
+    expect(achados.size).toBeGreaterThan(40)
+  })
+
+  it('a seção 0 existe e diz o estado', () => {
+    expect(CRITICA).toContain('## 0. Estado desta crítica')
+    // O veredito original fica PRESERVADO, e marcado como histórico. Apagá-lo apagaria o registro
+    // do que foi encontrado, que é o que explica a forma do sistema.
+    expect(CRITICA).toContain('preservado')
+  })
+
+  it('o número de achados que a seção 0 declara é o número que a tabela tem', () => {
+    const m = CRITICA.match(/os (\d+) achados estão fechados/)
+    expect(m, 'a seção 0 não declara quantos achados estão fechados').not.toBeNull()
+    expect(
+      Number(m![1]),
+      `a seção 0 diz ${m![1]} achados e a tabela tem ${achados.size}. Achado novo entra na ` +
+        'tabela e no estado, ou o documento passa a afirmar o que não confere.',
+    ).toBe(achados.size)
+  })
+
+  it('cada achado citado no estado existe na tabela', () => {
+    const estado = CRITICA.slice(0, CRITICA.indexOf('## 1. Veredito'))
+    for (const m of estado.matchAll(/`?\*?\*?(A\d{2})\*?\*?`?/g)) {
+      expect(achados.has(m[1]!), `a seção 0 cita ${m[1]} e a tabela não o tem`).toBe(true)
+    }
+  })
+})

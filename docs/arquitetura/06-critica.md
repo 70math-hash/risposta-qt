@@ -10,13 +10,86 @@ existissem, quatro arquivos que **não estão no repositório**: `scripts/export
 `scripts/ensaio-dados.sql`, `sql/papeis.sql` e `docs/registro-tratamento.md`. Os dois primeiros travam a
 migration 14 e o ensaio; o terceiro trava a restauração; o quarto é obrigação de LGPD.
 
+> **Os quatro existem desde 18/08/2026**, mais um quinto que a seção 3.3 de `03-seguranca` prometia
+> (`sql/teste_rls.sql`). Um teste passou a exigir que todo caminho de arquivo citado nos documentos exista:
+> referência para arquivo ausente é pior que omissão, porque quem lê a referência conclui que o assunto está
+> resolvido e não procura mais.
+
 **Método:** conferência linha por linha do SQL contra as tabelas reais de `12-schema-custo-inspecao.md`, e do
 SQL contra o TypeScript já escrito, valor por valor de domínio fechado. Onde o documento afirma um número, o
 número foi recalculado.
 
 ---
 
+## 0. Estado desta crítica
+
+> **Esta seção é posterior ao resto do documento, e existe porque o resto envelheceu.** O veredito da seção 1
+> e os 46 achados da seção 2 estão **preservados como foram escritos**, em 17/08/2026: apagá-los apagaria o
+> registro do que foi encontrado, e é o registro que explica por que o sistema tem a forma que tem. O que
+> mudou desde então está aqui.
+>
+> **Um documento de crítica que não diz seu próprio estado comete o erro que ele denuncia.** Ele tem
+> precedência na leitura de quem chega, e quem chegasse agora leria `REPROVADO` sobre defeitos que já não
+> existem — e concluiria, com confiança, a coisa errada.
+
+**Estado em 18/08/2026: os 46 achados estão fechados,** e cada um tem evidência que **executa**, e não
+evidência que se lê. A distinção é o método que a própria crítica cobrava: das duas classes de defeito que
+ela achou, quase nenhuma era visível para `tsc`, e várias sobreviveram a leituras cuidadosas do SQL e do
+documento ao mesmo tempo, porque os dois estavam coerentes **entre si** e errados **quanto ao banco**.
+
+### 0.1 Onde a evidência de cada achado vive
+
+| Camada | O que ela pega que a de cima não pega | Onde |
+|---|---|---|
+| `tsc --noEmit` | tipo, campo, assinatura | — |
+| Testes de contrato | nome de coluna em string, domínio fechado, forma de view, promessa de documento contra o que existe | `tests/contrato-*.test.ts` |
+| Ensaio em Postgres | tudo que só o Postgres julga: `CHECK`, `UNIQUE` com nulo, imutabilidade, recursão, RLS | `scripts/ensaio.sh --dados` |
+| Matriz de permissões | quem passa e quem não passa, girando a maçaneta | `sql/teste_rls.sql` |
+| Worker por HTTP | o caminho real da resposta, ponta a ponta | `tests/worker-integracao.test.ts` |
+
+### 0.2 Os cinco achados cuja correção mudou uma decisão, e não só uma linha
+
+Os outros 41 foram consertos diretos. Estes cinco mudaram o desenho, e vale saber por quê:
+
+| # | O que se descobriu | O que mudou |
+|---|---|---|
+| **A19** + `A01`/`A02` | uma parte filha recusada abortava a transação e a **resposta inteira** se perdia | a gravação passou a ser resiliente: a nota entra sempre, a parte recusada é descartada **e registrada** em `vw_gravacao_diagnostico` |
+| **A24** | a recursão de custo descia por **rótulo** (`tipo = 'producao_interna'`) e parava por **fato** (ter lista própria); um insumo no vão entre os dois sumia da conta inteira e o custo saía menor sem aviso | os dois lados passaram a usar o mesmo predicado, e o valor de `tipo` saiu do cálculo |
+| **A38** | a junção do histórico de cliques por nome não era por chave única; com homônimo, o `on conflict` escondia a multiplicação e o clique ia para uma pessoa **arbitrária** | com homônimo o vínculo fica **nulo de propósito**, e os nomes ambíguos são anunciados |
+| **A43** | o sorteio de perguntas era descrito como vivendo no banco, e **nada** chamava `fn_sorteia_pergunta`; o cliente era a única implementação, com 2 das 6 regras | o cliente passou a aplicar 5 das 6, e a regra 6 é a **única divergência declarada**, com o motivo (ela precisa de estado entre aparelhos, e o quiosque tem de funcionar sem rede) |
+| **A21** + **A29** | a regra 3 do sorteio e o registro de contato existiam inteiros, com teste, e **nada os acionava** | a ordem das telas passou a alimentar a regra 3, o botão de contato existe, e um teste exige que toda escrita tenha tela que a chame |
+
+### 0.3 O que a crítica errou
+
+Vale registrar, porque o erro é instrutivo e porque uma crítica revisada só por quem concorda com ela não foi
+revisada.
+
+- **A25, no exemplo.** A crítica ilustrou o guarda de ciclo com "muçarela no molho e muçarela dentro da base
+  do molho". Esse caso **não** aciona o guarda: `visitados` acumula por **caminho**, e os dois são caminhos
+  distintos — a muçarela era somada duas vezes, corretamente. O defeito existia, mas só em ciclo de verdade
+  (`A → B → A`), e é assim que ele está testado.
+- **A38, na metade sobre `vw_garcom_trimestre`.** Garçons de semente não ficam presos ali com `n = 0`: a view
+  tira o grão da **união** de `resposta` e `tentativa`, então quem não tem nenhuma das duas não aparece.
+- **DI2, no conselho.** A crítica pediu `--enable-row-security` no `pg_dump`. O efeito seria o oposto do
+  pretendido: com a opção, o dump **respeita** as políticas e sai parcial parecendo completo.
+
+### 0.4 O que continua aberto, e não é software
+
+Nada disto se resolve escrevendo código, e todos estão listados na seção 8 de `docs/registro-tratamento.md` e
+na seção 11 da folha canônica: os seis deveres humanos **sem dono nomeado**, o encarregado (DPO) e a política
+de privacidade pública, a conta do B2 com a chave `age`, o `pg_dump` de `NFe e Financeiro` conferido como
+restaurável, e a semântica de `rn`/`rendimento`/`rn_override` (`N46`), que o painel carrega até a tela como
+premissa declarada.
+
+**Duas coisas continuam não verificadas contra o Supabase real,** porque exigem o projeto na mão: se o
+PostgREST hospedado aceita um papel próprio no `role` do JWT, e se o projeto ainda tem o segredo HS256 legado.
+`GET /api/saude` responde qual caminho está ativo. **Nenhuma migration foi aplicada a projeto real.**
+
+---
+
 ## 1. Veredito
+
+> **Veredito de 17/08/2026, preservado.** Ver a seção 0 para o estado atual.
 
 **REPROVADO.** Três defeitos independentes fazem a coleta perder **toda** resposta de promotor e de neutro na
 primeira noite, em silêncio, e a folha canônica não foi editada apesar de 4 funções, 5 domínios fechados e mais
@@ -183,18 +256,18 @@ Severidade: **BLOQUEANTE** impede aplicar a migration ou destrói dado; **ALTA**
 | Item | Veredito | Evidência |
 |---|---|---|
 | **D1** Comprar tablets antes de cancelar | **RESPEITADA** | `M0` e `ponte de coleta` não aparecem fora de "não existe". `05-implantacao` seção 1.5 põe o cancelamento como última entrega, contra o piso de 20 itens |
-| **D2** cond. 1: nada escreve fora do schema | **VIOLADA na prática** | `20260817090000:99-108` concede só `SELECT` e revoga `CREATE`, o que está correto. Mas nenhum papel com `LOGIN` pertence a `experiencia_app`, e o único caminho é `SUPABASE_SERVICE_KEY` (`.env.example:10`), que tem privilégio pleno no `public` fiscal. O critério de aceite de `F55` não pode passar (**A07**). `03-seguranca` `DV1` chega à mesma conclusão |
+| **D2** cond. 1: nada escreve fora do schema | **RESPEITADA** (era VIOLADA na prática) | `20260817111000` cria o caminho que faltava: `grant experiencia_app to authenticator`, e o Worker passa a assumir o papel restrito por um JWT com `role`. `sql/teste_rls.sql`, bloco C, gira a maçaneta: `experiencia_app` **lê** `public.pratos` e `public.insumos_master`, e é **recusado** ao inserir em `public.pratos` e ao apagar `public.historico_precos`. É o critério de aceite de `F55` conferido por execução, e não por leitura. Ressalva honesta: se `SUPABASE_JWT_SECRET` não estiver configurado, o Worker volta a escrever como `service_role` — e **diz que voltou**, em `GET /api/saude` (`permissoes_valendo: false`) |
 | **D2** cond. 2: migration versionada, zero DDL ad hoc | **RESPEITADA** | 15 arquivos versionados, `DDL ad hoc` listado entre o que não existe |
-| **D2** cond. 3: `pg_dump` antes de qualquer migração | **RISCO** | Todos os documentos declaram a condição e chamam o SQL de "arquivo inerte". Não há mecanismo: nada no repositório impede aplicar a migration 1 sem o dump. É disciplina humana pura, e o projeto declara que disciplina humana é o que ele não pode assumir |
+| **D2** cond. 3: `pg_dump` antes de qualquer migração | **RISCO, reduzido** | Continua sendo disciplina humana: nada impede aplicar a migration 1 sem o dump, e não há mecanismo que possa impedir de dentro do repositório. O que mudou é o outro lado — o dump agora tem para onde voltar. `sql/papeis.sql` existe, e `scripts/ensaio.sh` **ensaia a restauração** nas duas ordens a cada execução. O risco que sobra é o de não fazer o dump; o de fazer um dump que não restaura foi eliminado |
 | **D2** cond. 4: 74 linhas conferidas antes de pausar | **RESPEITADA** | Conferência em SQL na migration 14, com exceção que derruba a migration, mais `min`/`max` de `criado_em` |
 | **D3** Só linkar Google e iFood | **RESPEITADA** | `configuracao.url_google` e `url_ifood`, nenhuma API, nenhuma tabela de avaliação pública, `detecção de divergência` ausente. A auditoria por IA tem três itens |
-| **D4** Retenção de 12 meses da última visita | **RESPEITADA COM RISCO** | `fn_aplica_retencao` faz as duas metades numa transação, `cliente_anonimizado_sem_dado_pessoal` torna "anonimizado" não falsificável, e `fn_mascara_contato` cobre e-mail, CPF e telefone em quatro passadas com a assimetria certa (mascarar demais). Risco: a rotina não existiria sem esta passada (`02-modelo` divergência 4), e `docs/registro-tratamento.md`, que `D4` liga, não existe |
+| **D4** Retenção de 12 meses da última visita | **RESPEITADA** | `fn_aplica_retencao` faz as duas metades numa transação, `cliente_anonimizado_sem_dado_pessoal` torna "anonimizado" não falsificável, e `fn_mascara_contato` cobre e-mail, CPF e telefone em quatro passadas com a assimetria certa (mascarar demais). O risco registrado antes era `docs/registro-tratamento.md` não existir, e ele **agora existe**, com as seis operações de tratamento descritas contra o schema |
 | **D5** 5 tablets, 4 em uso e 1 reserva | **RESPEITADA** | `dispositivo.uso in ('em_uso','reserva')`, heartbeat por aparelho em `vw_dispositivo_sinal`, corte por aparelho em `vw_coleta_dia`. As expressões de 2 tablets não aparecem |
 | **D6** Nenhum convite ao Google em tela da pesquisa | **RESPEITADA** | `T7` em `questionario.ts:373-376` só agradece e reseta em 8 s. Nenhuma menção a Google, cupom ou Instagram em tela nenhuma. `review gating` só aparece como proibido |
-| **D7** `age` assimétrico, B2, sem artefato do GitHub | **RESPEITADA nos documentos, RISCO na execução** | `chave simétrica` e `artefato do GitHub` aparecem só como proibidos. Mas `05-implantacao` `DI1` a `DI3` registram que `.github/workflows/backup.yml` dumpa o banco inteiro (leva `notas` e `fornecedores` para fora do Brasil), não passa `--enable-row-security` (e vai falhar no primeiro domingo) e faz `select 1` em vez de escrever em `execucao_rotina`, ou seja o keep-alive de reserva não existe. Três defeitos conhecidos e não corrigidos |
+| **D7** `age` assimétrico, B2, sem artefato do GitHub | **RESPEITADA** (era RISCO na execução) | Os três defeitos de `DI1`–`DI3` foram corrigidos. `DI1`: o dump levar `public` junto passa a ser decisão escrita, com a transferência internacional registrada na seção 5 do registro de tratamento e a cifra assimétrica como salvaguarda. `DI2`: `--enable-row-security` **não** entra, e o comentário explica por que o conselho estava invertido — com a opção, o dump respeita RLS e sai parcial parecendo completo; entra no lugar uma conferência de `pg_restore --list` contra a contagem de tabelas. `DI3`: o keep-alive deixa de ser `select 1` e grava em `execucao_rotina`, nos dois desfechos |
 | **D8** Nenhuma meta, ranking ou bônus por nota | **RESPEITADA** | `vw_garcom_trimestre` não tem meta, semáforo nem posição, o comentário diz o motivo, e a janela é trimestral com `n >= 20`. `meta por nota` e `ranking mensal` só aparecem como proibidos |
-| **Manutenção zero**: nada quebra em silêncio | **VIOLADA** | Três peças quebram em silêncio hoje: `falha_permanente` na fila descarta resposta e a remove de todo contador (**A05**); o teto de linhas do PostgREST trunca exportação sem erro (**A10**); a coluna gerada pode divergir entre produção e restauração por causa da imutabilidade falsa (**A09**). E A01 mais A04 fazem a resposta morrer com erro no servidor e silêncio no salão |
-| **Manutenção zero**: seis deveres humanos, sem sétimo | **RISCO** | Aparece um sétimo dever, por incidente: registrar `contato_em` (**A29**). Além disso, oito dos itens da seção 11.2 de `02-modelo` (semear `pergunta_banco`, cadastrar seis tabelas, preencher `email_alerta_gerente`, pôr o schema em Exposed schemas) são tarefas de uma vez, não recorrentes, o que está correto, mas nenhuma tem dono |
+| **Manutenção zero**: nada quebra em silêncio | **RESPEITADA** (era VIOLADA) | As quatro causas citadas foram fechadas, e cada uma virou um registro visível em vez de um descarte. `A05`: `falha_permanente` só sai de erro que retentativa não conserta (`ehRecusaDefinitiva`), e `tamanhoFila` conta tudo que não foi enviado. `A10`: `le()` pagina até o fim e compara com `count: 'exact'`, e **levanta erro** em vez de entregar o pedaço. `A09`: `fn_dia_operacional` usa `at time zone interval`, que é `IMMUTABLE` de verdade. `A01`/`A02`/`A04`: a gravação resiliente descarta a parte recusada, preserva a nota e registra o descarte em `vw_gravacao_diagnostico`, que a aba de saúde mostra |
+| **Manutenção zero**: seis deveres humanos, sem sétimo | **RESPEITADA com pendência de dono** (era RISCO) | O sétimo dever (`A29`) existe e agora **é executável**: rota, função de cliente e botão na aba de saúde. Um teste passou a exigir que toda escrita de `dados.ts` tenha tela que a chame, porque a cadeia inteira existia menos o último elo e nada acusava. O que continua pendente não é software: os seis deveres seguem **sem dono nomeado**, e nomeá-los é decisão do proprietário (seção 8 do registro de tratamento) |
 | **Manutenção zero**: nenhuma credencial expira | **RESPEITADA** | `D7` exige a chave do B2 sem expiração, e `03-seguranca` seção 5 e `01-arquitetura` registram isso como obrigatório e não como conveniência |
 | **Manutenção zero**: alarme com atuador nomeado | **RISCO, declarado** | `N42` é o alarme único e a folha, seção 11, declara que quem responde quando o e-mail não chega dois dias seguidos é pendência do proprietário. Está declarado, e continua sendo alarme sem atuador. O alerta de detrator tem atuador (gerente) e não tem registrador (**A29**) |
 | **Custo R$ 0,00 por mês** | **RESPEITADA** | Quatro plataformas gratuitas, nenhum cartão em nenhuma conta, e `04-custo-real` faz as contas de cota com folga verificada. O ponto de atenção declarado é `arquivo_bruto` sem poda dentro dos 500 MB |

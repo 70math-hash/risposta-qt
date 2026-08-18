@@ -36,17 +36,40 @@
 -- de diferenca. Espelhada em src/comum/dia-operacional.ts, com 21 testes.
 -- PROIBIDO no repositorio: criado_em::date e date(criado_em). Secao 4.7.
 -- -----------------------------------------------------------------------------
+-- O DESLOCAMENTO E LITERAL (`interval '-03:00'`), E NAO O NOME DO FUSO. Nao e preferencia.
+--
+-- `timestamptz at time zone TEXT` e **STABLE** no Postgres, porque depende da base de fusos, que e
+-- dado que muda. `timestamptz at time zone INTERVAL` e **IMMUTABLE** de verdade. Esta funcao esta
+-- declarada `immutable` porque `resposta.dia_operacional` e COLUNA GERADA, e coluna gerada exige
+-- funcao imutavel — e o Postgres NAO confere o corpo, entao a versao com o nome do fuso era aceita
+-- e a mentira ficava.
+--
+-- A consequencia da mentira nao e teorica. Reescrita de tabela, `pg_restore` e o teste de
+-- restauracao RECOMPUTAM coluna gerada. Se a base de fusos mudar entre a gravacao e a restauracao —
+-- e a propria folha canonica, secao 5.1, preve o retorno do horario de verao —, a mesma resposta cai
+-- num `dia_operacional` na producao e em OUTRO na restauracao. O backup deixaria de reproduzir o
+-- banco, que e exatamente o critério de sucesso da restauracao.
+--
+-- As duas formas dao resultado IDENTICO enquanto o Brasil nao tiver horario de verao (conferido nos
+-- limites em `scripts/ensaio-dados.sql`). A diferenca e o que acontece quando ele voltar: com o nome
+-- do fuso, o banco muda de comportamento sozinho e em silencio, e o dado ja gravado passa a
+-- discordar do recalculado; com o deslocamento literal, nada muda sozinho e o retorno do horario de
+-- verao vira o que a folha diz que e — UMA MIGRATION, aqui e no espelho em TypeScript.
+--
+-- Achado pela critica adversarial da Etapa 4 (A09).
 create or replace function experiencia.fn_dia_operacional(ts timestamptz)
 returns date
 language sql
 immutable
 as $$
-  select ((ts at time zone 'America/Sao_Paulo') - interval '6 hours')::date
+  select ((ts at time zone interval '-03:00') - interval '6 hours')::date
 $$;
 
 comment on function experiencia.fn_dia_operacional(timestamptz) is
-  'A unica definicao do dia operacional do sistema. Corte as 6h, fuso '
-  'America/Sao_Paulo, nunca a meia-noite. 00h40 de quarta pertence a terca.';
+  'A unica definicao do dia operacional do sistema. Corte as 6h, deslocamento -03:00, nunca a '
+  'meia-noite. 00h40 de quarta pertence a terca. O deslocamento e literal e nao o nome do fuso: '
+  '`at time zone <texto>` e STABLE e esta funcao precisa ser IMMUTABLE de verdade, porque '
+  'resposta.dia_operacional e coluna gerada. Se o horario de verao voltar, e uma migration.';
 
 -- -----------------------------------------------------------------------------
 -- A faixa de NPS. Espelhada em `faixaDaNota` de src/comum/nps.ts.

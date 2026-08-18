@@ -36,16 +36,69 @@ export function supabase(): ReturnType<typeof cria> {
 }
 
 /**
- * Le uma view inteira. Sem construtor de consulta: as views ja entregam o recorte pronto, e
- * filtrar de novo no cliente seria duplicar a regra que vive no SQL.
+ * O tamanho de cada pagina. Menor que o teto do PostgREST hospedado, de proposito.
  *
- * Erro sobe para a tela dizer o que falhou, em vez de mostrar zero. Painel que mostra zero
- * quando a leitura falhou e pior que painel que mostra erro: zero parece dado.
+ * O padrao do servidor e 1000 linhas por resposta, e ele corta SEM erro e SEM aviso. Pedir menos que
+ * o teto garante que uma pagina cheia signifique "tem mais", e nao "o servidor cortou".
+ */
+const PAGINA = 500
+
+/**
+ * Le uma view INTEIRA, paginando ate o fim. Sem construtor de consulta: as views ja entregam o
+ * recorte pronto, e filtrar de novo no cliente seria duplicar a regra que vive no SQL.
+ *
+ * POR QUE PAGINA
+ *   A versao anterior fazia `select('*')` e pronto. O PostgREST hospedado aplica um teto de linhas
+ *   por resposta e corta calado: `vw_exportacao_resposta` e `vw_exportacao_comentario` exportariam
+ *   um pedaco do ano com aparencia de ano inteiro, e a garantia de portabilidade do briefing — a de
+ *   que trocar de sistema um dia nao custa a serie historica — deixaria de valer sem ninguem
+ *   perceber. Um ano de coleta passa de 1000 linhas com folga.
+ *
+ * A CONFERENCIA E O QUE IMPORTA
+ *   Paginar sozinho nao basta: um laco que para cedo tambem trunca em silencio. Por isso o total
+ *   lido e comparado com a CONTAGEM que o servidor devolve, e a divergencia vira erro. Exportacao
+ *   truncada em silencio e pior que exportacao que falha.
+ *
+ * Erro sobe para a tela dizer o que falhou, em vez de mostrar zero. Painel que mostra zero quando a
+ * leitura falhou e pior que painel que mostra erro: zero parece dado.
  */
 export async function le<T>(view: string): Promise<T[]> {
-  const { data, error } = await supabase().from(view).select('*')
-  if (error !== null) throw new Error(`${view}: ${error.message}`)
-  return (data ?? []) as T[]
+  const tudo: T[] = []
+  let de = 0
+  let total: number | null = null
+
+  for (;;) {
+    // `count: 'exact'` devolve o total do conjunto, e nao o da pagina. E ele que permite conferir.
+    const { data, error, count } = await supabase()
+      .from(view)
+      .select('*', { count: 'exact' })
+      .range(de, de + PAGINA - 1)
+
+    if (error !== null) throw new Error(`${view}: ${error.message}`)
+    if (count !== null && count !== undefined) total = count
+
+    const pagina = (data ?? []) as T[]
+    tudo.push(...pagina)
+
+    if (pagina.length < PAGINA) break
+    de += PAGINA
+
+    // Trava de seguranca: sem ela, uma view que devolvesse sempre pagina cheia (por erro de
+    // `range` no servidor) faria a aba carregar para sempre, comendo memoria do navegador.
+    if (tudo.length > 200_000) {
+      throw new Error(
+        `${view}: mais de 200 mil linhas. Isso nao e leitura de painel: exporte pelo banco.`,
+      )
+    }
+  }
+
+  if (total !== null && tudo.length !== total) {
+    throw new Error(
+      `${view}: li ${tudo.length} linhas e o servidor diz que existem ${total}. ` +
+        'A leitura foi truncada, e mostrar o pedaco seria pior que mostrar o erro.',
+    )
+  }
+  return tudo
 }
 
 // -----------------------------------------------------------------------------

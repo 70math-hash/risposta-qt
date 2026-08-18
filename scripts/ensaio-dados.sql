@@ -35,7 +35,7 @@ set search_path = experiencia, public;
 do $$
 declare
   v_erros text := '';
-  procedure_ok boolean;
+  i       integer;
 begin
   -- 01h30 de terca pertence a SEGUNDA operacional: o expediente de segunda-feira a noite
   -- atravessa a meia-noite, e cortar em meia-noite partiria uma noite de servico em dois
@@ -60,10 +60,61 @@ begin
     v_erros := v_erros || '23h59 deveria ser o proprio dia. ';
   end if;
 
+  -- E a propriedade que o deslocamento LITERAL existe para garantir: `at time zone interval` da o
+  -- MESMO resultado que `at time zone 'America/Sao_Paulo'` enquanto o Brasil nao tiver horario de
+  -- verao, e e IMMUTABLE de verdade. Se um dia divergirem, o horario de verao voltou, e ai isto
+  -- derruba a aplicacao em vez de deixar o dado gravado discordar do recalculado.
+  for i in 0..364 loop
+    declare
+      v_ts timestamptz := '2026-01-01 00:00:00-03'::timestamptz + (i || ' days')::interval
+                          + ((i * 37) % 1440 || ' minutes')::interval;
+      v_nome date := ((v_ts at time zone 'America/Sao_Paulo') - interval '6 hours')::date;
+      v_lit  date := experiencia.fn_dia_operacional(v_ts);
+    begin
+      if v_nome <> v_lit then
+        v_erros := v_erros || format(
+          'em %s o nome do fuso da %s e o deslocamento literal da %s. ', v_ts, v_nome, v_lit);
+        exit;
+      end if;
+    end;
+  end loop;
+
   if v_erros <> '' then
     raise exception 'fn_dia_operacional: %', v_erros;
   end if;
-  raise notice 'ok  fn_dia_operacional: o corte das 6h esta no lugar nos quatro limites';
+  raise notice 'ok  fn_dia_operacional: corte das 6h nos quatro limites, e o deslocamento literal';
+  raise notice '    concorda com o nome do fuso nos 365 dias de 2026';
+end
+$$;
+
+do $$
+declare v_vol char;
+begin
+  -- `resposta.dia_operacional` e COLUNA GERADA, e coluna gerada exige funcao imutavel. O Postgres
+  -- aceita a declaracao sem conferir o corpo, entao esta conferencia le o catalogo: se alguem
+  -- trocar o deslocamento literal pelo nome do fuso de novo, a declaracao continua dizendo
+  -- `immutable` e a mentira volta em silencio.
+  select provolatile into v_vol
+  from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+  where n.nspname = 'experiencia' and p.proname = 'fn_dia_operacional';
+
+  if v_vol <> 'i' then
+    raise exception 'fn_dia_operacional esta declarada como % e precisa ser immutable', v_vol;
+  end if;
+
+  -- E a prova de que o CORPO tambem e imutavel, e nao so a declaracao: uma expressao STABLE nao
+  -- pode entrar num indice de expressao. Se o corpo voltar a usar o nome do fuso, isto falha.
+  begin
+    execute 'create index ensaio_prova_imutabilidade on experiencia.resposta ((experiencia.fn_dia_operacional(respondido_em)))';
+    execute 'drop index experiencia.ensaio_prova_imutabilidade';
+  exception when others then
+    raise exception
+      'fn_dia_operacional nao aceita indice de expressao: %. O corpo dela nao e imutavel de '
+      'verdade, e `resposta.dia_operacional` e coluna gerada. Provavelmente voltou o '
+      '`at time zone ''America/Sao_Paulo''`, que e STABLE.', sqlerrm;
+  end;
+
+  raise notice 'ok  fn_dia_operacional e imutavel na declaracao E no corpo';
 end
 $$;
 

@@ -1,9 +1,9 @@
 /**
  * O dia operacional, e nada mais.
  *
- * Espelho exato de `experiencia.fn_dia_operacional` (folha canonica, secao 4.3):
+ * Espelho exato de `experiencia.fn_dia_operacional`:
  *
- *   select ((ts at time zone 'America/Sao_Paulo') - interval '6 hours')::date
+ *   select ((ts at time zone interval '-03:00') - interval '6 hours')::date
  *
  * O corte e as 6h da manha, no fuso America/Sao_Paulo, e NUNCA a meia-noite.
  * Tudo que entra entre 00:00 e 05:59 pertence a noite anterior.
@@ -20,7 +20,26 @@
 export const TZ_CASA = 'America/Sao_Paulo'
 export const CORTE_HORAS = 6
 
-/** Componentes de parede (wall clock) de um instante, no fuso da casa. */
+/**
+ * O deslocamento do fuso da casa, em horas, como NUMERO e nao como nome de fuso.
+ *
+ * O banco usa `at time zone interval '-03:00'` e nao `at time zone 'America/Sao_Paulo'`, porque a
+ * segunda forma e STABLE no Postgres e `resposta.dia_operacional` e coluna gerada, que exige funcao
+ * IMMUTABLE. Este espelho segue a mesma regra pelo mesmo motivo pratico: com `Intl` e o nome do
+ * fuso, o TypeScript seguiria o horario de verao sozinho e o banco nao, e os dois passariam a
+ * discordar sobre a que dia uma resposta pertence — sem ninguem mexer em nada.
+ *
+ * SE O HORARIO DE VERAO VOLTAR: muda aqui e na migration, juntos, e o valor ja gravado continua
+ * significando o que significava. E o que a folha canonica, secao 5.1, chama de "uma migration".
+ */
+export const DESLOCAMENTO_HORAS = -3
+
+/**
+ * Componentes de parede (wall clock) de um instante, no fuso da casa.
+ *
+ * Calculado com o DESLOCAMENTO literal, e nao com `Intl` e o nome do fuso. Ver
+ * `DESLOCAMENTO_HORAS`: usar o nome faria este espelho seguir o horario de verao e o banco nao.
+ */
 function paredeNaCasa(ts: Date): {
   ano: number
   mes: number
@@ -28,27 +47,13 @@ function paredeNaCasa(ts: Date): {
   hora: number
   minuto: number
 } {
-  // `en-CA` devolve AAAA-MM-DD, que evita ambiguidade de ordem de campo.
-  const fmt = new Intl.DateTimeFormat('en-CA', {
-    timeZone: TZ_CASA,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  })
-  const partes: Record<string, string> = {}
-  for (const p of fmt.formatToParts(ts)) {
-    if (p.type !== 'literal') partes[p.type] = p.value
-  }
+  const p = new Date(ts.getTime() + DESLOCAMENTO_HORAS * 3_600_000)
   return {
-    ano: Number(partes.year),
-    mes: Number(partes.month),
-    dia: Number(partes.day),
-    // Em hour12:false, meia-noite pode vir como "24" em algumas plataformas.
-    hora: Number(partes.hour) % 24,
-    minuto: Number(partes.minute),
+    ano: p.getUTCFullYear(),
+    mes: p.getUTCMonth() + 1,
+    dia: p.getUTCDate(),
+    hora: p.getUTCHours(),
+    minuto: p.getUTCMinutes(),
   }
 }
 

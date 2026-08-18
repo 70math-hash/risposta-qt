@@ -40,6 +40,8 @@ import {
 } from './dados.js'
 import { Aviso, Barra, Cartao, Marca, Numero, Proporcao, Tabela } from './componentes.jsx'
 import { Admin } from './Admin.jsx'
+// `Exportar` ja e o nome do botao local de cada cartao; a aba entra com apelido.
+import { Exportar as AbaExportar } from './Exportar.jsx'
 
 const ABAS = [
   { id: '', nome: 'Hoje' },
@@ -49,6 +51,10 @@ const ABAS = [
   { id: 'coleta', nome: 'Coleta' },
   { id: 'clientes', nome: 'Clientes' },
   { id: 'saude', nome: 'Saúde' },
+  // A promessa de portabilidade tem aba propria, e nao um botao escondido: e a garantia de que
+  // trocar de sistema um dia nao custa a serie historica, e sair do fornecedor anterior foi, em
+  // parte, exatamente por isso.
+  { id: 'exportar', nome: 'Exportar' },
   // A ultima, e nao a primeira: e a unica que escreve, e o painel e sobretudo leitura.
   { id: 'admin', nome: 'Administração' },
 ] as const
@@ -160,6 +166,7 @@ export function Painel(): React.ReactElement {
       {aba === 'coleta' ? <AbaColeta /> : null}
       {aba === 'clientes' ? <AbaClientes /> : null}
       {aba === 'saude' ? <AbaSaude /> : null}
+      {aba === 'exportar' ? <AbaExportar /> : null}
       {aba === 'admin' ? <Admin /> : null}
     </div>
   )

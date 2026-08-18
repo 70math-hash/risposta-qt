@@ -179,3 +179,55 @@ describe('as colunas que carregam a honestidade do numero continuam sendo lidas'
     expect(PAINEL).toContain('semana_incomparavel')
   })
 })
+
+describe('as views de exportacao tem tela, e a portabilidade nao e so promessa', () => {
+  /**
+   * As seis views de exportacao existiam desde a primeira migration e NENHUMA tela as lia. A
+   * promessa de portabilidade estava no briefing, o SQL estava escrito, e nao havia como um humano
+   * baixar nada — que e o mesmo que nao existir, para quem precisa levar o dado embora.
+   *
+   * O criterio de F52 e "um ano inteiro em um arquivo", e um ano de coleta passa de 1000 linhas com
+   * folga: por isso a leitura pagina e confere o total, em vez de confiar no que o servidor mandar.
+   */
+  const EXPORTACAO = Object.keys(RETRATO).filter((v) => v.startsWith('vw_exportacao_'))
+  const TELA = readFileSync(join(process.cwd(), 'src', 'painel', 'Exportar.tsx'), 'utf8')
+
+  it('existem seis views de exportacao', () => {
+    expect(EXPORTACAO.length).toBe(6)
+  })
+
+  it.each(Object.keys(RETRATO).filter((v) => v.startsWith('vw_exportacao_')))(
+    '%s aparece na tela de exportacao',
+    (view) => {
+      expect(
+        TELA.includes(view),
+        `${view} existe no banco e nenhuma tela a baixa: o dado nao tem como sair daqui`,
+      ).toBe(true)
+    },
+  )
+
+  it('a leitura pagina e confere o total contra a contagem do servidor', () => {
+    const dados = readFileSync(join(process.cwd(), 'src', 'painel', 'dados.ts'), 'utf8')
+    // `select('*')` sem faixa e cortado pelo PostgREST hospedado sem erro e sem aviso.
+    expect(dados).toContain('.range(')
+    expect(dados).toContain("count: 'exact'")
+    // E a divergencia entre o lido e o contado tem de virar ERRO, e nao um numero menor.
+    expect(dados).toMatch(/li \$\{tudo\.length\} linhas e o servidor diz que existem/)
+  })
+
+  it('a tela nao gera arquivo quando a leitura falha', () => {
+    // Baixar o pedaco seria pior que nao baixar: exportacao truncada vira decisao errada, e
+    // exportacao que falha vira tentativa de novo.
+    //
+    // A comparacao e DENTRO do corpo da funcao que baixa. A primeira versao deste caso comparava
+    // contra `TELA.indexOf('baixaCsv')`, que casa com a linha de IMPORT no topo do arquivo, e
+    // acusava ordem errada num codigo certo.
+    const corpo = TELA.slice(TELA.indexOf('const baixa = async'))
+    const leitura = corpo.indexOf('await le<')
+    const geracao = corpo.indexOf('baixaCsv(')
+    expect(leitura, 'nao achei a leitura no corpo de `baixa`').toBeGreaterThan(-1)
+    expect(geracao, 'nao achei a geracao do arquivo no corpo de `baixa`').toBeGreaterThan(-1)
+    expect(leitura, 'a leitura tem de vir antes da geracao do arquivo').toBeLessThan(geracao)
+    expect(corpo).toContain('catch')
+  })
+})

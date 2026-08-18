@@ -430,7 +430,7 @@ nada é o pior negócio deste documento**, e é o único que não aparece em nen
 **40 a 80 horas**, número da Etapa 2, e ele precisa de três ressalvas para não ser lido como orçamento:
 
 1. **Nunca foi reestimado contra o escopo da Etapa 4.** Aquele número foi escrito para um sistema menor. O que
-   está desenhado hoje são **26 tabelas**, **25 views**, **5 funções**, **5 rotinas em duas plataformas**,
+   está desenhado hoje são **27 tabelas**, **25 views**, **5 funções**, **5 rotinas em duas plataformas**,
    **12 ADRs**, um PWA de 8 telas em dois idiomas, um painel de 7 telas e a camada de LGPD inteira. O que já
    existe no repositório, medido agora: **10.154 linhas** em `src/`, `worker/`, `tests/` e
    `supabase/migrations/`, com **118 testes** passando em 7 arquivos, e **14 migrations** ainda inertes.

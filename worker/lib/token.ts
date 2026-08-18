@@ -5,7 +5,7 @@
  *   O unico caminho de escrita do sistema era `SUPABASE_SERVICE_KEY`. O `service_role` do Supabase
  *   tem `BYPASSRLS` e privilegio no `public` do sistema fiscal, entao com ele:
  *
- *     - a matriz de grants das 26 tabelas nao vale para quem escreve;
+ *     - a matriz de grants das 27 tabelas nao vale para quem escreve;
  *     - as politicas de RLS nao valem para quem escreve;
  *     - a invariante de append-only protege um papel que nao era usado;
  *     - e o critério de aceite de F55, "tentativa de INSERT em tabela fiscal tem que falhar",

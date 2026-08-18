@@ -333,3 +333,58 @@ describe('a crítica declara o próprio estado, e o número bate', () => {
     }
   })
 })
+
+/**
+ * Nenhum documento afirma uma contagem de tabelas que contradiz o SQL.
+ *
+ * `exportacao_registro` entrou depois e virou a 27a tabela. Trinta e cinco lugares — documentos,
+ * migrations e comentarios do Worker — continuaram dizendo 26, incluindo o documento de seguranca,
+ * que descreve a matriz de permissoes tabela por tabela.
+ *
+ * Contagem errada num documento de seguranca nao e detalhe de redacao: quem confere a matriz
+ * contando 26 e encontrando 27 conclui que descobriu uma tabela sem politica, e quem conta 26 e
+ * para ali nao confere a 27a.
+ */
+describe('a contagem de tabelas não contradiz o SQL', () => {
+  /** Uma linha `create table ... experiencia.X`, deduplicada por nome. */
+  const tabelas = new Set(
+    [...SQL.matchAll(/create table (?:if not exists )?experiencia\.([a-z_]+)/g)].map((m) => m[1]!),
+  )
+
+  it('o SQL cria as 27 tabelas', () => {
+    expect(tabelas.size).toBe(27)
+  })
+
+  /**
+   * `26` era o total antes de `exportacao_registro`, e e por isso que ele e o unico numero banido:
+   * ele NAO e derivavel de 27 por nenhuma subtracao que os documentos facam, entao encontra-lo e
+   * sempre resto da contagem antiga.
+   *
+   * Contagens derivadas continuam validas e nao sao cobradas aqui — "as 25 tabelas sem `DELETE`"
+   * (27 menos as duas que tem) e "as outras 26" (27 menos a excecao) sao afirmacoes certas. Uma
+   * regra que exigisse 27 em toda mencao obrigaria a escrever pior para passar no teste.
+   */
+  it.each([
+    '00-canonico.md',
+    '01-arquitetura.md',
+    '02-modelo-de-dados.md',
+    '03-seguranca-e-lgpd.md',
+    '05-implantacao-e-operacao.md',
+  ])('%s não traz mais o total antigo de 26 tabelas', (arquivo) => {
+    const doc = readFileSync(join(process.cwd(), 'docs', 'arquitetura', arquivo), 'utf8')
+    expect(
+      doc,
+      `${arquivo} ainda diz "26 tabelas". O SQL cria ${tabelas.size}, e num documento de ` +
+        'segurança quem confere a matriz contando 26 não confere a 27ª.',
+    ).not.toMatch(/\b26 tabelas\b/)
+  })
+
+  it('os documentos que declaram o total declaram 27', () => {
+    for (const arquivo of ['02-modelo-de-dados.md', '03-seguranca-e-lgpd.md']) {
+      const doc = readFileSync(join(process.cwd(), 'docs', 'arquitetura', arquivo), 'utf8')
+      expect(doc, `${arquivo} não diz em lugar nenhum quantas tabelas existem`).toMatch(
+        /\b27 tabelas\b/,
+      )
+    }
+  })
+})

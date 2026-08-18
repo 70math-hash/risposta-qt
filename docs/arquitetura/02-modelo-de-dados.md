@@ -320,7 +320,7 @@ Duas coisas que o diagrama mostra e vale dizer em texto:
 
 ---
 
-## 3. As 26 tabelas, uma por uma
+## 3. As 27 tabelas, uma por uma
 
 Como ler cada subseção: **o que guarda**, **o grão** (o que é uma linha), **a chave**, a tabela de colunas com
 tipo e nulidade, os **índices** com a consulta que cada um serve, e as **restrições**.
@@ -335,7 +335,7 @@ Quatro regras valem em todas as 26 e não se repetem tabela por tabela:
 3. **RLS habilitado em todas**, sem exceção, com a política de leitura do painel e as políticas da aplicação
    espelhando exatamente os `GRANT`. A migration de RLS derruba a si mesma se encontrar tabela sem RLS,
    tabela sem política, ou um número de tabelas diferente de 26.
-4. **`experiencia_app` não tem `DELETE` em 24 das 26.** As duas exceções são `venda_produto_dia`, porque
+4. **`experiencia_app` não tem `DELETE` em 25 das 27.** As duas exceções são `venda_produto_dia`, porque
    reimportar um dia substitui o dia por inteiro, e `classificacao_texto`, porque reclassificar é apagar e
    refazer. Nenhuma resposta pode ser apagada pela aplicação.
 
@@ -1225,7 +1225,7 @@ convite aceito. `convite_clique_garcom_idx`, parcial: a distribuição por garç
 **Restrições.** `UNIQUE (id_origem)`, que é o que faz a migração ser idempotente: sem ele, reaplicar dobraria
 as 74 linhas e ninguém notaria. `garcom` não vazio.
 
-**A exceção ao significado de `criado_em`, ordenada pela folha canônica.** Em todas as outras 25 tabelas
+**A exceção ao significado de `criado_em`, ordenada pela folha canônica.** Em todas as outras tabelas
 `criado_em` é o instante em que o servidor gravou a linha. Aqui é o carimbo da origem, porque a folha manda
 preservá-lo (seção 2.2, Bloco G). Quem guarda o instante da migração é `migrado_em`.
 

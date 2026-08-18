@@ -14,7 +14,7 @@
 --   1. Toda tabela tem `id uuid` como chave primaria (secao 3.1 da folha canonica),
 --      inclusive as de grao diario. Nessas, o grao e garantido por UNIQUE em
 --      `dia_operacional`, e nao pela chave primaria. Isso mantem a regra do `id`
---      valida em todas as 26 tabelas, sem excecao a decorar.
+--      valida em todas as 27 tabelas, sem excecao a decorar.
 --   2. Nenhum identificador vindo do PDV e chave primaria (secao 8, regra 3):
 --      `produto_id_pdv` e atributo de juncao, e `item_cardapio.id` e do QT.
 --   3. `mesa.capacidade` fica nula. A capacidade individual das 22 mesas e

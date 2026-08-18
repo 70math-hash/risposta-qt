@@ -543,7 +543,7 @@ export default {
         //
         // E diz COM QUAL PAPEL ele escreve. Isso nao e enfeite: se o segredo JWT nao estiver
         // configurado, o Worker escreve como `service_role`, que passa por cima de RLS e alcanca o
-        // `public` do sistema fiscal — e nesse caso a matriz de permissoes das 26 tabelas e o
+        // `public` do sistema fiscal — e nesse caso a matriz de permissoes das 27 tabelas e o
         // critério de aceite de F55 NAO estao valendo. Um sistema que cai para o caminho mais
         // permissivo sem avisar e pior que um que nunca teve o caminho restrito, porque o documento
         // passa a descrever uma protecao que nao existe.

@@ -27,9 +27,9 @@ por ela. A coluna do controle aponta para a seção que o detalha.
 |---|---|---|---|---|---|
 | **A1** | **Curioso interno**: garçom fixo, extra da semana, gerente de turno | Acesso físico ao tablet durante o serviço, e vê o PIN sendo digitado na `T0` porque isso acontece em pé, na frente da mesa | Saber quem reclamou, e ver a nota que a mesa dele deu | A `T7` não mostra nada da resposta e reseta em **8 segundos** (`N18`); o estado é resetado entre clientes; o tablet não emite som nem vibração e não muda de aparência em função da nota (`F26`); o aparelho não tem tela nenhuma de histórico e não lê a base de clientes | Seções 3.3 e 4 |
 | **A2** | **Ex-funcionário**: garçom desligado, ex-gerente, e também quem construiu o sistema | PIN que ele já sabia, QR impresso que ele levou, e possivelmente um e-mail ainda ativo em `destinatario` | Continuar recebendo o digest, ou atribuir resposta a si mesmo | `garcom.removido_em` tira o PIN do corte sem apagar histórico (`F49`); PIN de garçom removido grava `garcom_reconhecido = false` (`F50`); remover destinatário é uma tela e leva menos de **1 minuto** (`F29`); nenhuma credencial de banco jamais existiu no aparelho nem na mão da equipe | Seções 2, 4 e 5 |
-| **A3** | **Varredura automatizada**: bot que procura chave de Supabase em bundle publicado, `.env` exposto, endpoint aberto e repositório com segredo | Nada além do que a internet publica. **É o adversário mais provável do projeto, por volume, e o único que age todos os dias** | Qualquer banco que responda sem autenticação | A única chave no bundle publicado é a chave publicável (`anon`), e ela **não tem `USAGE` no schema `experiencia`**, portanto lê zero linha das 26 tabelas; `EXECUTE` de toda função é revogado de `public`; nenhum endpoint de escrita aceita requisição sem passar por `fn_grava_resposta`; não existe webhook de entrada em nenhum ponto do sistema | Seções 3.2 e 3.3 |
+| **A3** | **Varredura automatizada**: bot que procura chave de Supabase em bundle publicado, `.env` exposto, endpoint aberto e repositório com segredo | Nada além do que a internet publica. **É o adversário mais provável do projeto, por volume, e o único que age todos os dias** | Qualquer banco que responda sem autenticação | A única chave no bundle publicado é a chave publicável (`anon`), e ela **não tem `USAGE` no schema `experiencia`**, portanto lê zero linha das 27 tabelas; `EXECUTE` de toda função é revogado de `public`; nenhum endpoint de escrita aceita requisição sem passar por `fn_grava_resposta`; não existe webhook de entrada em nenhum ponto do sistema | Seções 3.2 e 3.3 |
 | **A4** | **Credencial vazada em repositório**: chave colada num commit, num print, num canal de conversa | O que aquela credencial abre, e nada mais | Ler a base de clientes, escrever lixo, ou apagar | Cada credencial tem escopo mínimo e nenhuma serve duas funções (seção 5); a chave do B2 escreve e **não lê nem apaga** (`D7`); a chave privada `age` **não existe em plataforma nenhuma**, então o pacote cifrado que vazar continua fechado; `.gitignore` e `.env.example` com valores vazios já estão no repositório | Seção 5 |
-| **A5** | **Erro de operação**: consulta errada, `DELETE` sem `WHERE`, import do arquivo errado, retenção apagando mais do que devia, planilha de clientes indo para grupo de WhatsApp | Credencial legítima e boa intenção. **É a causa mais provável de perda real de dado neste sistema** | Nada. É acidente | Nenhum papel tem `DELETE` em 24 das 26 tabelas (seção 3.4); a retenção é `UPDATE` para nulo e nunca `DELETE` (`F48`); o arquivo bruto do R3 fica guardado antes de ser interpretado, então o import errado é refazível (ADR-12); `backup_semanal` roda **domingo e quarta**; a exportação de clientes fica registrada | Seções 3.4 e 6.9 |
+| **A5** | **Erro de operação**: consulta errada, `DELETE` sem `WHERE`, import do arquivo errado, retenção apagando mais do que devia, planilha de clientes indo para grupo de WhatsApp | Credencial legítima e boa intenção. **É a causa mais provável de perda real de dado neste sistema** | Nada. É acidente | Nenhum papel tem `DELETE` em 24 das 27 tabelas (seção 3.4); a retenção é `UPDATE` para nulo e nunca `DELETE` (`F48`); o arquivo bruto do R3 fica guardado antes de ser interpretado, então o import errado é refazível (ADR-12); `backup_semanal` roda **domingo e quarta**; a exportação de clientes fica registrada | Seções 3.4 e 6.9 |
 | **A6** | **Tablet perdido, furtado ou esquecido**, com fila pendente dentro | O aparelho, e o que estiver em `fila_resposta` naquele momento | Nada, na maioria dos casos. O valor de revenda é o aparelho | Trava de tela no aparelho, modo quiosque com licença Fully Kiosk PLUS, suporte com chave nos pontos fixos (`D5`), e a regra de não usar conta pessoal de Google no tablet, para o `IndexedDB` não sincronizar para nenhum lugar. **O que sobra está declarado em 1.3** | Seções 1.3 e 6.10 |
 
 ### 1.2 Quem explicitamente NÃO é adversário deste sistema
@@ -83,11 +83,11 @@ entrar na folha canônica antes de aparecer em SQL aplicado.**
 
 | Papel | Quem o usa | O que pode | O que **não** pode, e é o ponto | `LOGIN` |
 |---|---|---|---|---|
-| `experiencia_dono` **(nome novo)** | Ninguém. É o dono do schema, das 26 tabelas, das views e das funções. Só é alcançado **por dentro** de uma função `security definer` | Tudo dentro de `experiencia`. `SELECT` nas cinco tabelas de custo em `public` | **Nenhum `INSERT`, `UPDATE`, `DELETE` ou `TRUNCATE` em `public`.** É isto que transforma a condição 1 de `D2` em fato do banco em vez de promessa: mesmo um erro dentro de `fn_grava_resposta` não consegue escrever no sistema fiscal | não |
+| `experiencia_dono` **(nome novo)** | Ninguém. É o dono do schema, das 27 tabelas, das views e das funções. Só é alcançado **por dentro** de uma função `security definer` | Tudo dentro de `experiencia`. `SELECT` nas cinco tabelas de custo em `public` | **Nenhum `INSERT`, `UPDATE`, `DELETE` ou `TRUNCATE` em `public`.** É isto que transforma a condição 1 de `D2` em fato do banco em vez de promessa: mesmo um erro dentro de `fn_grava_resposta` não consegue escrever no sistema fiscal | não |
 | `experiencia_app` (folha canônica) | **Worker de escrita**, o componente que a internet alcança | `EXECUTE` em exatamente **três** funções: `fn_grava_resposta`, `fn_registra_sinal`, `fn_sorteia_pergunta`. `SELECT` em exatamente **três** tabelas, filtrado por RLS: `item_cardapio` (ativo), `pergunta_banco` (ativa), `consentimento_texto` (vigente). `SELECT` e `UPDATE (enviado_em)` em `alerta_detrator`, só nas linhas ainda não enviadas | Não lê `cliente`, não lê `garcom`, não lê `mesa`, não lê `resposta`, não lê `destinatario`, não lê `configuracao`, não escreve em tabela nenhuma diretamente e não apaga nada em lugar nenhum | não |
 | `experiencia_rotina` **(nome novo)** | **Worker de rotina** (as quatro rotinas do Cloudflare) e o caminho de importação manual | Ver a matriz da seção 3.3, tabela por tabela. Em resumo: leitura ampla do dado de pesquisa, escrita em `venda_produto_dia`, `execucao_importacao`, `execucao_rotina` e `classificacao_texto`, e a anonimização em `cliente` | **Não lê a base de clientes.** Tem `UPDATE` nas colunas pessoais de `cliente` e `SELECT` apenas em `id`, `ultima_visita_em` e `anonimizado_em`. Ou seja, ele apaga dado pessoal sem nunca poder ler dado pessoal. Também não lê `garcom.pin` | não |
-| `experiencia_leitura` (folha canônica) | **Painel**, pelos dois administradores autenticados. Concedido a `authenticated` por herança de papel | `SELECT` nas 26 tabelas e nas views. `INSERT` e `UPDATE` nas tabelas de cadastro. `INSERT` em `consentimento_texto`. `UPDATE` em `cliente` e `exclusao_pedido` para atender pedido de titular | Não apaga nada, com **uma** exceção nomeada (`classificacao_texto`, seção 3.4). Não escreve em `resposta` nem em nenhuma filha dela: **resposta de cliente não se edita, nunca** | não |
-| `experiencia_dump` **(nome novo)** | `backup_semanal`, no GitHub Actions | `SELECT` nas 26 tabelas. `INSERT` em `execucao_rotina`, que é a escrita do keep-alive | Não lê `public`, não escreve em mais nada, não apaga nada. É a credencial de menor poder que ainda consegue produzir um backup completo | **sim**, com senha em segredo do repositório |
+| `experiencia_leitura` (folha canônica) | **Painel**, pelos dois administradores autenticados. Concedido a `authenticated` por herança de papel | `SELECT` nas 27 tabelas e nas views. `INSERT` e `UPDATE` nas tabelas de cadastro. `INSERT` em `consentimento_texto`. `UPDATE` em `cliente` e `exclusao_pedido` para atender pedido de titular | Não apaga nada, com **uma** exceção nomeada (`classificacao_texto`, seção 3.4). Não escreve em `resposta` nem em nenhuma filha dela: **resposta de cliente não se edita, nunca** | não |
+| `experiencia_dump` **(nome novo)** | `backup_semanal`, no GitHub Actions | `SELECT` nas 27 tabelas. `INSERT` em `execucao_rotina`, que é a escrita do keep-alive | Não lê `public`, não escreve em mais nada, não apaga nada. É a credencial de menor poder que ainda consegue produzir um backup completo | **sim**, com senha em segredo do repositório |
 | `anon` (Supabase) | A chave publicável que está no bundle publicado do PWA e do painel | **Nada dentro de `experiencia`.** Sem `USAGE` no schema, sem `GRANT` em tabela, sem `EXECUTE` em função | Tudo. E é isso que faz a chave no bundle ser inofensiva: ela serve para o login e para nada mais | via chave |
 | `authenticated` (Supabase) | Sessão de administrador logado pelo Supabase Auth, com 2FA | Herda `experiencia_leitura` por `grant experiencia_leitura to authenticated` | **Depende de o autocadastro estar desligado.** Ver 2.3, que é a condição mais frágil de todo o desenho | via JWT |
 | `service_role` (Supabase) | **Nada nosso.** É a chave de serviço do projeto, e ela é a mesma do sistema fiscal que mora no mesmo projeto | O que o sistema fiscal precisa, em `public` | Depois da migration de papéis, **nada em `experiencia`**: privilégio revogado tabela por tabela e `USAGE` do schema revogado | via chave |
@@ -210,7 +210,7 @@ ela ignora RLS, é a mesma credencial do sistema fiscal, e com ela o critério d
 
 ### 3.1 As seis regras que geram todas as políticas
 
-Lê-se isto uma vez e as 26 tabelas ficam previsíveis.
+Lê-se isto uma vez e as 27 tabelas ficam previsíveis.
 
 1. **RLS habilitado em todas as 26, sem exceção** (folha canônica, seção 6.5). Habilitado e **não** forçado: o
    dono precisa passar por cima, porque é ele que executa as funções de escrita.
@@ -227,7 +227,7 @@ Lê-se isto uma vez e as 26 tabelas ficam previsíveis.
    rodando como `experiencia_dono`.
 6. **`DELETE` não existe, com duas exceções nomeadas** (seção 3.4).
 
-### 3.2 O preâmbulo, que precede as 26
+### 3.2 O preâmbulo, que precede as 27
 
 Este bloco é a primeira metade da migration proposta
 `supabase/migrations/AAAAMMDDHHMMSS_cria_papeis_e_politicas_rls.sql` (o carimbo de hora em UTC entra quando o
@@ -317,7 +317,7 @@ exatamente o que não se quer que exista. A consequência é que **o corpo da fu
 caminho da resposta**, e é por isso que ele vive numa migration versionada e é revisado como código de segurança,
 não como código de aplicação.
 
-### 3.3 As 26 tabelas
+### 3.3 As 27 tabelas
 
 Formato fixo por tabela: o SQL completo (privilégio mais política), quem passa, quem não passa, e o teste que
 comprova. Todos os testes rodam dentro de `begin; ... rollback;` e vivem no arquivo `sql/teste_rls.sql`, que
@@ -870,7 +870,7 @@ create policy convite_clique_leitura on experiencia.convite_clique
 - **Teste:** contagem de 74 na origem e 74 no destino, mais `criado_em` mínimo e máximo iguais, e
   `set local role experiencia_rotina; insert into experiencia.convite_clique ...;` espera `permission denied`.
 
-### 3.4 Os dois `DELETE` que existem, e as 24 tabelas que não têm nenhum
+### 3.4 Os dois `DELETE` que existem, e as 25 tabelas que não têm nenhum
 
 | Tabela | Quem apaga | Por que é seguro |
 |---|---|---|
@@ -1053,7 +1053,7 @@ que ninguém troca.
 | **S4** | `RESEND_API_KEY` | Segredo do Cloudflare | idem | Enviar e-mail como o domínio da casa. Vazada, permite phishing com o remetente da casa, que é o dano real dela |
 | **S5** | `GROQ_API_KEY` | Segredo do Cloudflare | idem | Consumir a cota de LLM. Dano baixo: **menos de 0,1% da cota** é o uso normal (`N03`) |
 | **S6** | `DRIVE_SA_JSON`, conta de serviço do Google | Segredo do Cloudflare | idem | Leitura de **uma** pasta do Drive, somente leitura. Nunca OAuth de usuário |
-| **S7** | `SUPABASE_DB_URL`, string de conexão do papel `experiencia_dump` | Segredo do repositório no GitHub | Quem é administrador do repositório | `SELECT` nas 26 tabelas e uma linha em `execucao_rotina`. **É a credencial que lê a base de clientes inteira**, e é a mais valiosa que vive online |
+| **S7** | `SUPABASE_DB_URL`, string de conexão do papel `experiencia_dump` | Segredo do repositório no GitHub | Quem é administrador do repositório | `SELECT` nas 27 tabelas e uma linha em `execucao_rotina`. **É a credencial que lê a base de clientes inteira**, e é a mais valiosa que vive online |
 | **S8** | `B2_KEY_ID` e `B2_APP_KEY` | Segredos do repositório no GitHub | idem | `writeFiles` e `listBuckets` num bucket, **sem `readFiles`, sem `deleteFiles`, sem expiração** (`D7`). Vazada, escreve lixo e não lê nem apaga backup |
 | **S9** | `AGE_PUBLIC_KEY` | **Variable** do repositório, não segredo | Todo mundo com acesso ao repositório | Nada. Chave pública não é segredo |
 | **S10** | **Chave privada `age`** | **Fora de todo sistema online.** Gerenciador de senhas do proprietário e **uma cópia impressa em papel no cofre do restaurante** | Proprietário, e o segundo administrador se o proprietário decidir | **Todos os backups, do primeiro ao último.** É o segredo mais poderoso do projeto e o único que não existe em plataforma nenhuma |
@@ -1652,9 +1652,9 @@ antes de aparecer em SQL aplicado:
 
 | Nome | O que é | Por que existe |
 |---|---|---|
-| `experiencia_dono` | Papel dono do schema, das 26 tabelas, das views e das funções. Sem `LOGIN`, alcançado só por dentro de função `security definer` | É o que transforma "nada da pesquisa escreve fora do schema" em fato do banco. Se as funções fossem de `postgres`, um erro dentro delas escreveria no sistema fiscal |
+| `experiencia_dono` | Papel dono do schema, das 27 tabelas, das views e das funções. Sem `LOGIN`, alcançado só por dentro de função `security definer` | É o que transforma "nada da pesquisa escreve fora do schema" em fato do banco. Se as funções fossem de `postgres`, um erro dentro delas escreveria no sistema fiscal |
 | `experiencia_rotina` | Papel do Worker de rotina e do caminho de importação | Separa a credencial que a internet alcança da credencial que escreve venda, log e anonimização. Dois papéis não expressam isso |
-| `experiencia_dump` | Papel de `backup_semanal`: `SELECT` nas 26 tabelas e uma linha em `execucao_rotina` | É a menor credencial que ainda produz backup completo. Usar `experiencia_leitura` poria escrita de cadastro num segredo do GitHub |
+| `experiencia_dump` | Papel de `backup_semanal`: `SELECT` nas 27 tabelas e uma linha em `execucao_rotina` | É a menor credencial que ainda produz backup completo. Usar `experiencia_leitura` poria escrita de cadastro num segredo do GitHub |
 | `exportacao_cliente` | Valor novo para a coluna `rotina` | Ver **DV4**. Sem ele, `F52` não tem onde registrar |
 
 **Arquivos que este documento pressupõe e que ainda não existem:**
@@ -1689,7 +1689,7 @@ que precisaria mudar no mundo para o item entrar.
 | Fora de escopo | Por que é desproporcional aqui | O que faria entrar |
 |---|---|---|
 | **WAF, proteção anti-DDoS configurada, regra de firewall própria** | O Cloudflare já está na frente por construção, e o volume normal é de dezenas de requisições por noite. Configurar regra própria é mais uma peça com estado para alguém esquecer | Um ataque real de volume, observado |
-| **Registro de auditoria de leitura, linha por linha** | Exigiria trigger em 26 tabelas, uma tabela de log que cresce sem poda dentro de **500 MB**, e um leitor. Com **2** administradores, a resposta a "quem leu" já é "um dos dois" | Um terceiro perfil de acesso, ou uma segunda casa |
+| **Registro de auditoria de leitura, linha por linha** | Exigiria trigger em 27 tabelas, uma tabela de log que cresce sem poda dentro de **500 MB**, e um leitor. Com **2** administradores, a resposta a "quem leu" já é "um dos dois" | Um terceiro perfil de acesso, ou uma segunda casa |
 | **Cifragem de coluna com `pgcrypto` em `nome` e `whatsapp`** | A chave teria de viver perto do banco para o painel funcionar, e chave perto do dado cifrado protege contra pouca coisa. Já existe cifragem onde ela importa de verdade, que é o dado saindo do Supabase | Obrigação contratual ou setorial que exija cifragem em repouso por coluna |
 | **HSM, KMS, cofre de segredos dedicado** | Cada um é uma conta nova que expira em silêncio, e este projeto tem **três** plataformas de segredo já em uso (Cloudflare, GitHub, gerenciador de senhas) | Nada previsível |
 | **Rotação automática de credencial** | Automação que troca segredo é automação que pode quebrar a coleta às 3h da manhã sem ninguém para consertar. E `D7` exige explicitamente que a chave do B2 **não** expire | Nada. Este é um caso em que o correto é o manual |
@@ -1710,5 +1710,5 @@ que precisaria mudar no mundo para o item entrar.
 **A linha que fecha a tabela, e o documento:** cada item acima protegeria contra alguma coisa. Nenhum deles
 protege contra o que de fato vai acontecer neste sistema, que é ninguém olhar para ele por meses. O que responde
 por isso são os controles que funcionam sem operador: privilégio ausente em vez de vigilância, `DELETE` que não
-existe em 24 tabelas, política que fecha sozinha, chave que apaga o backup sozinha em 8 semanas, e um e-mail
+existe em 25 tabelas, política que fecha sozinha, chave que apaga o backup sozinha em 8 semanas, e um e-mail
 diário cuja ausência é o único alarme.

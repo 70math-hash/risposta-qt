@@ -71,8 +71,8 @@
 --
 -- Achado pela critica adversarial da Etapa 4 (A37).
 
--- 1. A area de pouso. Temporaria e `on commit drop`: o schema tem 26 tabelas e nao
--- ganha uma vigesima setima para guardar dado de passagem.
+-- 1. A area de pouso. Temporaria e `on commit drop`: o schema tem 27 tabelas e nao
+-- ganha uma vigesima oitava para guardar dado de passagem.
 -- -----------------------------------------------------------------------------
 create temporary table origem_cliques_avaliacao (
   id          bigint      primary key,

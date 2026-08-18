@@ -2,9 +2,9 @@
 -- 20260817102000_cria_rls_experiencia.sql
 --
 -- O QUE FAZ
---   Habilita RLS nas 26 tabelas do schema `experiencia`, sem excecao, e cria as
+--   Habilita RLS nas 27 tabelas do schema `experiencia`, sem excecao, e cria as
 --   politicas. No fim, CONFERE duas invariantes e derruba a migration se alguma falhar:
---   nenhuma tabela com RLS desligado, e exatamente 26 tabelas no schema.
+--   nenhuma tabela com RLS desligado, e exatamente 27 tabelas no schema.
 --
 --   As politicas de `experiencia_app` sao derivadas dos GRANTS ja concedidos nas
 --   migrations anteriores, lendo `information_schema.role_table_grants`. Ou seja: o
@@ -209,7 +209,7 @@ $$;
 -- um subconjunto, nao revogava nada. `has_table_privilege` devolvia `true` nas tres.
 --
 -- E como o passo 4 deste arquivo gera as politicas LENDO os grants reais, ele criava `app_update`
--- nas 26 tabelas: as duas trancas abertas, cada uma confiando na outra.
+-- nas 27 tabelas: as duas trancas abertas, cada uma confiando na outra.
 --
 -- A lista abaixo e nomeada, e nao derivada. Derivar de "tabelas que nao deveriam ter UPDATE" seria
 -- circular; o que se quer e que a intencao esteja escrita num lugar e conferida no banco.

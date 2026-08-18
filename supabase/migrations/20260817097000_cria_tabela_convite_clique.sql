@@ -2,9 +2,13 @@
 -- 20260817097000_cria_tabela_convite_clique.sql
 --
 -- O QUE FAZ
---   Cria `convite_clique`, a vigesima sexta e ultima tabela do schema (Bloco G da
---   folha canonica, historico migrado). Cria so a ESTRUTURA. As 74 linhas entram na
---   ultima migration, `20260817103000_semeia_convite_clique.sql`, depois do dump.
+--   Cria `convite_clique`, a vigesima sexta tabela do schema (Bloco G da folha canonica,
+--   historico migrado). Cria so a ESTRUTURA. As 74 linhas entram em
+--   `20260817103000_semeia_convite_clique.sql`, depois do dump.
+--
+--   Ela foi a ULTIMA ate `20260817115000` acrescentar `exportacao_registro`, que fechou o
+--   buraco de a folha mandar registrar quem baixa dado pessoal em bloco sem existir onde
+--   registrar. Sao 27 hoje, e o invariante que trava esse numero vive naquela migration.
 --
 -- O QUE ASSUME
 --   1. `criado_em` aqui e o carimbo PRESERVADO da origem, e nao o instante em que o

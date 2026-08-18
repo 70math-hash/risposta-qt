@@ -93,7 +93,7 @@ $$;
 --   `convite_clique`       "historico migrado nao se edita"
 --
 -- Conferido com `has_table_privilege`, que devolvia `true` nas tres. E pior: a migration de RLS
--- gera as politicas LENDO os grants reais, entao ela criava `app_update` nas 26 tabelas e o
+-- gera as politicas LENDO os grants reais, entao ela criava `app_update` em TODAS as tabelas e o
 -- espelho de RLS ficava permissivo junto — as duas trancas abertas, cada uma confiando na outra.
 --
 -- Achado pela critica adversarial da Etapa 4 (A06). A invariante no fim de

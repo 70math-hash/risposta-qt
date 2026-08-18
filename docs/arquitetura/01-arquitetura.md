@@ -61,7 +61,7 @@ flowchart TB
   subgraph SUP["Supabase, projeto NFe e Financeiro, ref rzrjdbnxhpwzqgqrlfwa, sa-east-1, Postgres 17"]
     direction TB
     subgraph EXP["schema experiencia, nosso. Escrita e leitura"]
-      TABS["26 tabelas<br/>resposta e filhas, cadastro, LGPD,<br/>venda_produto_dia, execucao_rotina"]
+      TABS["27 tabelas<br/>resposta e filhas, cadastro, LGPD,<br/>venda_produto_dia, execucao_rotina"]
       OBJS["as views vw_ e as funcoes fn_<br/>fn_dia_operacional, fn_grava_resposta,<br/>vw_custo_prato com WITH RECURSIVE"]
     end
     subgraph PUB["schema public, sistema fiscal de outro sistema. SELECT apenas"]

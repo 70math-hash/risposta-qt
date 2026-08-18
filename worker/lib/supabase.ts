@@ -57,7 +57,7 @@ async function chama(
   const controle = new AbortController()
   const relogio = setTimeout(() => controle.abort(), TIMEOUT_MS)
   // A credencial do papel RESTRITO quando o segredo JWT existe, e a chave de servico quando nao.
-  // Com o papel restrito, os grants das 26 tabelas e as politicas de RLS passam a valer para quem
+  // Com o papel restrito, os grants das 27 tabelas e as politicas de RLS passam a valer para quem
   // escreve de verdade; com a chave de servico, nada disso vale. Ver `worker/lib/token.ts`.
   const cred = await credencial(env)
   try {

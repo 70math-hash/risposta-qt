@@ -43,9 +43,28 @@ const BASE = process.env.PGREST_ENSAIO ?? 'http://127.0.0.1:8788'
  * do papel restrito, e nao sob `service_role` — que e o unico jeito de os grants das 26 tabelas e
  * as politicas de RLS serem exercitados por alguma coisa.
  */
+/**
+ * A chave de servico do ensaio e um JWT DE VERDADE, e nao a string `chave-de-ensaio`.
+ *
+ * A chave do Supabase e um JWT assinado com `role: service_role` no corpo, e e dai que o
+ * PostgREST tira o papel. Com uma string qualquer, o substituto nao achava papel nenhum e caia no
+ * pool cru — ou seja, rodava como SUPERUSUARIO.
+ *
+ * O efeito era anular o caso que este arquivo chama de "o unico que prova que os outros nao passam
+ * por engano": o contraste de F55 mostrava que um superusuario escreve em `public.pratos`, e nao
+ * que `service_role` escreve. Teste de negacao ao lado de um contraste que nao contrasta e prova
+ * vazia.
+ *
+ * A assinatura e falsa de proposito e nao importa: nem o substituto nem o PostgREST verificam
+ * assinatura para descobrir o papel — quem verifica e o servidor de verdade, com o segredo do
+ * projeto, e isso esta fora do que este arquivo exercita.
+ */
+const CHAVE_DE_SERVICO =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoic2VydmljZV9yb2xlIiwiaXNzIjoic3VwYWJhc2UifQ.assinatura-de-ensaio'
+
 const env: Ambiente = {
   SUPABASE_URL: BASE,
-  SUPABASE_SERVICE_KEY: 'chave-de-ensaio',
+  SUPABASE_SERVICE_KEY: CHAVE_DE_SERVICO,
   SUPABASE_ANON_KEY: 'publica-de-ensaio',
   SUPABASE_JWT_SECRET: 'segredo-de-ensaio-que-nao-e-verificado-pelo-substituto',
 }
@@ -53,7 +72,7 @@ const env: Ambiente = {
 /** O mesmo ambiente SEM o segredo: o caminho de reserva, que escreve como `service_role`. */
 const envSemSegredo: Ambiente = {
   SUPABASE_URL: BASE,
-  SUPABASE_SERVICE_KEY: 'chave-de-ensaio',
+  SUPABASE_SERVICE_KEY: CHAVE_DE_SERVICO,
   SUPABASE_ANON_KEY: 'publica-de-ensaio',
 }
 

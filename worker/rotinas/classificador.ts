@@ -102,7 +102,22 @@ async function classifica(
   }
   const conteudo = dados.choices?.[0]?.message?.content ?? '{"frases":[]}'
   const parsed = JSON.parse(conteudo) as { frases?: FraseClassificada[] }
-  const frases = parsed.frases ?? []
+
+  /**
+   * `fator` AUSENTE e `fator: null` sao a mesma coisa, e o filtro abaixo so entendia a segunda.
+   *
+   * O `as` acima e afirmacao de quem escreveu, e nao verificacao: o que chega e JSON de um modelo
+   * de linguagem. E a forma mais comum de um JSON dizer "sem fator" e OMITIR a chave — inclusive
+   * porque o proprio prompt imprime a linha `item_consumido: sem fator`, que convida a isso.
+   *
+   * Com a chave ausente, `f.fator` era `undefined`, e as DUAS guardas falhavam juntas:
+   * `f.fator === null` e falso por comparacao estrita, e `fatorValido(dimensao, undefined)` e
+   * falso em todos os ramos, porque o atalho de `fator === null` tambem nao dispara. Uma frase
+   * perfeitamente valida caia fora, e o comentario ficava sem classificacao PARA SEMPRE: a rotina
+   * so olha o dia anterior e nada reprocessa dia passado. O unico rastro era o contador
+   * `rejeitadas`, que nao distingue "o modelo devolveu lixo" de "o modelo omitiu uma chave".
+   */
+  const frases = (parsed.frases ?? []).map((f) => ({ ...f, fator: f.fator ?? null }))
 
   // Valor fora da lista fechada e REJEITADO, nao corrigido. O classificador nao cria valor
   // novo: valor novo entra por decisao humana e por migration.

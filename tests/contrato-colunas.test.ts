@@ -320,16 +320,39 @@ function chavesEscritas(texto: string): { tabela: string; chaves: string[] }[] {
     // de item antes do retorno.
     const nome = /^[a-zA-Z_][a-zA-Z0-9_]*/.exec(texto.slice(inicioArg))?.[0]
     if (nome === undefined) continue
+
+    // `insere(env, 'x', frases.map((f) => ({ ... })))`: o objeto esta DEPOIS da chamada, no
+    // callback ali mesmo, e nao na declaracao da variavel. Sem este ramo, o recortador ia
+    // procurar `const frases = ` e trazia o primeiro objeto que achasse dali em diante — que
+    // pode ser qualquer `.map` de normalizacao no meio do caminho, e nao o que e escrito.
+    if (texto.slice(inicioArg).startsWith(`${nome}.map(`)) {
+      const seta = texto.indexOf('=> ({', inicioArg)
+      if (seta < 0) continue
+      const f = fecha(texto, seta + 3)
+      if (f < 0) continue
+      saida.push({ tabela, chaves: chavesDeObjeto(texto.slice(seta + 4, f)) })
+      continue
+    }
+
     const decl = texto.indexOf(`const ${nome} = `)
     if (decl < 0 || decl > inicioArg) continue
 
-    const seta = texto.indexOf('=> ({', decl)
-    const retorno = texto.indexOf('return {', decl)
+    // O ULTIMO retorno de objeto antes da chamada, e nao o primeiro depois da declaracao.
+    //
+    // A versao anterior pegava o primeiro, e por isso era fragil: bastava a variavel ganhar um
+    // `.map((f) => ({ ... }))` entre a declaracao e a escrita para o recorte trazer o objeto
+    // errado. Foi o que aconteceu quando `classificador.ts` passou a normalizar `fator` ausente:
+    // o teste acusou "a escrita em classificacao_texto saiu sem chave nenhuma", apontando para
+    // um objeto que nao e escrito em lugar nenhum. O que se quer e o objeto que o callback DA
+    // CHAMADA devolve, e ele e sempre o mais proximo dela.
+    const janela = texto.slice(decl, inicioArg)
+    const seta = janela.lastIndexOf('=> ({')
+    const retorno = janela.lastIndexOf('return {')
     const abre =
-      seta >= 0 && seta < inicioArg
-        ? seta + 3
-        : retorno >= 0 && retorno < inicioArg
-          ? retorno + 7
+      seta > retorno
+        ? decl + seta + 3
+        : retorno >= 0
+          ? decl + retorno + 7
           : -1
     if (abre < 0) continue
     const f = fecha(texto, abre)

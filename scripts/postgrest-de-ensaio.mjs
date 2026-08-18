@@ -284,9 +284,20 @@ const servidor = createServer((req, res) => {
       // seguintes da MESMA requisicao. Com o pool cru, `set local` cairia num cliente qualquer.
       const papel = papelDoToken(req)
 
-      /** Roda no papel do token, dentro de transacao, e devolve as linhas. */
+      /**
+       * Roda no papel do token, dentro de transacao, e devolve as linhas.
+       *
+       * `service_role` ENTRA NO `set local role` COMO QUALQUER OUTRO, e isso e uma correcao.
+       *   Antes ele caia no ramo do pool cru, ou seja rodava como o SUPERUSUARIO que abre a
+       *   conexao. O efeito era anular justamente o caso que `worker-integracao` chama de "o unico
+       *   que prova que os outros nao passam por engano": o contraste de F55 mostrava que um
+       *   superusuario consegue escrever em `public.pratos`, e nao que `service_role` consegue.
+       *   Um teste de negacao ao lado de um contraste que nao contrasta e uma prova vazia.
+       *
+       *   Sem token (`papel === null`) continua no pool cru, porque ai nao ha papel a assumir.
+       */
       const consulta = async (sql, valores) => {
-        if (papel === null || papel === 'service_role') {
+        if (papel === null) {
           return (await pool.query(sql, valores)).rows
         }
         const cliente = await pool.connect()

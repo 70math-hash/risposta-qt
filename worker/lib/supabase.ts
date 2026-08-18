@@ -35,6 +35,7 @@ export interface Ambiente {
 }
 
 import { credencial } from './token.js'
+import COLUNAS_NUMERICAS from '../../supabase/colunas-numericas.json'
 
 export class ErroBanco extends Error {
   constructor(
@@ -106,6 +107,45 @@ export async function rpc<T>(
 }
 
 /** Le linhas de uma tabela ou view. `consulta` e a query string do PostgREST. */
+/**
+ * `numeric` e `bigint` chegam do PostgREST como STRING, e o Worker tambem le views.
+ *
+ * O MESMO DEFEITO DO PAINEL, NO OUTRO LADO
+ *   O painel corrigiu isto em `src/painel/dados.ts` convertendo na borda. O Worker tinha a mesma
+ *   suposicao, e a consequencia era pior, porque ela nao aparece como tela branca: aparece como
+ *   numero errado dentro do UNICO e-mail que o sistema manda.
+ *
+ *   `sum(valor_liquido)` e `numeric`, entao `vw_venda_dia.faturamento` chega `"1234.5"`. E
+ *   `String.prototype.toLocaleString` IGNORA as opcoes e devolve a string intacta: o digest das
+ *   16h escrevia `Faturamento: R$ 1234.5` em vez de `R$ 1.234,50`. Sem separador, sem centavos, e
+ *   com aparencia de numero — ninguem le aquilo como defeito de software.
+ *
+ *   Comparacao tambem: `"9" > "10"` e VERDADEIRO entre strings, entao qualquer limiar sobre uma
+ *   coluna numerica responderia ao contrario em uma faixa inteira de valores, sem erro nenhum.
+ *
+ * A lista de colunas e a MESMA que o painel usa, gerada do catalogo do banco por
+ * `scripts/formas-das-views.mjs`. Uma fonte, dois consumidores: se ela envelhecer, envelhece para
+ * os dois ao mesmo tempo, e o teste de contrato cai.
+ */
+export function converteNumericos<T>(relacao: string, linhas: T[]): T[] {
+  const colunas = (COLUNAS_NUMERICAS as Record<string, string[]>)[relacao]
+  if (colunas === undefined) return linhas
+
+  for (const linha of linhas) {
+    if (linha === null || typeof linha !== 'object') continue
+    const registro = linha as Record<string, unknown>
+    for (const coluna of colunas) {
+      const valor = registro[coluna]
+      if (typeof valor !== 'string') continue
+      const n = Number(valor)
+      // Texto que nao vira numero fica NULO, e nunca `NaN`: `NaN` se propaga por toda conta
+      // seguinte e sairia no e-mail como `R$ NaN`, que manda quem le procurar no lugar errado.
+      registro[coluna] = valor.trim() === '' || Number.isNaN(n) ? null : n
+    }
+  }
+  return linhas
+}
+
 export async function seleciona<T>(
   env: Ambiente,
   relacao: string,
@@ -113,7 +153,7 @@ export async function seleciona<T>(
   schema = 'experiencia',
 ): Promise<T[]> {
   const resp = await chama(env, `/${relacao}?${consulta}`, { method: 'GET', schema })
-  return (await resp.json()) as T[]
+  return converteNumericos(relacao, (await resp.json()) as T[])
 }
 
 /**

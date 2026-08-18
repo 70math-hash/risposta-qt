@@ -67,6 +67,28 @@ create role anon          nologin noinherit;
 create role authenticated nologin noinherit;
 create role service_role  nologin noinherit bypassrls;
 
+-- `service_role` recebe TUDO em `public`, como no Supabase de verdade.
+--
+-- POR QUE ISTO PRECISA ESTAR AQUI
+--   O caso mais importante de `tests/worker-integracao.test.ts` e o CONTRASTE: o mesmo `insert` que
+--   `experiencia_app` tem de recusar precisa ser ACEITO como `service_role`. Sem ele, um teste de
+--   negacao que recusa por qualquer motivo — coluna errada, tabela inexistente, substituto sem
+--   `set role` — passa parecendo prova.
+--
+--   O contraste era vazio: a chave de servico do ensaio nao era um JWT, o substituto nao achava
+--   papel e caia no pool cru, entao quem inseria era o SUPERUSUARIO. Com a chave virando JWT com
+--   `role: service_role`, o papel passa a ser assumido de verdade — e ai ele precisa ter os
+--   privilegios que o Supabase da a ele, senao o contraste inverte e passa a falhar por falta de
+--   grant em vez de provar o que devia.
+--
+--   No Supabase, `public` e concedido a `anon`, `authenticated` e `service_role` por padrao, e
+--   `service_role` ainda tem `bypassrls`. Modelar isso e o que torna o ensaio comparavel.
+--   `alter default privileges` vem ANTES das tabelas de proposito: ele so vale para o que for
+--   criado depois, e por quem o executou. O `grant ... on all tables` explicito fica no FIM do
+--   arquivo, para pegar o que ja existe — os dois juntos cobrem as duas metades.
+grant usage on schema public to service_role;
+alter default privileges in schema public grant all on tables to service_role;
+
 create extension if not exists pgcrypto;
 
 -- -----------------------------------------------------------------------------
@@ -142,3 +164,10 @@ create table if not exists public.historico_precos (
   valor_unit_normalizado numeric null,
   variacao_pct           numeric null
 );
+
+-- -----------------------------------------------------------------------------
+-- E o fecho dos privilegios de `service_role`, agora que as tabelas existem.
+-- Ver a explicacao no topo: sem isto o contraste de F55 nao contrasta.
+-- -----------------------------------------------------------------------------
+grant all privileges on all tables in schema public to service_role;
+grant all privileges on all sequences in schema public to service_role;

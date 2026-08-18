@@ -28,7 +28,7 @@
 import { readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { DIMENSOES, FATORES } from '../src/comum/dominio.js'
+import { DIMENSOES, FATORES, fatorValido } from '../src/comum/dominio.js'
 import { caminhoCompleto } from '../src/coleta/questionario.js'
 
 const DIR = join(process.cwd(), 'supabase', 'migrations')
@@ -352,5 +352,63 @@ describe('nenhum dado gravado fica sem leitura', () => {
       colunasDeViews.has(coluna),
       `\`${coluna}\` e gravada e nenhuma das views a devolve: dado coletado que ninguem pode ler`,
     ).toBe(true)
+  })
+})
+
+describe('fatorValido espelha fn_fator_valido nas tres regras', () => {
+  /**
+   * O comentario do SQL dizia "espelho de `fatorValido`" e os dois discordavam nos DOIS casos que o
+   * SQL acrescentou. Espelho que nao espelha e pior que ausencia de espelho, porque quem le confia.
+   *
+   * As tres regras estao no SQL e agora tambem aqui; os casos abaixo sao os mesmos que a funcao do
+   * banco decide, e `scripts/ensaio-dados.sql` confere o lado de la.
+   */
+  it('item_consumido nao usa fator', () => {
+    expect(fatorValido('item_consumido', null)).toBe(true)
+    expect(fatorValido('item_consumido', 'sabor')).toBe(false)
+  })
+
+  it('fator nulo e valido: a T2A marca a dimensao sem descer ao fator', () => {
+    expect(fatorValido('comida', null)).toBe(true)
+    expect(fatorValido('atendimento', null)).toBe(true)
+  })
+
+  it('dimensao nula aceita a lista plana, que e o caso do alerta de detrator', () => {
+    expect(fatorValido(null, 'sabor')).toBe(true)
+    expect(fatorValido(null, 'espera_conta')).toBe(true)
+    expect(fatorValido(null, 'inventado')).toBe(false)
+  })
+
+  it('o par completo continua sendo conferido', () => {
+    expect(fatorValido('comida', 'sabor')).toBe(true)
+    // `temperatura` e de bebida e `temperatura_salao` de ambiente: o par trocado tem de cair.
+    expect(fatorValido('comida', 'temperatura')).toBe(false)
+    expect(fatorValido('inventada', 'sabor')).toBe(false)
+  })
+})
+
+describe('o contrato da tentativa', () => {
+  const contrato = readFileSync(join(process.cwd(), 'src', 'comum', 'contrato.ts'), 'utf8')
+
+  it('nao tem `resposta_id`, porque a coluna nao existe', () => {
+    // O par tentativa/resposta e conferivel por IGUALDADE de id, e nao por juncao aproximada. O
+    // campo estava no contrato apontando para uma coluna que o schema nunca teve.
+    const bloco = contrato.slice(
+      contrato.indexOf('export interface TentativaEnviada'),
+      contrato.indexOf('export interface SinalDispositivo'),
+    )
+    expect(bloco).not.toContain('resposta_id')
+    expect(SQL).not.toMatch(/create table[^;]*experiencia\.tentativa[^;]*resposta_id/s)
+  })
+
+  it('`desfecho` aceita so `recusou`', () => {
+    // A tentativa de quem RESPONDEU e gravada por `fn_grava_resposta`, com o mesmo id da resposta.
+    // Enviar as duas duplicaria o denominador da conversao por garcom.
+    const bloco = contrato.slice(
+      contrato.indexOf('export interface TentativaEnviada'),
+      contrato.indexOf('export interface SinalDispositivo'),
+    )
+    expect(bloco).toMatch(/desfecho: 'recusou'/)
+    expect(bloco).not.toMatch(/desfecho: 'respondeu' \| 'recusou'/)
   })
 })

@@ -784,6 +784,97 @@ begin
 end
 $$;
 
+-- -----------------------------------------------------------------------------
+-- A25 e A26: o ramo repetido e contado, e a data com duas notas usa a media.
+-- -----------------------------------------------------------------------------
+do $$
+declare
+  v_base     uuid;
+  v_massa    uuid;
+  v_queijo   uuid;
+  v_prato    uuid;
+  v_r        record;
+begin
+  -- A26 primeiro, no proprio prato ja conferido: uma SEGUNDA nota de mucarela na mesma data, com
+  -- preco diferente. Antes o desempate era por uuid, entao o custo dependia de qual identificador
+  -- saiu maior; agora e a media das duas.
+  --
+  --   mucarela: 0,050 e 0,070 na mesma data -> media 0,060
+  --   150 g x 0,060 = R$ 9,00, e o custo do prato passa de 8,22 para 9,72.
+  insert into public.historico_precos (insumo_master_id, data, valor_unit_normalizado)
+  select id, '2026-08-01', 0.070 from public.insumos_master where nome_qt = 'MUCARELA';
+
+  select * into v_r from experiencia.vw_custo_prato
+  where id_altec = 'ALT-100'
+    and data_referencia <= current_date
+    and (vigente_ate is null or vigente_ate > current_date);
+
+  if round(v_r.custo_total, 2) <> 9.72 then
+    raise exception
+      'A26: com duas notas de mucarela na mesma data (0,050 e 0,070), a media da 0,060 e o custo '
+      'deveria ser 9,72. Deu %. Se der 8,22 ou 10,50, o desempate voltou a ser por uma nota so, e '
+      'o custo do prato passa a depender de qual uuid saiu maior.', round(v_r.custo_total, 2);
+  end if;
+  raise notice 'ok  A26: data com duas notas usa a media das duas (custo 9,72)';
+
+  -- A25: um CICLO DE VERDADE, A -> B -> A.
+  --
+  -- Vale registrar o que a critica errou aqui, porque o erro dela e instrutivo: o exemplo que ela
+  -- deu — "mucarela no molho e mucarela dentro da base do molho" — NAO aciona o guarda. `visitados`
+  -- acumula por CAMINHO, e `molho -> mucarela` e `molho -> base -> mucarela` sao dois caminhos
+  -- distintos, nenhum deles com repeticao interna. Esse caso sempre funcionou, e a mucarela era
+  -- somada duas vezes corretamente, uma por ramo.
+  --
+  -- O guarda so dispara na repeticao DENTRO de um caminho, que e ciclo mesmo. E ai o problema
+  -- existia e era o descrito: o no sumia sem entrar em contagem nenhuma, e o custo do prato saia
+  -- MENOR e plausivel — que num painel de margem nao parece erro, parece prato lucrativo.
+  insert into public.insumos_master (nome_qt, tipo, rn, rendimento, unidade_padrao)
+  values ('BASE COM CICLO', 'producao_interna', 1, 1000, 'g') returning id into v_base;
+  select id into v_massa from public.insumos_master where nome_qt = 'MASSA';
+  select id into v_queijo from public.insumos_master where nome_qt = 'MUCARELA';
+
+  -- MASSA -> BASE -> MASSA. Ciclo fechado, do tipo que uma ficha tecnica editada a mao produz.
+  insert into public.producao_ingredientes (producao_id, insumo_master_id, quantidade, ordem)
+  values (v_base, v_massa, 100, 1);
+  insert into public.producao_ingredientes (producao_id, insumo_master_id, quantidade, ordem)
+  values (v_massa, v_base, 50, 3);
+
+  insert into public.pratos (nome, categoria, id_altec, preco_venda, ativo)
+  values ('Prato Com Ciclo', 'PIZZAS', 'ALT-777', 60.00, true) returning id into v_prato;
+  insert into public.prato_ingredientes (prato_id, insumo_master_id, quantidade, ordem) values
+    (v_prato, v_queijo, 100, 1),
+    (v_prato, v_massa,  200, 2);
+
+  select * into v_r from experiencia.vw_custo_prato
+  where id_altec = 'ALT-777'
+    and data_referencia <= current_date
+    and (vigente_ate is null or vigente_ate > current_date);
+
+  if v_r.insumos_em_ciclo < 1 then
+    raise exception
+      'A25: o insumo repetido no ramo NAO foi contado (insumos_em_ciclo = %). Antes ele sumia sem '
+      'entrar em contagem nenhuma, e o custo do prato saia menor e plausivel — que num painel de '
+      'margem nao parece erro, parece prato lucrativo.', v_r.insumos_em_ciclo;
+  end if;
+  if not v_r.custo_ausente then
+    raise exception 'A25: com ramo em ciclo, o custo tem de vir AUSENTE e veio %', v_r.custo_total;
+  end if;
+  if v_r.motivo_incompleto not like '%ciclo%' then
+    raise exception 'A25: o motivo nao explica o ciclo: %', v_r.motivo_incompleto;
+  end if;
+  raise notice 'ok  A25: ramo repetido e contado, custo vem ausente com motivo, e nao menor em silencio';
+
+  -- Desfaz o que este bloco criou, para nao mexer nos numeros conferidos a lapis mais acima.
+  delete from public.prato_ingredientes where prato_id = v_prato;
+  delete from public.pratos where id = v_prato;
+  delete from public.producao_ingredientes where producao_id = v_base;
+  delete from public.producao_ingredientes where producao_id = v_massa and insumo_master_id = v_base;
+  delete from public.insumos_master where id = v_base;
+  delete from public.historico_precos
+   where insumo_master_id = v_queijo and valor_unit_normalizado = 0.070;
+end
+$$;
+
 -- =============================================================================
 -- PARTE 11. O R3 e o cruzamento com venda.
 -- =============================================================================

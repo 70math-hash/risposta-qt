@@ -132,17 +132,27 @@ export interface RespostaEnviada {
   consentimentos: readonly ConsentimentoDado[]
 }
 
-/** A abordagem registrada na T0, inclusive a recusa. Vira uma linha de `tentativa`. */
+/**
+ * A RECUSA registrada na T0. Vira uma linha de `tentativa`.
+ *
+ * `desfecho` aceita SO `recusou`, e nao os dois valores. A tentativa de quem respondeu e gravada
+ * por `fn_grava_resposta`, com o MESMO id da resposta: enviar as duas duplicaria o denominador da
+ * conversao por garcom, inflando a taxa sem ninguem notar. O tipo estreito e o que impede a tela de
+ * chamar esta rota pelo caminho errado — antes ele aceitava `respondeu` e a rota recusava em tempo
+ * de execucao, o que e tarde demais.
+ *
+ * NAO tem `resposta_id`. A coluna nao existe em `tentativa`, deliberadamente: o par tentativa e
+ * resposta e conferivel por IGUALDADE de id, e nao por juncao aproximada. O campo estava no
+ * contrato apontando para uma coluna que o schema nunca teve.
+ */
 export interface TentativaEnviada {
   id: string
   criado_em_cliente: string
-  desfecho: 'respondeu' | 'recusou'
+  desfecho: 'recusou'
   canal: CanalResposta
   mesa_digitada?: string
   garcom_pin_digitado?: string
   dispositivo_id?: string
-  /** Preenchido quando `desfecho` e `respondeu`, para amarrar tentativa e resposta. */
-  resposta_id?: string
 }
 
 /** O sinal periodico do aparelho. Vira atualizacao das colunas de sinal de `dispositivo`. */

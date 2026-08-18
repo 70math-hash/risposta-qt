@@ -64,6 +64,7 @@
     "insumos_sem_preco",
     "insumos_sem_rendimento",
     "insumos_truncados",
+    "insumos_em_ciclo",
     "nivel_maximo",
     "custo_ausente",
     "motivo_incompleto",
@@ -291,6 +292,7 @@
     "reclamacoes",
     "media_reclamacoes_cardapio",
     "unidades_vendidas",
+    "reclamacoes_por_100",
     "sinalizado",
     "aviso"
   ],

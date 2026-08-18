@@ -115,8 +115,28 @@ export type Idioma = (typeof IDIOMAS)[number]
 
 // --- Validacao ---
 
-/** Verdadeiro se o fator pertence a dimensao. Fator orfao e erro, nao aviso. */
-export function fatorValido(dimensao: string, fator: string): boolean {
+/**
+ * Espelho EXATO de `experiencia.fn_fator_valido`. Fator orfao e erro, nao aviso.
+ *
+ * As tres regras, na mesma ordem da funcao do banco:
+ *
+ *   1. `item_consumido` nao usa fator: o item vai em `resposta_item`. Fator preenchido ali e
+ *      invalido, e nao apenas ignorado.
+ *   2. Fator NULO e valido em qualquer outra dimensao: a T2A e a T2B marcam a dimensao sem descer
+ *      ao fator ("A pizza", sem dizer o que teve a pizza).
+ *   3. Dimensao nula aceita a lista PLANA de todos os fatores. E o caso de `alerta_detrator`, que
+ *      guarda o primeiro fator marcado sem carregar a dimensao junto.
+ *
+ * A versao anterior nao tinha nenhuma das tres: aceitava so o par completo, e o comentario do SQL
+ * dizia "espelho de `fatorValido`" enquanto os dois discordavam nos dois casos que o SQL
+ * acrescentou. Espelho que nao espelha e pior que ausencia de espelho, porque quem le confia.
+ */
+export function fatorValido(dimensao: string | null, fator: string | null): boolean {
+  if (dimensao === 'item_consumido') return fator === null
+  if (fator === null) return true
+  if (dimensao === null) {
+    return Object.values(FATORES).some((lista) => (lista as readonly string[]).includes(fator))
+  }
   const lista = (FATORES as Record<string, readonly string[]>)[dimensao]
   return lista !== undefined && lista.includes(fator)
 }

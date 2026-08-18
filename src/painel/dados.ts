@@ -192,6 +192,7 @@ export interface VwCustoPrato {
   insumos_sem_preco: number | null
   insumos_sem_rendimento: number | null
   insumos_truncados: number | null
+  insumos_em_ciclo: number | null
   nivel_maximo: number | null
   custo_ausente: boolean | null
   motivo_incompleto: string | null
@@ -453,6 +454,7 @@ export interface VwItemTrimestre {
   reclamacoes: number | null
   media_reclamacoes_cardapio: number | null
   unidades_vendidas: number | null
+  reclamacoes_por_100: number | null
   sinalizado: boolean | null
   aviso: string | null
 }

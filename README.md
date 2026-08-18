@@ -138,9 +138,10 @@ Onde dois documentos divergirem, a precedência está na seção 10 da folha can
 Quatro camadas, e cada uma existe porque a de cima nao alcanca o que a de baixo erra.
 
 ```
-npm run verifica          tsc + 200 testes + build.  Roda em qualquer maquina, sem banco.
-scripts/ensaio.sh         as 16 migrations num Postgres local, do zero.
-scripts/ensaio.sh --dados as migrations + as funcoes exercitadas com dado + o Worker de verdade.
+npm run verifica          tsc + a suite inteira + build. Roda em qualquer maquina, sem banco.
+scripts/ensaio.sh         as migrations num Postgres local, do zero, mais a restauracao ensaiada.
+scripts/ensaio.sh --dados o acima + as funcoes exercitadas com dado + a matriz de permissoes
+                          girando a maçaneta + o Worker de verdade por HTTP.
 ```
 
 **1. `tsc --noEmit`.** Pega o que e tipo. Nao pega nada que atravesse uma fronteira como texto:
@@ -153,8 +154,14 @@ fontes de verdade, e comparam. Nao precisam de banco, entao rodam em `npm test`:
 - `contrato-sql`: as chaves que `fn_grava_resposta` le existem no payload que o Worker envia.
 - `contrato-colunas`: toda coluna que o Worker pede e escreve existe em tabela ou em view; os
   dominios fechados escritos em TypeScript sao o mesmo conjunto que o `check` do banco.
-- `contrato-views`: as 25 interfaces do painel tem exatamente os campos que a view devolve, e o
-  tipo passado a `useView` casa com a view lida.
+- `contrato-views`: as interfaces do painel tem exatamente os campos que a view devolve, e o tipo
+  passado a `useView` casa com a view lida. As interfaces sao GERADAS do banco, e nao escritas a
+  mao: 25 delas divergiam quando eram escritas a mao, e uma citava uma view que nao existe.
+- `contrato-folha-canonica`: a folha nao promete funcao nem view que o SQL nao cria, nenhum
+  documento afirma contagem que contradiz o SQL, e **todo caminho de arquivo citado existe** — a
+  critica abriu com quatro arquivos citados e ausentes.
+- `contrato-telas`: as listas fechadas do TypeScript sao o mesmo conjunto que os `check` do banco,
+  nos dois sentidos, e toda escrita de `dados.ts` tem uma tela que a chama.
 
 **3. `scripts/ensaio.sh --dados`.** Aplica as migrations num Postgres local e exercita as funcoes
 com dado, conferindo numero por numero — inclusive o custo recursivo da pizza, que da R$ 8,22 e
@@ -162,16 +169,33 @@ esta calculado a mao dentro do arquivo. Roda tambem o caminho feliz da migracao 
 nomes que doem (acento, apostrofo, espaco nas pontas, vazio), duas vezes, para provar que
 reaplicar nao dobra.
 
-**4. `tests/worker-integracao.test.ts`.** O Worker rodando contra aquele Postgres, por HTTP.
+**4. `sql/teste_rls.sql`.** A matriz de permissoes girando a maçaneta, dentro de
+`begin; ... rollback;`. Confere que `anon` nao alcanca nada, que o painel le e nao escreve, que o
+papel do Worker le o custo e **nao** escreve no sistema fiscal (o criterio de aceite de `F55`), e
+que nenhuma view contorna a matriz por falta de `security_invoker`.
+
+Na primeira vez que rodou, ele contradisse o documento de seguranca: `experiencia_app` lia toda a
+coleta, enquanto o documento afirmava que ele nao tinha grant nenhum ali. Os dois estavam coerentes
+entre si e errados quanto ao banco, que e por que nenhuma leitura pegaria.
+
+**5. `tests/worker-integracao.test.ts`.** O Worker rodando contra aquele Postgres, por HTTP.
 `scripts/postgrest-de-ensaio.mjs` traduz a requisicao para SQL e deixa o Postgres julgar: ele nao
 tem lista de colunas validas, entao nao consegue aprovar um pedido que o PostgREST recusaria.
 
-Se o substituto nao estiver no ar, esses 16 casos sao **pulados com aviso em stderr**, e nao
+Se o substituto nao estiver no ar, esses casos sao **pulados com aviso em stderr**, e nao
 aprovados. Pulado nao e verde.
+
+**E a restauracao, ensaiada a cada execucao.** Papel e objeto do cluster e `pg_dump` nao leva
+nenhum, entao restaurar num Postgres cru falha uma vez por `GRANT` do dump. `sql/papeis.sql` roda
+antes das migrations (o estado de quem acabou de criar o banco) e de novo depois (a conferencia de
+que os `GRANT` do dump encontraram os papeis). Esse caminho so se percorre no dia em que o backup
+importa — ensaia-lo e a unica forma de saber que ele funciona antes desse dia.
 
 ### O que ainda nao e verificado por nada
 
-- **A tela.** Nenhum teste renderiza um componente. O que protege o painel e o contrato de views.
+- **A tela.** Nenhum teste renderiza um componente. O que protege o painel e o contrato de views,
+  mais a regra de que toda escrita de `dados.ts` tem de ser chamada por alguma tela — foi assim que
+  apareceu um botao que faltava no fim de uma cadeia que existia inteira.
 - **O envio de e-mail e a chamada da Groq.** So a montagem esta coberta; o envio, nao.
 - **A premissa de custo.** `rn`, `rendimento` e `rn_override` sao `NAO VERIFICADO` (N46). A view
   devolve `premissa_conferida = false` e o painel escreve isso na tela, em toda leitura.

@@ -496,6 +496,7 @@ e nunca lido**, que é trabalho pedido ao cliente sem retorno nenhum.
 | `vw_pergunta_resposta` | `/painel/coleta` | A distribuição das respostas das rotacionadas, com o **rótulo** de cada opção ao lado do índice | `resposta_pergunta_sorteada.opcao_indice` era gravada e nenhuma view a devolvia. A pergunta era feita a cada promotor, todas as noites, e a resposta não podia ser vista |
 | `vw_importacao` | `/painel/coleta` | O log das importações de R3, com os dias que cada arquivo cobriu e quem subiu | `dias_lidos` e `importado_por` tinham o mesmo problema. Sem leitura, "qual dia este arquivo cobriu" exigia abrir o arquivo, e "quem subiu esta planilha" — a primeira pergunta quando um faturamento não fecha — não tinha resposta |
 | `vw_exclusao_pedido` | `/painel/admin` | Os pedidos de titular, abertos primeiro, com os dias em aberto e o prazo interno de 7 dias | `exclusao_pedido` tinha índice para os pedidos abertos e nenhuma leitura: o índice servia uma consulta que ninguém escreveu |
+| `vw_gravacao_diagnostico` | `/painel/saude` | As partes de resposta que o banco recusou na gravação, por dia e por tipo | A gravação passou a ser resiliente: filha que o banco recusa é descartada e a **resposta entra**, porque a nota é o único dado obrigatório. Esta view é o que impede o descarte de ser silencioso — sem ela, "descartar e seguir" seria engolir erro |
 | `vw_texto_a_classificar` | nenhuma | Os textos de um dia ainda não classificados | View de **trabalho** da rotina `cron_classificador`, que a consultava desde que foi escrita. Ela nunca havia sido criada: a rotina rodaria todo dia e devolveria 404 |
 
 ### 6.3 As views de exportação
@@ -578,9 +579,10 @@ Uma linha cada, com o valor literal. **Onde um documento anterior traz outro nú
 | N03 | Consumo da cota de LLM | **menos de 0,1% da cota diária gratuita do Groq** |
 | N04 | Modelos de LLM | classificação em `llama-3.1-8b-instant`, redação em `llama-3.3-70b-versatile`, provedor **Groq**, escolhido por contrato de privacidade e não por limite |
 | N05 | Faixa de 95% do NPS, fórmula | **1,96 vezes o erro padrão**, com erro padrão em `raiz((p_promotores + p_detratores - NPS²) / n)` |
-| N06 | Faixa de 95% com n=50 | erro padrão **10,5**, faixa **±20,5 pontos** |
+| N06 | Faixa de 95% com n=50 | erro padrão **10,5**, faixa **±20,6 pontos** |
 | N07 | Faixa de 95% com n=100 | erro padrão **7,4**, faixa **±14,5 pontos** |
 | N08 | Faixa de 95% com n=200 | erro padrão **5,2**, faixa **±10,3 pontos** |
+| N06b | Correção de N06 | A faixa de n=50 era **±20,5** e o valor certo é **±20,6**. Com o numerador de variância de 0,55 que N06 a N08 assumem, `raiz(0,55/50) × 100 = 10,4881` e `1,96 × 10,4881 = 20,56`, que arredonda para 20,6. Mesmo partindo do erro padrão já arredondado, `1,96 × 10,5 = 20,58`. N07, N08 e N09 já estavam certos, e continuam |
 | N09 | Diferença mínima detectável entre dois períodos | **±29 pontos** com n=50, **±20,5** com n=100, **±14,5** com n=200 (a faixa vezes raiz de 2) |
 | N10 | Retenção de dado pessoal | **12 meses contados da última visita**, apagado por `cron_retencao` |
 | N11 | Retenção da resposta da pesquisa | **indefinidamente, desvinculada do contato**, depois da varredura de padrão (telefone, e-mail, CPF) no texto aberto |

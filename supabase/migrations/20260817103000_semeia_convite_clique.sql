@@ -55,19 +55,21 @@
 -- =============================================================================
 
 -- -----------------------------------------------------------------------------
--- -----------------------------------------------------------------------------
--- TRANSACAO EXPLICITA, e ela nao e enfeite.
+-- SEM transacao explicita, e a area de pouso e `temporary` SEM `on commit drop`.
 --
--- A area de pouso abaixo e `temporary ... on commit drop`. Em autocommit, cada statement
--- e sua propria transacao, entao a tabela seria destruida imediatamente depois de criada e
--- o `insert` seguinte falharia com "relation does not exist". Descoberto rodando as
--- migrations num Postgres de ensaio: sem este `begin`, esta migration nunca funciona, nem
--- depois de o script de exportacao preencher as 74 linhas.
+-- A versao anterior deste arquivo tinha `begin`/`commit` explicitos, porque a area de pouso era
+-- `temporary ... on commit drop` e em autocommit ela morria antes do `insert` seguinte.
 --
--- Com `begin`/`commit`, ela funciona tanto no runner do Supabase (que envolve o arquivo em
--- transacao) quanto em `psql` puro, e nao depende do comportamento do runner.
--- -----------------------------------------------------------------------------
-begin;
+-- O par funcionava, e tinha um efeito colateral que so aparece no runner do Supabase: ele ja
+-- envolve o arquivo inteiro numa transacao, e o `commit` daqui FECHA a transacao dele. A partir
+-- dali, a atomicidade do conjunto de migrations deixa de valer — se algo falhasse depois deste
+-- arquivo, o que veio antes ficaria aplicado.
+--
+-- `temporary` sem `on commit drop` resolve os dois: a tabela vive ate o fim da SESSAO, o que cobre
+-- o arquivo inteiro em autocommit e dentro de transacao, e nada aqui mexe no controle de transacao
+-- de quem chamou. A tabela some quando a sessao termina, que e o que se queria.
+--
+-- Achado pela critica adversarial da Etapa 4 (A37).
 
 -- 1. A area de pouso. Temporaria e `on commit drop`: o schema tem 26 tabelas e nao
 -- ganha uma vigesima setima para guardar dado de passagem.
@@ -78,7 +80,7 @@ create temporary table origem_cliques_avaliacao (
   criado_em   timestamptz not null,
   user_agent  text        null,
   referrer    text        null
-) on commit drop;
+);
 
 -- >>> INICIO DO BLOCO GERADO
 --
@@ -170,4 +172,6 @@ begin
 end
 $$;
 
-commit;
+-- A area de pouso e descartada ao fim da SESSAO. `drop` explicito aqui para o arquivo poder ser
+-- reaplicado na mesma sessao de `psql` sem esbarrar na tabela da passada anterior.
+drop table if exists origem_cliques_avaliacao;

@@ -23,6 +23,7 @@
 import { readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { erroPadraoNps } from '../src/comum/nps.js'
 
 const FOLHA = readFileSync(join(process.cwd(), 'docs', 'arquitetura', '00-canonico.md'), 'utf8')
 
@@ -190,5 +191,34 @@ describe('o que a folha declara como armazenamento local', () => {
     const fila = readFileSync(join(process.cwd(), 'src', 'coleta', 'fila.ts'), 'utf8')
     expect(fila).toContain('fila_resposta')
     expect(fila).toContain('fila_tentativa')
+  })
+})
+
+describe('os números canônicos de NPS batem com o que o código calcula', () => {
+  /**
+   * `N06` dizia faixa de ±20,5 com n=50, e a conta da ±20,6: com o numerador de variancia de 0,55
+   * que os tres numeros assumem, `raiz(0,55/50) x 100 = 10,4881` e `1,96 x 10,4881 = 20,56`.
+   *
+   * Numero canonico errado e caro de um jeito particular: ele tem precedencia, entao quem confere o
+   * codigo contra ele conclui que o CODIGO esta errado, e "corrige" o certo.
+   */
+  const P = 0.55
+  const Q = (2.1 - Math.sqrt(3.2)) / 2
+
+  it.each([
+    { n: 50, faixa: '±20,6' },
+    { n: 100, faixa: '±14,5' },
+    { n: 200, faixa: '±10,3' },
+  ])('a folha declara $faixa para n=$n, e a formula concorda', ({ n, faixa }) => {
+    const ep = erroPadraoNps(P, Q, n)
+    const calculada = `±${(1.96 * ep).toFixed(1).replace('.', ',')}`
+    expect(calculada, `a formula da ${calculada} para n=${n}`).toBe(faixa)
+    expect(FOLHA.includes(faixa), `a folha não traz ${faixa} para n=${n}`).toBe(true)
+  })
+
+  it('a folha não traz mais o valor antigo de N06', () => {
+    // `±20,5` continua aparecendo em N09 (a diferença mínima com n=100), então a busca é pelo par
+    // erro padrão + faixa que só existia na linha errada.
+    expect(FOLHA).not.toMatch(/erro padrão \*\*10,5\*\*, faixa \*\*±20,5/)
   })
 })

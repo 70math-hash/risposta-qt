@@ -147,6 +147,14 @@ export async function enfileiraResposta(carga: RespostaEnviada): Promise<void> {
   await transacao(LOJA_RESPOSTA, 'readwrite', (s) => s.put(item))
 }
 
+/**
+ * A recusa registrada na T0.
+ *
+ * Tambem espelhada em `localStorage`, e nao so gravada no IndexedDB. A recusa e o NUMERADOR da
+ * conversao por garcom e o unico registro de quem nao respondeu: ela era o unico dado da coleta sem
+ * espelho, e o espelho existe justamente para o caso em que o IndexedDB e limpo (modo anonimo,
+ * limpeza de dados do navegador, atualizacao do Fully Kiosk).
+ */
 export async function enfileiraTentativa(carga: TentativaEnviada): Promise<void> {
   const item: ItemFila<TentativaEnviada> = {
     id: carga.id,
@@ -155,6 +163,7 @@ export async function enfileiraTentativa(carga: TentativaEnviada): Promise<void>
     tentativas_envio: 0,
     criado_em_local: new Date().toISOString(),
   }
+  espelha(carga)
   await transacao(LOJA_TENTATIVA, 'readwrite', (s) => s.put(item))
 }
 

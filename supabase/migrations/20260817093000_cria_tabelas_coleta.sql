@@ -214,7 +214,16 @@ comment on column experiencia.resposta_texto.texto_cru is
 comment on column experiencia.resposta_texto.mascarado_em is
   'Prova de que a varredura rodou nesta linha. Nulo quer dizer nao varrida ainda.';
 
--- Indice: a fila de comentarios a classificar e a fila a mascarar.
+-- Indice: a fila a mascarar.
+--
+-- O que ele serve de verdade e a PARTE PARCIAL, `mascarado_em is null`, que e o que reduz a
+-- varredura mensal ao que ainda nao foi varrido. A coluna `criado_em` na chave NAO e usada pela
+-- consulta de `fn_aplica_retencao`, que filtra por `resposta.respondido_em`: o comentario anterior
+-- dizia que o indice servia aquela ordenacao, e nao serve.
+--
+-- Fica como esta, e nao vira indice sem coluna: `criado_em` da uma ordem estavel a varredura, o que
+-- importa quando ela roda em lotes, e o custo de uma coluna a mais num indice parcial de poucas
+-- linhas e desprezivel. O que muda e a descricao, que agora diz o que ele faz.
 create index if not exists resposta_texto_mascarar_idx
   on experiencia.resposta_texto (criado_em) where mascarado_em is null;
 

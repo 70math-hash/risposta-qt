@@ -142,9 +142,20 @@ calculado as (
          ) * 100 as erro_padrao
   from agregado a
 )
--- `sqrt()` devolve double precision, e `round(double precision, int)` NAO EXISTE no
--- Postgres: round com casas decimais so tem versao para numeric. Sem os casts abaixo esta
--- view falha na criacao, o que foi descoberto rodando as migrations num Postgres de ensaio.
+-- `round(double precision, int)` NAO EXISTE no Postgres: round com casas decimais so tem versao
+-- para numeric. Daqui vem os casts.
+--
+-- MAS o comentario anterior aqui estava errado, e a correcao vale ser registrada porque a versao
+-- errada era mais convincente que a certa. Ele dizia "`sqrt()` devolve double precision", o que e
+-- verdade para `sqrt(2)` (argumento inteiro, que resolve para a versao double) e FALSO para
+-- `sqrt(<numeric>)`, que devolve numeric. Conferido: `pg_typeof(sqrt(0.5::numeric))` e `numeric`.
+--
+-- Portanto o unico cast que a criacao da view exige e o da ultima linha, por causa do `sqrt(2)`. Os
+-- outros tres sao inocuos, e ficam de proposito: eles dizem, em cada linha, que ali se arredonda um
+-- numeric — o que e a informacao util para quem editar isto depois.
+--
+-- O erro original (`round(double precision, int)`) foi encontrado rodando as migrations num
+-- Postgres de ensaio, e isso continua verdade. O que nao era verdade e o motivo que eu escrevi.
 select janela, inicio, fim, n, promotores, neutros, detratores,
        round((nps_fracao * 100)::numeric, 1)             as nps,
        round(erro_padrao::numeric, 1)                    as erro_padrao,

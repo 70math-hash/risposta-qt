@@ -25,6 +25,7 @@ import { rodaRetencao } from './rotinas/retencao.js'
 import { rodaWatcherDrive } from './rotinas/watcher-drive.js'
 import { importaR3, jaImportado, sha256 } from './rotinas/importa.js'
 import { SemSessao, usuarioDaRequisicao } from './lib/sessao.js'
+import { credencial } from './lib/token.js'
 import {
   catalogoDeEntidades,
   corpoDeDesligamento,
@@ -489,9 +490,29 @@ export default {
         return postContatoAlerta(req, env)
       case 'POST /api/atende-exclusao':
         return postAtendeExclusao(req, env)
-      case 'GET /api/saude':
+      case 'GET /api/saude': {
         // Sonda simples, sem tocar o banco: responde se o Worker esta no ar.
-        return ok()
+        //
+        // E diz COM QUAL PAPEL ele escreve. Isso nao e enfeite: se o segredo JWT nao estiver
+        // configurado, o Worker escreve como `service_role`, que passa por cima de RLS e alcanca o
+        // `public` do sistema fiscal — e nesse caso a matriz de permissoes das 26 tabelas e o
+        // critério de aceite de F55 NAO estao valendo. Um sistema que cai para o caminho mais
+        // permissivo sem avisar e pior que um que nunca teve o caminho restrito, porque o documento
+        // passa a descrever uma protecao que nao existe.
+        const cred = await credencial(env)
+        return json({
+          ok: true,
+          papel_de_escrita: cred.papel,
+          permissoes_valendo: cred.papel === 'experiencia_app',
+          ...(cred.papel === 'service_role'
+            ? {
+                aviso:
+                  'escrevendo como service_role: RLS e os grants por tabela NAO estao valendo. ' +
+                  'Configure SUPABASE_JWT_SECRET no Worker para usar o papel restrito.',
+              }
+            : {}),
+        })
+      }
       default:
         return erro(`rota desconhecida: ${rota}`, 404)
     }

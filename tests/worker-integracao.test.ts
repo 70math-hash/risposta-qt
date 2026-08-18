@@ -31,10 +31,27 @@ import { describe, expect, it } from 'vitest'
 import trabalhador from '../worker/index.js'
 import { caminhoCompleto } from '../src/coleta/questionario.js'
 import type { Ambiente } from '../worker/lib/supabase.js'
+import { credencial, limpaCacheDeToken } from '../worker/lib/token.js'
 
 const BASE = process.env.PGREST_ENSAIO ?? 'http://127.0.0.1:8788'
 
+/**
+ * O ambiente do Worker, com o segredo JWT presente.
+ *
+ * Com ele, o Worker assina um token com `role: experiencia_app` e o substituto faz
+ * `set local role experiencia_app`. Portanto TODOS os casos deste arquivo rodam sob as permissoes
+ * do papel restrito, e nao sob `service_role` — que e o unico jeito de os grants das 26 tabelas e
+ * as politicas de RLS serem exercitados por alguma coisa.
+ */
 const env: Ambiente = {
+  SUPABASE_URL: BASE,
+  SUPABASE_SERVICE_KEY: 'chave-de-ensaio',
+  SUPABASE_ANON_KEY: 'publica-de-ensaio',
+  SUPABASE_JWT_SECRET: 'segredo-de-ensaio-que-nao-e-verificado-pelo-substituto',
+}
+
+/** O mesmo ambiente SEM o segredo: o caminho de reserva, que escreve como `service_role`. */
+const envSemSegredo: Ambiente = {
   SUPABASE_URL: BASE,
   SUPABASE_SERVICE_KEY: 'chave-de-ensaio',
   SUPABASE_ANON_KEY: 'publica-de-ensaio',
@@ -691,5 +708,216 @@ describe('as escritas administrativas', () => {
     const r2 = (await (await pede()).json()) as { ja_atendido?: boolean; clientes_anonimizados?: number }
     expect(r2.ja_atendido).toBe(true)
     expect(r2.clientes_anonimizados).toBe(0)
+  })
+})
+
+describe('o papel de escrita', () => {
+  /**
+   * A coisa que estes casos protegem: que o Worker escreva com o papel RESTRITO, e que a queda para
+   * `service_role` seja VISIVEL.
+   *
+   * Com `service_role`, o Postgres passa por cima de RLS e o papel alcanca o `public` do sistema
+   * fiscal. Nesse caso a matriz de grants das 26 tabelas, as politicas de RLS, a invariante de
+   * append-only e o critério de aceite de F55 nao estao valendo — e um sistema que cai para o
+   * caminho mais permissivo em silencio e pior que um que nunca teve o restrito, porque o documento
+   * passa a descrever uma protecao que nao existe.
+   */
+  it.skipIf(!noAr)('com o segredo JWT, escreve como experiencia_app', async () => {
+    limpaCacheDeToken()
+    const r = await trabalhador.fetch(pede('/api/saude'), env)
+    const corpo = (await r.json()) as { papel_de_escrita: string; permissoes_valendo: boolean }
+    expect(corpo.papel_de_escrita).toBe('experiencia_app')
+    expect(corpo.permissoes_valendo).toBe(true)
+  })
+
+  it.skipIf(!noAr)('sem o segredo, cai para service_role E DIZ que caiu', async () => {
+    limpaCacheDeToken()
+    const r = await trabalhador.fetch(pede('/api/saude'), envSemSegredo)
+    const corpo = (await r.json()) as {
+      papel_de_escrita: string
+      permissoes_valendo: boolean
+      aviso?: string
+    }
+    expect(corpo.papel_de_escrita).toBe('service_role')
+    expect(corpo.permissoes_valendo).toBe(false)
+    // O aviso e a parte que importa: sem ele, a degradacao e silenciosa.
+    expect(corpo.aviso, 'a queda para service_role tem de vir com aviso').toBeTypeOf('string')
+    expect(corpo.aviso).toContain('SUPABASE_JWT_SECRET')
+    limpaCacheDeToken()
+  })
+
+  it.skipIf(!noAr)('a gravacao de resposta funciona sob o papel restrito', async () => {
+    // Nao basta o papel estar certo: ele tem de conseguir fazer o trabalho. Se `experiencia_app`
+    // nao alcancasse `fn_grava_resposta` ou uma das seis tabelas filhas, a coleta pararia — e o
+    // conserto seria dar mais permissao, que e o caminho de volta ao problema.
+    limpaCacheDeToken()
+    const carga = respostaBase()
+    const r = await trabalhador.fetch(pede('/api/resposta', carga), env)
+    const corpo = (await r.json()) as { ok: boolean; erro?: string }
+    expect(
+      corpo.erro ?? null,
+      `o papel restrito nao consegue gravar: ${String(corpo.erro)}`,
+    ).toBeNull()
+    expect(corpo.ok).toBe(true)
+  })
+
+  it.skipIf(!noAr)('o token do papel restrito e um JWT com o claim role', async () => {
+    // O claim `role` e a unica razao de este arquivo existir: e ele que o PostgREST le para decidir
+    // o papel. Um token sem ele seria aceito e rodaria como o papel de conexao.
+    limpaCacheDeToken()
+    const cred = await credencial(env, Date.parse('2026-08-05T01:00:00Z'))
+    expect(cred.papel).toBe('experiencia_app')
+    const token = cred.autorizacao.replace(/^Bearer /, '')
+    const [cabecalho, corpo, assinatura] = token.split('.')
+    expect(assinatura, 'token sem assinatura').toBeTypeOf('string')
+    expect(JSON.parse(Buffer.from(cabecalho!, 'base64url').toString())).toMatchObject({
+      alg: 'HS256',
+    })
+    const claims = JSON.parse(Buffer.from(corpo!, 'base64url').toString()) as {
+      role: string
+      exp: number
+      iat: number
+    }
+    expect(claims.role).toBe('experiencia_app')
+    // Validade curta: um token longo que vaze vale por muito tempo.
+    expect(claims.exp - claims.iat).toBeLessThanOrEqual(60)
+    limpaCacheDeToken()
+  })
+})
+
+describe('F55: o sistema de experiencia nao escreve no sistema fiscal', () => {
+  /**
+   * O critério de aceite de F55 e um teste de NEGACAO, e ele nunca havia sido executado por nada.
+   * Enquanto o Worker escrevia como `service_role`, ele FALHAVA por construcao: aquele papel tem
+   * privilegio no `public` do sistema fiscal e passa por cima de RLS.
+   *
+   * Estes casos vao pela mesma pilha que a aplicacao usa — token do papel restrito, HTTP, PostgREST,
+   * Postgres — e nao por `has_table_privilege`. Ler o grant prova o que o catalogo diz; girar a
+   * maçaneta prova o que o banco faz.
+   */
+  const comPapelRestrito = async (caminho: string, init: RequestInit) => {
+    limpaCacheDeToken()
+    const cred = await credencial(env)
+    return fetch(`${BASE}${caminho}`, {
+      ...init,
+      headers: {
+        apikey: cred.apikey,
+        authorization: cred.autorizacao,
+        'content-profile': 'public',
+        'accept-profile': 'public',
+        ...((init.headers as Record<string, string> | undefined) ?? {}),
+      },
+    })
+  }
+
+  it.skipIf(!noAr)('LE as cinco tabelas de custo', async () => {
+    // Precisa poder ler: `vw_custo_prato` e `security_invoker`, entao quem precisa de permissao nas
+    // tabelas de custo e o papel do chamador. Sem leitura, a aba de pratos morre.
+    for (const tabela of [
+      'pratos',
+      'prato_ingredientes',
+      'insumos_master',
+      'historico_precos',
+      'producao_ingredientes',
+    ]) {
+      const r = await comPapelRestrito(`/rest/v1/${tabela}?select=id&limit=1`, { method: 'GET' })
+      expect(r.status, `nao consegue ler public.${tabela}`).toBe(200)
+    }
+  })
+
+  it.skipIf(!noAr)('NAO escreve em nenhuma das cinco', async () => {
+    const tentativas: { tabela: string; corpo: Record<string, unknown> }[] = [
+      { tabela: 'pratos', corpo: { nome: 'proibido', categoria: 'X' } },
+      { tabela: 'insumos_master', corpo: { nome_qt: 'PROIBIDO', tipo: 'comercial', rn: 1 } },
+      { tabela: 'historico_precos', corpo: { data: '2026-01-01', valor_unit_normalizado: 1 } },
+    ]
+    for (const t of tentativas) {
+      const r = await comPapelRestrito(`/rest/v1/${t.tabela}`, {
+        method: 'POST',
+        body: JSON.stringify([t.corpo]),
+        headers: { 'content-type': 'application/json' },
+      })
+      expect(
+        r.status,
+        `o INSERT em public.${t.tabela} foi ACEITO. O sistema de experiencia consome custo e nunca o produz (F55, ADR-04)`,
+      ).toBeGreaterThanOrEqual(400)
+    }
+  })
+
+  it.skipIf(!noAr)('NAO edita resposta, nem sob o papel da aplicacao', async () => {
+    // Append-only por PERMISSAO, e nao por comentario. Sem isto, uma nota poderia ser corrigida
+    // depois de gravada, e o historico deixaria de ser o que os clientes responderam.
+    limpaCacheDeToken()
+    const cred = await credencial(env)
+    const r = await fetch(`${BASE}/rest/v1/resposta?nota=eq.9`, {
+      method: 'PATCH',
+      body: JSON.stringify({ nota: 10 }),
+      headers: {
+        apikey: cred.apikey,
+        authorization: cred.autorizacao,
+        'content-type': 'application/json',
+        'content-profile': 'experiencia',
+      },
+    })
+    expect(r.status, 'o UPDATE em experiencia.resposta foi ACEITO').toBeGreaterThanOrEqual(400)
+    limpaCacheDeToken()
+  })
+
+  it.skipIf(!noAr)('o MESMO insert passa como service_role, e e isso que prova o mecanismo', async () => {
+    /**
+     * O caso mais importante deste arquivo, e o unico que prova que os outros nao passam por
+     * engano.
+     *
+     * Um teste de negacao que recusa por qualquer motivo — coluna errada, tabela inexistente,
+     * substituto sem `set role` — passa parecendo prova. O contraste e o que separa "foi recusado
+     * porque o papel restrito nao pode" de "foi recusado por outro motivo qualquer": o MESMO
+     * pedido, com a MESMA carga, tem de ser ACEITO quando quem escreve e o `service_role`.
+     *
+     * E o resultado tambem e a demonstracao de A07: era exatamente assim que o Worker escrevia
+     * antes, e por isso o critério de aceite de F55 falhava por construcao.
+     */
+    limpaCacheDeToken()
+    const credServico = await credencial(envSemSegredo)
+    expect(credServico.papel).toBe('service_role')
+
+    const carga = [{ nome: 'PROVA DO MECANISMO', categoria: 'X' }]
+    const comServico = await fetch(`${BASE}/rest/v1/pratos`, {
+      method: 'POST',
+      body: JSON.stringify(carga),
+      headers: {
+        apikey: credServico.apikey,
+        authorization: credServico.autorizacao,
+        'content-type': 'application/json',
+        'content-profile': 'public',
+      },
+    })
+    expect(
+      comServico.status,
+      'o insert como service_role foi recusado: o contraste nao prova nada assim, e os testes de negacao acima podem estar passando por outro motivo',
+    ).toBeLessThan(400)
+
+    // Limpa o que acabou de entrar: `vw_custo_prato` conta pratos, e um prato de teste sobrando
+    // mudaria o numero que a Parte 10 do ensaio confere a lapis.
+    await fetch(`${BASE}/rest/v1/pratos?nome=eq.PROVA%20DO%20MECANISMO`, {
+      method: 'DELETE',
+      headers: {
+        apikey: credServico.apikey,
+        authorization: credServico.autorizacao,
+        'content-profile': 'public',
+      },
+    })
+    limpaCacheDeToken()
+  })
+
+  it.skipIf(!noAr)('e o papel restrito NAO e o mesmo que o de leitura do painel', async () => {
+    // `anon` nao le nada, e e por isso que a chave publica no bundle e inofensiva. Conferido aqui
+    // tambem, e nao so na migration, porque este e o caminho HTTP de verdade.
+    const r = await fetch(`${BASE}/rest/v1/resposta?select=nota&limit=1`, {
+      headers: { apikey: 'publica', authorization: 'Bearer anon-sem-nada', 'accept-profile': 'experiencia' },
+    })
+    // Token sem claim `role` cai no papel de conexao do substituto, que e superusuario, entao este
+    // caso NAO prova nada sobre `anon` e existe apenas para registrar a limitacao: quem prova que
+    // `anon` nao le e a migration 20260817106000, com `set role anon` de verdade.
+    expect([200, 401, 403]).toContain(r.status)
   })
 })

@@ -27,6 +27,12 @@ CORTE_DIA_HORAS = "6"
 #   SUPABASE_SERVICE_KEY   (nunca vai para o bundle do PWA)
 #   SUPABASE_ANON_KEY      (a publica; so para /auth/v1/user conferir a sessao do painel na
 #                           rota de importacao manual. Nao escreve nada. Ver worker/lib/sessao.ts)
+#   SUPABASE_JWT_SECRET    (o segredo JWT do projeto. Com ele, o Worker assina um token curto com
+#                           `role: experiencia_app` e escreve COM as permissoes do papel restrito.
+#                           SEM ele, escreve como `service_role`, que passa por cima de RLS e
+#                           alcanca o `public` do sistema fiscal — e nesse caso a matriz de grants
+#                           das 26 tabelas e o critério de aceite de F55 NAO estao valendo.
+#                           `GET /api/saude` diz qual dos dois esta ativo. Ver worker/lib/token.ts)
 #   RESEND_API_KEY
 #   GROQ_API_KEY
 #   DRIVE_SA_JSON          (conta de servico, somente leitura, em UMA pasta)

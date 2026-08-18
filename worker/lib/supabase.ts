@@ -19,11 +19,22 @@ export interface Ambiente {
    * sessao do painel. Ver `worker/lib/sessao.ts`.
    */
   SUPABASE_ANON_KEY?: string
+  /**
+   * O segredo JWT do projeto. Quando presente, o Worker assina um token com
+   * `role: experiencia_app` e escreve COM as permissoes do papel restrito, em vez das do
+   * `service_role`, que passa por cima de RLS e alcanca o `public` do sistema fiscal.
+   *
+   * Ausente, o Worker usa a chave de servico e DIZ que esta usando, em `GET /api/saude`. Ver
+   * `worker/lib/token.ts`.
+   */
+  SUPABASE_JWT_SECRET?: string
   RESEND_API_KEY?: string
   GROQ_API_KEY?: string
   DRIVE_SA_JSON?: string
   TZ_CASA?: string
 }
+
+import { credencial } from './token.js'
 
 export class ErroBanco extends Error {
   constructor(
@@ -45,10 +56,14 @@ async function chama(
 ): Promise<Response> {
   const controle = new AbortController()
   const relogio = setTimeout(() => controle.abort(), TIMEOUT_MS)
+  // A credencial do papel RESTRITO quando o segredo JWT existe, e a chave de servico quando nao.
+  // Com o papel restrito, os grants das 26 tabelas e as politicas de RLS passam a valer para quem
+  // escreve de verdade; com a chave de servico, nada disso vale. Ver `worker/lib/token.ts`.
+  const cred = await credencial(env)
   try {
     const cabecalhos: Record<string, string> = {
-      apikey: env.SUPABASE_SERVICE_KEY,
-      authorization: `Bearer ${env.SUPABASE_SERVICE_KEY}`,
+      apikey: cred.apikey,
+      authorization: cred.autorizacao,
       'content-type': 'application/json',
       // O schema da pesquisa nao e `public`, e o PostgREST precisa disso explicito.
       'accept-profile': init.schema ?? 'experiencia',

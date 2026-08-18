@@ -192,6 +192,31 @@ function substituiBuffer(_chave, valor) {
   return valor
 }
 
+/**
+ * O papel do claim `role` do JWT, se houver.
+ *
+ * O PostgREST le esse claim e faz `set local role <papel>` antes da consulta. E isso que faz os
+ * grants e as politicas de RLS valerem para quem escreve: sem isso, quem escreve e o
+ * `service_role`, que passa por cima de tudo.
+ *
+ * Aqui a ASSINATURA nao e verificada, e isso e uma limitacao declarada: o que se quer exercitar e a
+ * MATRIZ DE PERMISSOES, e nao a criptografia. Verificar assinatura exigiria o segredo dos dois
+ * lados e nao mudaria em nada o que este substituto prova. Quem verifica assinatura de verdade e o
+ * PostgREST hospedado.
+ */
+function papelDoToken(req) {
+  const auth = req.headers.authorization ?? ''
+  if (!auth.toLowerCase().startsWith('bearer ')) return null
+  const partes = auth.slice(7).trim().split('.')
+  if (partes.length !== 3) return null
+  try {
+    const corpo = JSON.parse(Buffer.from(partes[1], 'base64url').toString('utf8'))
+    return typeof corpo.role === 'string' ? corpo.role : null
+  } catch {
+    return null
+  }
+}
+
 async function corpoDe(req) {
   const pedacos = []
   for await (const p of req) pedacos.push(p)
@@ -233,6 +258,31 @@ const servidor = createServer((req, res) => {
       const alvo = url.pathname.slice(prefixo.length)
       const schema = req.headers['content-profile'] ?? req.headers['accept-profile'] ?? 'public'
 
+      // Um cliente dedicado quando ha papel, para `set local role` valer para as consultas
+      // seguintes da MESMA requisicao. Com o pool cru, `set local` cairia num cliente qualquer.
+      const papel = papelDoToken(req)
+
+      /** Roda no papel do token, dentro de transacao, e devolve as linhas. */
+      const consulta = async (sql, valores) => {
+        if (papel === null || papel === 'service_role') {
+          return (await pool.query(sql, valores)).rows
+        }
+        const cliente = await pool.connect()
+        try {
+          await cliente.query('begin')
+          // `set local` vale ate o fim da transacao, e nao vaza para o proximo uso do cliente.
+          await cliente.query(`set local role ${cita(papel)}`)
+          const r = await cliente.query(sql, valores)
+          await cliente.query('commit')
+          return r.rows
+        } catch (e) {
+          await cliente.query('rollback').catch(() => {})
+          throw e
+        } finally {
+          cliente.release()
+        }
+      }
+
       if (alvo.startsWith('rpc/')) {
         if (req.method !== 'POST') throw new NaoSuportado(`${req.method} em rpc`)
         const fn = alvo.slice(4)
@@ -244,18 +294,16 @@ const servidor = createServer((req, res) => {
         const valores = nomes.map((n) =>
           typeof args[n] === 'object' && args[n] !== null ? JSON.stringify(args[n]) : args[n],
         )
-        const r = await pool.query(
+        const linhas = await consulta(
           `select ${cita(schema)}.${cita(fn)}(${lista}) as resultado`,
           valores,
         )
-        const v = r.rows[0]?.resultado ?? null
-        return responde(200, v)
+        return responde(200, linhas[0]?.resultado ?? null)
       }
 
       if (req.method === 'GET') {
         const { sql, valores } = montaSelect(alvo, url.searchParams, schema)
-        const r = await pool.query(sql, valores)
-        return responde(200, r.rows)
+        return responde(200, await consulta(sql, valores))
       }
 
       if (req.method === 'POST') {
@@ -269,8 +317,7 @@ const servidor = createServer((req, res) => {
           url.searchParams.get('on_conflict'),
           prefer.includes('return=representation'),
         )
-        const r = await pool.query(sql, valores)
-        return responde(201, r.rows)
+        return responde(201, await consulta(sql, valores))
       }
 
       if (req.method === 'PATCH') {
@@ -297,8 +344,16 @@ const servidor = createServer((req, res) => {
           ondeDeslocado +
           (String(req.headers.prefer ?? '').includes('return=representation') ? ' returning *' : '')
 
-        const r = await pool.query(sql, [...valores, ...valoresDoFiltro])
-        return responde(200, r.rows)
+        return responde(200, await consulta(sql, [...valores, ...valoresDoFiltro]))
+      }
+
+      if (req.method === 'DELETE') {
+        const { sql: selecao, valores } = montaSelect(alvo, url.searchParams, schema)
+        const onde = selecao.includes(' where ') ? selecao.slice(selecao.indexOf(' where ')) : ''
+        // DELETE sem filtro apagaria a tabela inteira. O PostgREST hospedado tambem recusa.
+        if (onde === '') throw new NaoSuportado('DELETE sem filtro')
+        await consulta(`delete from ${cita(schema)}.${cita(alvo)}${onde}`, valores)
+        return responde(204, null)
       }
 
       return responde(405, { message: `metodo ${req.method}` })
